@@ -18,6 +18,7 @@ package org.eclipse.jnosql.databases.arangodb.communication;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
