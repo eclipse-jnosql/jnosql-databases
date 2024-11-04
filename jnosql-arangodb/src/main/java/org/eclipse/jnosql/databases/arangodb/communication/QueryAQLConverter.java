@@ -11,7 +11,6 @@
  *   Contributors:
  *
  *   Otavio Santana
- *   Michele Rastelli
  */
 package org.eclipse.jnosql.databases.arangodb.communication;
 
@@ -19,7 +18,6 @@ import jakarta.data.Direction;
 import jakarta.data.Sort;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.ValueUtil;
-import org.eclipse.jnosql.communication.driver.StringMatch;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
@@ -188,7 +186,7 @@ final class QueryAQLConverter {
                     if (isFirstCondition(aql, localCounter)) {
                         aql.append(AND);
                     }
-                    definesCondition(dc, aql, params, entity, ++localCounter);
+                    definesCondition(dc, aql, params, entity, counter +1);
                 }
                 return;
             case OR:
