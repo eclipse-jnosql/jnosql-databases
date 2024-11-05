@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
@@ -58,7 +59,7 @@ public final class ArangoDBUtil {
     static void checkDatabase(String database, ArangoDB arangoDB) {
         Objects.requireNonNull(database, "database is required");
         try {
-            Collection<String> databases = arangoDB.getAccessibleDatabases();
+            Collection<String> databases = arangoDB.getDatabases();
             if (!databases.contains(database)) {
                 arangoDB.createDatabase(database);
             }
@@ -123,7 +124,7 @@ public final class ArangoDBUtil {
             if (KEY.equals(document.name()) && Objects.isNull(document.get())) {
                 continue;
             }
-            Object value = ValueUtil.convert(document.value(), ArangoDBValueWriteDecorator.ARANGO_DB_VALUE_WRITER);
+            Object value = ValueUtil.convert(document.value());
             builder.add(document.name(), toJsonValue(value));
         }
         return builder.build();

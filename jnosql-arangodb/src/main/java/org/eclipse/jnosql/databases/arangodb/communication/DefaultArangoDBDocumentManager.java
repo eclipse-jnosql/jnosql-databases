@@ -111,7 +111,7 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     public void delete(DeleteQuery query) {
         requireNonNull(query, "query is required");
         try {
-            checkCollection(query.name());
+
             if (query.condition().isEmpty()) {
                 AQLQueryResult delete = QueryAQLConverter.delete(query);
                 arangoDB.db(database).query(delete.query(), BaseDocument.class);
@@ -134,7 +134,6 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     @Override
     public Stream<CommunicationEntity> select(SelectQuery query) throws NullPointerException {
         requireNonNull(query, "query is required");
-        checkCollection(query.name());
         AQLQueryResult result = QueryAQLConverter.select(query);
         LOGGER.finest("Executing AQL: " + result.query());
         ArangoCursor<JsonObject> documents = arangoDB.db(database).query(result.query(),
@@ -222,15 +221,14 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public ArangoDB getArangoDB() {
-        return arangoDB;
-    }
-
     private void updateEntity(CommunicationEntity entity, String key, String id, String rev) {
         entity.add(Element.of(KEY, key));
         entity.add(Element.of(ID, id));
         entity.add(Element.of(REV, rev));
+    }
+
+    ArangoDB getArangoDB() {
+        return arangoDB;
     }
 
 }
