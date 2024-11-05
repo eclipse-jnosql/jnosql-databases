@@ -30,7 +30,8 @@ import static java.util.Objects.requireNonNull;
  */
 public abstract class ArangoDBConfiguration {
 
-    protected ArangoDB.Builder builder = new ArangoDB.Builder();
+    protected ArangoDB.Builder builder = new ArangoDB.Builder()
+            .serde(new JsonbSerde());
 
     /**
      * Adds a host in the arangodb builder
@@ -92,7 +93,13 @@ public abstract class ArangoDBConfiguration {
     }
 
     /**
-     * Set the ArangoDB serde
+     * Set the ArangoDB serde for the user data. Note that the provided
+     * serde must support serializing and deserializing JsonP types,
+     * i.e. {@link jakarta.json.JsonValue} and its children.
+     * By default, the builder is configured to use {@link JsonbSerde};
+     * this setter allows overriding it, i.e. providing an instance of
+     * {@link JsonbSerde} that uses a specific {@link jakarta.json.bind.Jsonb}
+     * instance.
      *
      * @param serde the serde
      */
@@ -100,10 +107,21 @@ public abstract class ArangoDBConfiguration {
         builder.serde(serde);
     }
 
-    protected ArangoDBBuilder getArangoDBBuilder(Settings settings) {
-        ArangoDBBuilder aragonDB = new ArangoDBBuilder(builder);
+    /**
+     * Defines a new builder to sync ArangoDB
+     *
+     * @param builder the new builder
+     * @throws NullPointerException when builder is null
+     */
+    public void syncBuilder(ArangoDB.Builder builder) throws NullPointerException {
+        requireNonNull(builder, "builder is required");
+        this.builder = builder;
+    }
+
+    protected ArangoDB getArangoDB(Settings settings) {
+        ArangoDBBuilderSync aragonDB = new ArangoDBBuilderSync(builder);
         ArangoDBBuilders.load(settings, aragonDB);
-        return aragonDB;
+        return aragonDB.build();
     }
 
 }
