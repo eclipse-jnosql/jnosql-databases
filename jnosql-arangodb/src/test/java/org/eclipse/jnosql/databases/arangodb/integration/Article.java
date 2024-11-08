@@ -23,7 +23,7 @@ import java.util.Objects;
 @Entity
 public class Article {
 
-    @Id
+    @Id("_key")
     private String id;
 
     @Column("title")
