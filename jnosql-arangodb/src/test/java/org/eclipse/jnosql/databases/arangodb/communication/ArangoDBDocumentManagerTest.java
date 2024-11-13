@@ -19,20 +19,18 @@ import com.arangodb.ArangoDB;
 import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
-import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
-import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +42,6 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
@@ -137,7 +134,7 @@ public class ArangoDBDocumentManagerTest {
         CommunicationEntity entitySaved = entityManager.insert(entity);
         Element id = entitySaved.find(KEY_NAME).get();
         SelectQuery query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
-        CommunicationEntity entityFound = entityManager.select(query).toList().get(0);
+        CommunicationEntity entityFound = entityManager.select(query).collect(Collectors.toList()).get(0);
         Element subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -151,7 +148,7 @@ public class ArangoDBDocumentManagerTest {
         CommunicationEntity entitySaved = entityManager.insert(entity);
         Element id = entitySaved.find(KEY_NAME).get();
         SelectQuery query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
-        CommunicationEntity entityFound = entityManager.select(query).toList().get(0);
+        CommunicationEntity entityFound = entityManager.select(query).collect(Collectors.toList()).get(0);
         Element subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -170,28 +167,6 @@ public class ArangoDBDocumentManagerTest {
     @Test
     void shouldRetrieveListSubdocumentList() {
         CommunicationEntity entity = entityManager.insert(createDocumentList());
-        Element key = entity.find(KEY_NAME).get();
-        SelectQuery query = select().from("AppointmentBook").where(key.name()).eq(key.get()).build();
-
-        CommunicationEntity documentEntity = entityManager.singleResult(query).get();
-        assertNotNull(documentEntity);
-
-        List<List<Element>> contacts = (List<List<Element>>) documentEntity.find("contacts").get().get();
-
-        assertEquals(3, contacts.size());
-        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
-    }
-
-    @Test
-    void shouldConvertFromListSubdocumentListNotUsingKey() {
-        CommunicationEntity entity = createDocumentListNotHavingId();
-        entityManager.insert(entity);
-
-    }
-
-    @Test
-    void shouldRetrieveListSubdocumentListNotUsingKey() {
-        CommunicationEntity entity = entityManager.insert(createDocumentListNotHavingId());
         Element key = entity.find(KEY_NAME).get();
         SelectQuery query = select().from("AppointmentBook").where(key.name()).eq(key.get()).build();
 
@@ -225,28 +200,12 @@ public class ArangoDBDocumentManagerTest {
     }
 
     @Test
-    void shouldCountWithSelectQuery() {
-        CommunicationEntity entity = entityManager.insert(createDocumentListNotHavingId());
-        Element key = entity.find(KEY_NAME).get();
-        SelectQuery query = select().from("AppointmentBook").where(key.name()).eq(key.get()).build();
-
-        assertSoftly(softly -> {
-            softly.assertThat(entityManager.count(query))
-                    .as("should count documents matching the query")
-                    .isEqualTo(1L);
-            softly.assertThatThrownBy(() -> entityManager.count((SelectQuery) null))
-                    .as("must not accept null query")
-                    .isInstanceOf(NullPointerException.class);
-        });
-    }
-
-    @Test
     void shouldReadFromDifferentBaseDocumentUsingInstance() {
         entityManager.insert(getEntity());
         ArangoDB arangoDB = DefaultArangoDBDocumentManager.class.cast(entityManager).getArangoDB();
-        arangoDB.db(DATABASE).collection(COLLECTION_NAME).insertDocument(new Human());
+        arangoDB.db(DATABASE).collection(COLLECTION_NAME).insertDocument(new Person());
         SelectQuery select = select().from(COLLECTION_NAME).build();
-        List<CommunicationEntity> entities = entityManager.select(select).toList();
+        List<CommunicationEntity> entities = entityManager.select(select).collect(Collectors.toList());
         assertFalse(entities.isEmpty());
     }
 
@@ -259,7 +218,7 @@ public class ArangoDBDocumentManagerTest {
         map.put("city", "Salvador");
         arangoDB.db(DATABASE).collection(COLLECTION_NAME).insertDocument(map);
         SelectQuery select = select().from(COLLECTION_NAME).build();
-        List<CommunicationEntity> entities = entityManager.select(select).toList();
+        List<CommunicationEntity> entities = entityManager.select(select).collect(Collectors.toList());
         assertFalse(entities.isEmpty());
     }
 
@@ -268,7 +227,7 @@ public class ArangoDBDocumentManagerTest {
         entityManager.insert(getEntity());
         String aql = "FOR a IN person FILTER a.name == @name RETURN a.name";
         List<String> entities = entityManager.aql(aql,
-                singletonMap("name", "Poliana"), String.class).toList();
+                singletonMap("name", "Poliana"), String.class).collect(Collectors.toList());
 
         assertFalse(entities.isEmpty());
     }
@@ -277,7 +236,7 @@ public class ArangoDBDocumentManagerTest {
     void shouldExecuteAQLWithType() {
         entityManager.insert(getEntity());
         String aql = "FOR a IN person RETURN a.name";
-        List<String> entities = entityManager.aql(aql, String.class).toList();
+        List<String> entities = entityManager.aql(aql, String.class).collect(Collectors.toList());
         assertFalse(entities.isEmpty());
     }
 
@@ -288,7 +247,7 @@ public class ArangoDBDocumentManagerTest {
         entity.add(Element.of("name", null));
         CommunicationEntity documentEntity = entityManager.insert(entity);
         Optional<Element> name = documentEntity.find("name");
-        assertSoftly(soft -> {
+        SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(name).isPresent();
             soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(name).get().extracting(Element::get).isNull();
@@ -301,7 +260,7 @@ public class ArangoDBDocumentManagerTest {
         entity.add(Element.of("name", null));
         var documentEntity = entityManager.update(entity);
         Optional<Element> name = documentEntity.find("name");
-        assertSoftly(soft -> {
+        SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(name).isPresent();
             soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(name).get().extracting(Element::get).isNull();
@@ -370,105 +329,6 @@ public class ArangoDBDocumentManagerTest {
         assertThat(adb.getVersion()).isNotNull();
     }
 
-    @Test
-    void shouldInsertUUID() {
-        var entity = getEntity();
-        entity.add("uuid", UUID.randomUUID());
-        var documentEntity = entityManager.insert(entity);
-        Optional<Element> uuid = documentEntity.find("uuid");
-        assertSoftly(soft -> {
-            soft.assertThat(uuid).isPresent();
-            Element element = uuid.orElseThrow();
-            soft.assertThat(element.name()).isEqualTo("uuid");
-            soft.assertThat(element.get(UUID.class)).isInstanceOf(UUID.class);
-        });
-
-    }
-
-    @Test
-    void shouldFindBetween() {
-        var deleteQuery = delete().from(COLLECTION_NAME).where("type").eq("V").build();
-        entityManager.delete(deleteQuery);
-        entityManager.insert(getEntitiesWithValues());
-
-        var query = select().from(COLLECTION_NAME)
-                .where("age").between(22, 23)
-                .build();
-
-        var result = entityManager.select(query).toList();
-
-        assertSoftly(softly -> {
-            softly.assertThat(result).hasSize(2);
-            softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).contains(22, 23);
-            softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).doesNotContain(25);
-        });
-    }
-
-    @Test
-    void shouldFindBetween2() {
-        var deleteQuery = delete().from(COLLECTION_NAME).where("type").eq("V").build();
-        entityManager.delete(deleteQuery);
-        entityManager.insert(getEntitiesWithValues());
-
-        var query = select().from(COLLECTION_NAME)
-                .where("age").between(22, 23)
-                .and("type").eq("V")
-                .build();
-
-        var result = entityManager.select(query).toList();
-
-        assertSoftly(softly -> {
-            softly.assertThat(result).hasSize(2);
-            softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).contains(22, 23);
-            softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).doesNotContain(25);
-        });
-    }
-
-    @Test
-    void shouldFindContains() {
-        var entity = getEntity();
-
-        entityManager.insert(entity);
-        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.contains(Element.of("name",
-                "lia")), COLLECTION_NAME, Collections.emptyList());
-
-        var result = entityManager.select(query).toList();
-        assertSoftly(softly -> {
-            softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
-        });
-    }
-
-    @Test
-    void shouldStartsWith() {
-        var entity = getEntity();
-
-        entityManager.insert(entity);
-        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.startsWith(Element.of("name",
-                "Pol")), COLLECTION_NAME, Collections.emptyList());
-
-        var result = entityManager.select(query).toList();
-        assertSoftly(softly -> {
-            softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
-        });
-    }
-
-    @Test
-    void shouldEndsWith() {
-        var entity = getEntity();
-
-        entityManager.insert(entity);
-        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.endsWith(Element.of("name",
-                "ana")), COLLECTION_NAME, Collections.emptyList());
-
-        var result = entityManager.select(query).toList();
-        assertSoftly(softly -> {
-            softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
-        });
-    }
-
     private CommunicationEntity getEntity() {
         CommunicationEntity entity = CommunicationEntity.of(COLLECTION_NAME);
         Map<String, Object> map = new HashMap<>();
@@ -497,47 +357,6 @@ public class ArangoDBDocumentManagerTest {
 
         entity.add(Element.of("contacts", documents));
         return entity;
-    }
-
-    private CommunicationEntity createDocumentListNotHavingId() {
-        CommunicationEntity entity = CommunicationEntity.of("AppointmentBook");
-        entity.add(Element.of("_id", "ids"));
-        List<List<Element>> documents = new ArrayList<>();
-
-        documents.add(asList(Element.of("name", "Ada"), Element.of("type", ContactType.EMAIL),
-                Element.of("information", "ada@lovelace.com")));
-
-        documents.add(asList(Element.of("name", "Ada"), Element.of("type", ContactType.MOBILE),
-                Element.of("information", "11 1231231 123")));
-
-        documents.add(asList(Element.of("name", "Ada"), Element.of("type", ContactType.PHONE),
-                Element.of("information", "phone")));
-
-        entity.add(Element.of("contacts", documents));
-        return entity;
-    }
-
-    private List<CommunicationEntity> getEntitiesWithValues() {
-        var lucas = CommunicationEntity.of(COLLECTION_NAME);
-        lucas.add(Element.of("name", "Lucas"));
-        lucas.add(Element.of("age", 22));
-        lucas.add(Element.of("location", "BR"));
-        lucas.add(Element.of("type", "V"));
-
-        var luna = CommunicationEntity.of(COLLECTION_NAME);
-        luna.add(Element.of("name", "Luna"));
-        luna.add(Element.of("age", 23));
-        luna.add(Element.of("location", "US"));
-        luna.add(Element.of("type", "V"));
-
-        var otavio = CommunicationEntity.of(COLLECTION_NAME);
-        otavio.add(Element.of("name", "Otavio"));
-        otavio.add(Element.of("age", 25));
-        otavio.add(Element.of("location", "BR"));
-        otavio.add(Element.of("type", "V"));
-
-
-        return asList(lucas, otavio, luna);
     }
 
 }

@@ -27,7 +27,6 @@ import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -77,23 +76,12 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
         requireNonNull(entity, "entity is required");
         String collectionName = entity.name();
         checkCollection(collectionName);
-        Optional<String> keyElement = entity.find(KEY, String.class);
-        Optional<String> idElement = entity.find(ID, String.class);
-        if (keyElement.isEmpty() && idElement.isEmpty()) {
-            throw new IllegalArgumentException("To update an entity is necessary to have either " + KEY + " or " + ID);
-        }
-        var key = keyElement.orElseGet(() -> {
-            String id = idElement.orElseThrow();
-            var elements = id.split("/");
-            if (elements.length == 2) {
-                return elements[1];
-            } else {
-                return elements[0];
-            }
-        });
+        entity.find(KEY, String.class)
+                .orElseThrow(() -> new IllegalArgumentException("The document does not provide" +
+                        " the _key column"));
         JsonObject jsonObject = ArangoDBUtil.toJsonObject(entity);
         DocumentUpdateEntity<Void> arangoDocument = arangoDB.db(database)
-                .collection(collectionName).updateDocument(key, jsonObject);
+                .collection(collectionName).updateDocument(jsonObject.getString(KEY), jsonObject);
         updateEntity(entity, arangoDocument.getKey(), arangoDocument.getId(), arangoDocument.getRev());
         return entity;
     }
@@ -221,15 +209,15 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public ArangoDB getArangoDB() {
+        return arangoDB;
+    }
+
     private void updateEntity(CommunicationEntity entity, String key, String id, String rev) {
         entity.add(Element.of(KEY, key));
         entity.add(Element.of(ID, id));
         entity.add(Element.of(REV, rev));
-    }
-
-    @Override
-    public ArangoDB getArangoDB() {
-        return arangoDB;
     }
 
 }
