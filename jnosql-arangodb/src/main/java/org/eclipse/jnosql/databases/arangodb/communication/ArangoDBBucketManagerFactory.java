@@ -23,15 +23,12 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * The ArangoDB implementation to {@link BucketManagerFactory}.
- * It does not support:
+ * The ArangoDB implementation to {@link BucketManagerFactory}
+ * it does not support:
  * <p>{@link BucketManagerFactory#getMap(String, Class, Class)}</p>
  * <p>{@link BucketManagerFactory#getSet(String, Class)}</p>
  * <p>{@link BucketManagerFactory#getQueue(String, Class)}</p>
  * <p>{@link BucketManagerFactory#getList(String, Class)}</p>
- * <br/>
- * Closing an ArangoDBBucketManagerFactory has no effect. The ArangoDB driver instance will be closed in
- * ${@link ArangoDBBucketManager}.close().
  */
 public class ArangoDBBucketManagerFactory implements BucketManagerFactory {
 
@@ -74,13 +71,10 @@ public class ArangoDBBucketManagerFactory implements BucketManagerFactory {
         throw new UnsupportedOperationException("The ArangoDB does not support getList method");
     }
 
-    /**
-     * Closing an {@link ArangoDBBucketManagerFactory} has no effect.
-     * The ArangoDB driver instance will be closed in ${@link ArangoDBBucketManager}.close().
-     */
     @Override
     public void close() {
         // no-op
+        // ArangoDB driver instance will be closed in ArangoDBBucketManager.close()
     }
 
 }
