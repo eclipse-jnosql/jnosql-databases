@@ -344,6 +344,45 @@ public class ArangoDBDocumentManagerTest {
 
     }
 
+    @Test
+    void shouldFindBetween() {
+        var deleteQuery = delete().from(COLLECTION_NAME).where("type").eq("V").build();
+        entityManager.delete(deleteQuery);
+        entityManager.insert(getEntitiesWithValues());
+
+        var query = select().from(COLLECTION_NAME)
+                .where("age").between(22, 23)
+                .build();
+
+        var result = entityManager.select(query).toList();
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(2);
+            softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).contains(22, 23);
+            softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).doesNotContain(25);
+        });
+    }
+
+    @Test
+    void shouldFindBetween2() {
+        var deleteQuery = delete().from(COLLECTION_NAME).where("type").eq("V").build();
+        entityManager.delete(deleteQuery);
+        entityManager.insert(getEntitiesWithValues());
+
+        var query = select().from(COLLECTION_NAME)
+                .where("age").between(22, 23)
+                .and("type").eq("V")
+                .build();
+
+        var result = entityManager.select(query).toList();
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(2);
+            softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).contains(22, 23);
+            softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).doesNotContain(25);
+        });
+    }
+
     private CommunicationEntity getEntity() {
         CommunicationEntity entity = CommunicationEntity.of(COLLECTION_NAME);
         Map<String, Object> map = new HashMap<>();
@@ -372,6 +411,29 @@ public class ArangoDBDocumentManagerTest {
 
         entity.add(Element.of("contacts", documents));
         return entity;
+    }
+
+    private List<CommunicationEntity> getEntitiesWithValues() {
+        var lucas = CommunicationEntity.of(COLLECTION_NAME);
+        lucas.add(Element.of("name", "Lucas"));
+        lucas.add(Element.of("age", 22));
+        lucas.add(Element.of("location", "BR"));
+        lucas.add(Element.of("type", "V"));
+
+        var luna = CommunicationEntity.of(COLLECTION_NAME);
+        luna.add(Element.of("name", "Luna"));
+        luna.add(Element.of("age", 23));
+        luna.add(Element.of("location", "US"));
+        luna.add(Element.of("type", "V"));
+
+        var otavio = CommunicationEntity.of(COLLECTION_NAME);
+        otavio.add(Element.of("name", "Otavio"));
+        otavio.add(Element.of("age", 25));
+        otavio.add(Element.of("location", "BR"));
+        otavio.add(Element.of("type", "V"));
+
+
+        return asList(lucas, otavio, luna);
     }
 
 }
