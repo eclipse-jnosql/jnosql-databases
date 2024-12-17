@@ -123,7 +123,7 @@ public final class ArangoDBUtil {
             if (KEY.equals(document.name()) && Objects.isNull(document.get())) {
                 continue;
             }
-            Object value = ValueUtil.convert(document.value());
+            Object value = ValueUtil.convert(document.value(), ArangoDBValueWriteDecorator.ARANGO_DB_VALUE_WRITER);
             builder.add(document.name(), toJsonValue(value));
         }
         return builder.build();

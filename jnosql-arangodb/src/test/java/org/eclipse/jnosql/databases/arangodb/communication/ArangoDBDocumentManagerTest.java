@@ -329,6 +329,21 @@ public class ArangoDBDocumentManagerTest {
         assertThat(adb.getVersion()).isNotNull();
     }
 
+    @Test
+    void shouldInsertUUID() {
+        var entity = getEntity();
+        entity.add("uuid", UUID.randomUUID());
+        var documentEntity = entityManager.insert(entity);
+        Optional<Element> uuid = documentEntity.find("uuid");
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(uuid).isPresent();
+            Element element = uuid.orElseThrow();
+            soft.assertThat(element.name()).isEqualTo("uuid");
+            soft.assertThat(element.get(UUID.class)).isInstanceOf(UUID.class);
+        });
+
+    }
+
     private CommunicationEntity getEntity() {
         CommunicationEntity entity = CommunicationEntity.of(COLLECTION_NAME);
         Map<String, Object> map = new HashMap<>();

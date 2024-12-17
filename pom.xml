@@ -12,7 +12,6 @@
   ~   Contributors:
   ~
   ~   Otavio Santana
-  ~   Maximillian Arruda
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -20,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <relativePath/>
+        <relativePath />
         <groupId>org.eclipse.jnosql.mapping</groupId>
         <artifactId>jnosql-mapping-parent</artifactId>
         <version>1.1.13-SNAPSHOT</version>
@@ -28,7 +27,6 @@
 
     <groupId>org.eclipse.jnosql.databases</groupId>
     <artifactId>jnosql-databases-parent</artifactId>
-    <name>JNoSQL Databases Parent</name>
     <packaging>pom</packaging>
 
     <description>The Eclipse JNoSQL databases vendors</description>
@@ -40,7 +38,7 @@
     </scm>
 
     <properties>
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
         <jnosql.test.integration>false</jnosql.test.integration>
         <pmd.url>https://raw.githubusercontent.com/eclipse/jnosql-databases/refs/heads/main/pmd/pmd-rules.xml</pmd.url>
     </properties>
@@ -64,7 +62,6 @@
         <module>jnosql-riak</module>
         <module>jnosql-solr</module>
         <module>jnosql-oracle-nosql</module>
-        <module>jnosql-neo4j</module>
         <module>jnosql-tinkerpop</module>
     </modules>
 
@@ -110,20 +107,10 @@
                 <artifactId>jnosql-mapping-key-value</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>jakarta.nosql</groupId>
-                <artifactId>jakarta.nosql-tck</artifactId>
-                <version>${jakarta.nosql.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>jakarta.nosql</groupId>
-            <artifactId>jakarta.nosql-tck</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
@@ -144,8 +131,8 @@
             </snapshots>
         </repository>
         <repository>
-            <id>central.sonatype.com-snapshot</id>
-            <url>https://central.sonatype.com/repository/maven-snapshots</url>
+            <id>oss.sonatype.org-snapshot</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -154,36 +141,4 @@
             </snapshots>
         </repository>
     </repositories>
-
-    <profiles>
-        <profile>
-            <id>tck</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven.surefire.plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>nosql-tck-runner</id>
-                                <phase>test</phase>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <configuration>
-                                    <excludes>
-                                        <exclude>org/eclipse/jnosql/**.**Test.class</exclude>
-                                    </excludes>
-                                    <dependenciesToScan>
-                                        <dependency>jakarta.nosql:jakarta.nosql-tck</dependency>
-                                    </dependenciesToScan>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
