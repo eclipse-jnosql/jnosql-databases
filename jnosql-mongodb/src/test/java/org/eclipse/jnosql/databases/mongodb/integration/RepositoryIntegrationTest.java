@@ -45,7 +45,7 @@ import static org.eclipse.jnosql.databases.mongodb.communication.DocumentDatabas
 
 @EnableAutoWeld
 @AddPackages(value = {Database.class, EntityConverter.class, DocumentTemplate.class, MongoDBTemplate.class})
-@AddPackages(Book.class)
+@AddPackages(Magazine.class)
 @AddPackages(Reflections.class)
 @AddPackages(Converters.class)
 @AddExtensions({EntityMetadataExtension.class,
@@ -61,7 +61,7 @@ class RepositoryIntegrationTest {
 
     @Inject
     @Database(DatabaseType.DOCUMENT)
-    BookRepository repository;
+    MagazineRepository repository;
 
 
     @Inject
@@ -74,18 +74,18 @@ class RepositoryIntegrationTest {
 
     @Test
     void shouldSave() {
-        Book book = new Book(randomUUID().toString(), "Effective Java", 1);
-        assertThat(repository.save(book))
+        Magazine magazine = new Magazine(randomUUID().toString(), "Effective Java", 1);
+        assertThat(repository.save(magazine))
                 .isNotNull()
-                .isEqualTo(book);
+                .isEqualTo(magazine);
 
-        Book updated = new Book(book.id(), book.title() + " updated", 2);
+        Magazine updated = new Magazine(magazine.id(), magazine.title() + " updated", 2);
 
         assertThat(repository.save(updated))
                 .isNotNull()
-                .isNotEqualTo(book);
+                .isNotEqualTo(magazine);
 
-        assertThat(repository.findById(book.id()))
+        assertThat(repository.findById(magazine.id()))
                 .isNotNull().get().isEqualTo(updated);
 
         assertSoftly(softly -> {
@@ -93,9 +93,9 @@ class RepositoryIntegrationTest {
             BookOrder order = new BookOrder(
                     randomUUID().toString(),
                     List.of(
-                            new BookOrderItem(new Book(randomUUID().toString(), "Effective Java", 3), 1)
-                            , new BookOrderItem(new Book(randomUUID().toString(), "Java Persistence Layer", 1), 10)
-                            , new BookOrderItem(new Book(randomUUID().toString(), "Jakarta EE Cookbook", 1), 5)
+                            new BookOrderItem(new Magazine(randomUUID().toString(), "Effective Java", 3), 1)
+                            , new BookOrderItem(new Magazine(randomUUID().toString(), "Java Persistence Layer", 1), 10)
+                            , new BookOrderItem(new Magazine(randomUUID().toString(), "Jakarta EE Cookbook", 1), 5)
                     )
             );
 
@@ -122,35 +122,35 @@ class RepositoryIntegrationTest {
 
     @Test
     void shouldDelete() {
-        Book book = new Book(randomUUID().toString(), "Effective Java", 1);
-        assertThat(repository.save(book))
+        Magazine magazine = new Magazine(randomUUID().toString(), "Effective Java", 1);
+        assertThat(repository.save(magazine))
                 .isNotNull()
-                .isEqualTo(book);
+                .isEqualTo(magazine);
 
-        repository.delete(book);
-        assertThat(repository.findById(book.id()))
+        repository.delete(magazine);
+        assertThat(repository.findById(magazine.id()))
                 .isNotNull().isEmpty();
     }
 
     @Test
     void shouldDeleteById() {
-        Book book = new Book(randomUUID().toString(), "Effective Java", 1);
-        assertThat(repository.save(book))
+        Magazine magazine = new Magazine(randomUUID().toString(), "Effective Java", 1);
+        assertThat(repository.save(magazine))
                 .isNotNull()
-                .isEqualTo(book);
+                .isEqualTo(magazine);
 
-        repository.deleteById(book.id());
-        assertThat(repository.findById(book.id()))
+        repository.deleteById(magazine.id());
+        assertThat(repository.findById(magazine.id()))
                 .isNotNull().isEmpty();
     }
 
     @Test
     void shouldDeleteAll() {
         for (int index = 0; index < 20; index++) {
-            Book book = new Book(randomUUID().toString(), "Effective Java", 1);
-            assertThat(repository.save(book))
+            Magazine magazine = new Magazine(randomUUID().toString(), "Effective Java", 1);
+            assertThat(repository.save(magazine))
                     .isNotNull()
-                    .isEqualTo(book);
+                    .isEqualTo(magazine);
         }
 
         repository.deleteAll();

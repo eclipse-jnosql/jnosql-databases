@@ -23,7 +23,6 @@ import org.eclipse.jnosql.databases.cassandra.communication.UDT;
 import org.eclipse.jnosql.databases.cassandra.mapping.model.Actor;
 import org.eclipse.jnosql.databases.cassandra.mapping.model.AppointmentBook;
 import org.eclipse.jnosql.databases.cassandra.mapping.model.Artist;
-import org.eclipse.jnosql.databases.cassandra.mapping.model.Contact;
 import org.eclipse.jnosql.databases.cassandra.mapping.model.Director;
 import org.eclipse.jnosql.databases.cassandra.mapping.model.History2;
 import org.eclipse.jnosql.databases.cassandra.mapping.model.Job;
@@ -284,13 +283,13 @@ public class CassandraColumnEntityConverterTest {
         address.setCity("California");
         address.setStreet("Street");
 
-        Person person = new Person();
-        person.setAge(10);
-        person.setName("Ada");
-        person.setHome(address);
+        Contact contact = new Contact();
+        contact.setAge(10);
+        contact.setName("Ada");
+        contact.setHome(address);
 
-        var entity = converter.toCommunication(person);
-        assertEquals("Person", entity.name());
+        var entity = converter.toCommunication(contact);
+        assertEquals("Contact", entity.name());
         Element column = entity.find("home").get();
         UDT udt = UDT.class.cast(column);
 
@@ -304,7 +303,7 @@ public class CassandraColumnEntityConverterTest {
 
     @Test
     public void shouldSupportUDTToEntity() {
-        var entity = CommunicationEntity.of("Person");
+        var entity = CommunicationEntity.of("Contact");
         entity.add(Element.of("name", "Poliana"));
         entity.add(Element.of("age", 20));
         List<Element> columns = asList(Element.of("city", "Salvador"),
@@ -313,11 +312,11 @@ public class CassandraColumnEntityConverterTest {
                 .addUDT(columns).build();
         entity.add(udt);
 
-        Person person = converter.toEntity(entity);
-        assertNotNull(person);
-        Address home = person.getHome();
-        assertEquals("Poliana", person.getName());
-        assertEquals(Integer.valueOf(20), person.getAge());
+        Contact contact = converter.toEntity(entity);
+        assertNotNull(contact);
+        Address home = contact.getHome();
+        assertEquals("Poliana", contact.getName());
+        assertEquals(Integer.valueOf(20), contact.getAge());
         assertEquals("Salvador", home.getCity());
         assertEquals("Jose Anasoh", home.getStreet());
 
@@ -343,8 +342,8 @@ public class CassandraColumnEntityConverterTest {
     public void shouldConvertListUDT() {
         AppointmentBook appointmentBook = new AppointmentBook();
         appointmentBook.setUser("otaviojava");
-        appointmentBook.setContacts(asList(new Contact("Poliana", "poliana@santana.com"),
-                new Contact("Ada", "ada@lovelace.com")));
+        appointmentBook.setContacts(asList(new org.eclipse.jnosql.databases.cassandra.mapping.model.Contact("Poliana", "poliana@santana.com"),
+                new org.eclipse.jnosql.databases.cassandra.mapping.model.Contact("Ada", "ada@lovelace.com")));
 
         var entity = converter.toCommunication(appointmentBook);
         assertEquals("AppointmentBook", entity.name());
@@ -370,11 +369,11 @@ public class CassandraColumnEntityConverterTest {
         entity.add(Element.of("user", "otaviojava"));
         entity.add(UDT.builder("Contact").withName("contacts").addUDTs(columns).build());
         AppointmentBook appointmentBook = converter.toEntity(entity);
-        List<Contact> contacts = appointmentBook.getContacts();
+        List<org.eclipse.jnosql.databases.cassandra.mapping.model.Contact> contacts = appointmentBook.getContacts();
         assertEquals("otaviojava", appointmentBook.getUser());
 
-        assertThat(contacts).contains(new Contact("Poliana", "poliana"),
-                new Contact("Ada", "ada@lovelace.com"));
+        assertThat(contacts).contains(new org.eclipse.jnosql.databases.cassandra.mapping.model.Contact("Poliana", "poliana"),
+                new org.eclipse.jnosql.databases.cassandra.mapping.model.Contact("Ada", "ada@lovelace.com"));
 
 
     }

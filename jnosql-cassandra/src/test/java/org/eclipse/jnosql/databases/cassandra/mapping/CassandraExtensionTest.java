@@ -38,7 +38,7 @@ public class CassandraExtensionTest {
 
 
     @Inject
-    private PersonRepository repository;
+    private ContactRepository repository;
 
     @Test
     public void shouldSaveCassandra() {

@@ -18,5 +18,5 @@ import jakarta.nosql.Column;
 import jakarta.nosql.Entity;
 
 @Entity
-public record BookOrderItem(@Column Book book, @Column Integer quantity) {
+public record BookOrderItem(@Column Magazine magazine, @Column Integer quantity) {
 }

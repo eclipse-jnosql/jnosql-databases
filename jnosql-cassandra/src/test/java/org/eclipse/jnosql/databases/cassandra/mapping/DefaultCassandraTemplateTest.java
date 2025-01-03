@@ -90,7 +90,7 @@ public class DefaultCassandraTemplateTest {
 
     @Test
     void shouldSaveConsistency() {
-        var entity = CommunicationEntity.of("Person", asList(Element.of("name", "Name"), Element.of("age", 20)));
+        var entity = CommunicationEntity.of("Contact", asList(Element.of("name", "Name"), Element.of("age", 20)));
         entity.addNull("home");
         ArgumentCaptor<CommunicationEntity> captor = ArgumentCaptor.forClass(CommunicationEntity.class);
 
@@ -100,10 +100,10 @@ public class DefaultCassandraTemplateTest {
                 save(Mockito.any(CommunicationEntity.class), Mockito.eq(level)))
                 .thenReturn(entity);
 
-        Person person = new Person();
-        person.setName("Name");
-        person.setAge(20);
-        assertEquals(person, template.save(person, level));
+        Contact contact = new Contact();
+        contact.setName("Name");
+        contact.setAge(20);
+        assertEquals(contact, template.save(contact, level));
 
         Mockito.verify(manager).save(captor.capture(), Mockito.eq(level));
         assertEquals(entity, captor.getValue());
@@ -112,7 +112,7 @@ public class DefaultCassandraTemplateTest {
 
     @Test
     void shouldSaveConsistencyIterable() {
-        CommunicationEntity entity = CommunicationEntity.of("Person", asList(Element.of("name", "Name"), Element.of("age", 20)));
+        CommunicationEntity entity = CommunicationEntity.of("Contact", asList(Element.of("name", "Name"), Element.of("age", 20)));
         entity.addNull("home");
         ArgumentCaptor<CommunicationEntity> captor = ArgumentCaptor.forClass(CommunicationEntity.class);
 
@@ -122,10 +122,10 @@ public class DefaultCassandraTemplateTest {
                 save(Mockito.any(CommunicationEntity.class), Mockito.eq(level)))
                 .thenReturn(entity);
 
-        Person person = new Person();
-        person.setName("Name");
-        person.setAge(20);
-        assertThat(template.save(Collections.singletonList(person), level)).contains(person);
+        Contact contact = new Contact();
+        contact.setName("Name");
+        contact.setAge(20);
+        assertThat(template.save(Collections.singletonList(contact), level)).contains(contact);
         Mockito.verify(manager).save(captor.capture(), Mockito.eq(level));
         assertEquals(entity, captor.getValue());
 
@@ -134,7 +134,7 @@ public class DefaultCassandraTemplateTest {
     @Test
     void shouldSaveConsistencyDuration() {
         Duration duration = Duration.ofHours(2);
-        CommunicationEntity entity = CommunicationEntity.of("Person", asList(Element.of("name", "Name"), Element.of("age", 20)));
+        CommunicationEntity entity = CommunicationEntity.of("Contact", asList(Element.of("name", "Name"), Element.of("age", 20)));
         entity.addNull("home");
         ArgumentCaptor<CommunicationEntity> captor = ArgumentCaptor.forClass(CommunicationEntity.class);
 
@@ -144,10 +144,10 @@ public class DefaultCassandraTemplateTest {
                         Mockito.eq(level)))
                 .thenReturn(entity);
 
-        Person person = new Person();
-        person.setName("Name");
-        person.setAge(20);
-        assertEquals(person, template.save(person, duration, level));
+        Contact contact = new Contact();
+        contact.setName("Name");
+        contact.setAge(20);
+        assertEquals(contact, template.save(contact, duration, level));
 
         Mockito.verify(manager).save(captor.capture(), Mockito.eq(duration), Mockito.eq(level));
         assertEquals(entity, captor.getValue());
@@ -156,7 +156,7 @@ public class DefaultCassandraTemplateTest {
     @Test
     void shouldSaveConsistencyDurationIterable() {
         Duration duration = Duration.ofHours(2);
-        CommunicationEntity entity = CommunicationEntity.of("Person", asList(Element.of("name", "Name"), Element.of("age", 20)));
+        CommunicationEntity entity = CommunicationEntity.of("Contact", asList(Element.of("name", "Name"), Element.of("age", 20)));
         entity.addNull("home");
         ArgumentCaptor<CommunicationEntity> captor = ArgumentCaptor.forClass(CommunicationEntity.class);
 
@@ -166,10 +166,10 @@ public class DefaultCassandraTemplateTest {
                         Mockito.eq(level)))
                 .thenReturn(entity);
 
-        Person person = new Person();
-        person.setName("Name");
-        person.setAge(20);
-        assertThat(template.save(Collections.singletonList(person), duration, level)).contains(person);
+        Contact contact = new Contact();
+        contact.setName("Name");
+        contact.setAge(20);
+        assertThat(template.save(Collections.singletonList(contact), duration, level)).contains(contact);
         Mockito.verify(manager).save(captor.capture(), Mockito.eq(duration), Mockito.eq(level));
         assertEquals(entity, captor.getValue());
     }
@@ -186,45 +186,45 @@ public class DefaultCassandraTemplateTest {
 
     @Test
     void shouldFind() {
-        Person person = new Person();
-        person.setName("Name");
-        person.setAge(20);
+        Contact contact = new Contact();
+        contact.setName("Name");
+        contact.setAge(20);
 
-        CommunicationEntity entity = CommunicationEntity.of("Person", asList(Element.of("name", "Name"), Element.of("age", 20)));
+        CommunicationEntity entity = CommunicationEntity.of("Contact", asList(Element.of("name", "Name"), Element.of("age", 20)));
         SelectQuery query = select().from("columnFamily").build();
         ConsistencyLevel level = ConsistencyLevel.THREE;
         when(manager.select(query, level)).thenReturn(Stream.of(entity));
 
-        Stream<Person> people = template.find(query, level);
-        assertThat(people.collect(Collectors.toList())).contains(person);
+        Stream<Contact> people = template.find(query, level);
+        assertThat(people.collect(Collectors.toList())).contains(contact);
     }
 
     @Test
     void shouldFindCQL() {
-        Person person = new Person();
-        person.setName("Name");
-        person.setAge(20);
+        Contact contact = new Contact();
+        contact.setName("Name");
+        contact.setAge(20);
         String cql = "select * from Person";
-        CommunicationEntity entity = CommunicationEntity.of("Person", asList(Element.of("name", "Name"), Element.of("age", 20)));
+        CommunicationEntity entity = CommunicationEntity.of("Contact", asList(Element.of("name", "Name"), Element.of("age", 20)));
 
         when(manager.cql(cql)).thenReturn(Stream.of(entity));
 
-        List<Person> people = template.<Person>cql(cql).collect(Collectors.toList());
-        Assertions.assertThat(people).contains(person);
+        List<Contact> people = template.<Contact>cql(cql).collect(Collectors.toList());
+        Assertions.assertThat(people).contains(contact);
     }
 
     @Test
     void shouldFindSimpleStatement() {
-        SimpleStatement statement = QueryBuilder.selectFrom("Person").all().build();
-        Person person = new Person();
-        person.setName("Name");
-        person.setAge(20);
-        CommunicationEntity entity = CommunicationEntity.of("Person", asList(Element.of("name", "Name"), Element.of("age", 20)));
+        SimpleStatement statement = QueryBuilder.selectFrom("Contact").all().build();
+        Contact contact = new Contact();
+        contact.setName("Name");
+        contact.setAge(20);
+        CommunicationEntity entity = CommunicationEntity.of("Contact", asList(Element.of("name", "Name"), Element.of("age", 20)));
 
         when(manager.execute(statement)).thenReturn(Stream.of(entity));
 
-        List<Person> people = template.<Person>execute(statement).collect(Collectors.toList());
-        Assertions.assertThat(people).contains(person);
+        List<Contact> people = template.<Contact>execute(statement).collect(Collectors.toList());
+        Assertions.assertThat(people).contains(contact);
     }
 
 }

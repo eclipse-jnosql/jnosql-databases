@@ -12,6 +12,7 @@
   ~   Contributors:
   ~
   ~   Otavio Santana
+  ~   Maximillian Arruda
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -19,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <relativePath />
+        <relativePath/>
         <groupId>org.eclipse.jnosql.mapping</groupId>
         <artifactId>jnosql-mapping-parent</artifactId>
         <version>1.1.5-SNAPSHOT</version>
@@ -40,6 +41,8 @@
     <properties>
         <testcontainers.version>1.20.4</testcontainers.version>
         <jnosql.test.integration>false</jnosql.test.integration>
+        <jakarta.nosql.version>1.0.0-SNAPSHOT</jakarta.nosql.version>
+        <tck.nosql.skip>true</tck.nosql.skip>
         <pmd.url>https://raw.githubusercontent.com/eclipse/jnosql-databases/refs/heads/main/pmd/pmd-rules.xml</pmd.url>
     </properties>
 
@@ -107,10 +110,20 @@
                 <artifactId>jnosql-mapping-key-value</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>jakarta.nosql</groupId>
+                <artifactId>jakarta.nosql-tck</artifactId>
+                <version>${jakarta.nosql.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>jakarta.nosql</groupId>
+            <artifactId>jakarta.nosql-tck</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
@@ -141,4 +154,37 @@
             </snapshots>
         </repository>
     </repositories>
+
+    <profiles>
+        <profile>
+            <id>tck</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven.surefire.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>nosql-tck-runner</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <skipTests>${tck.nosql.skip}</skipTests>
+                                    <excludes>
+                                        <exclude>org/eclipse/jnosql/**.**Test.class</exclude>
+                                    </excludes>
+                                    <dependenciesToScan>
+                                        <dependency>jakarta.nosql:jakarta.nosql-tck</dependency>
+                                    </dependenciesToScan>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

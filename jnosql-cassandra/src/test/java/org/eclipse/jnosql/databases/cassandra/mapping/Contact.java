@@ -12,7 +12,7 @@
  *
  *   Otavio Santana
  */
-package org.eclipse.jnosql.databases.mongodb.mapping;
+package org.eclipse.jnosql.databases.cassandra.mapping;
 
 
 import jakarta.nosql.Column;
@@ -22,38 +22,56 @@ import jakarta.nosql.Id;
 import java.util.Objects;
 
 @Entity
-public class Person {
+public class Contact {
 
-    @Id
+    @Id("name")
     private String name;
 
     @Column
     private Integer age;
 
+    @Column(udt = "address")
+    private Address home;
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Integer getAge() {
         return age;
     }
 
-    public Person(String name, Integer age) {
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public Address getHome() {
+        return home;
+    }
+
+    public void setHome(Address home) {
+        this.home = home;
+    }
+
+    public Contact(String name, Integer age) {
         this.name = name;
         this.age = age;
     }
 
-    public Person() {
+    public Contact() {
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Person person = (Person) o;
-        return Objects.equals(name, person.name) &&
-                Objects.equals(age, person.age);
+        Contact contact = (Contact) o;
+        return Objects.equals(name, contact.name) &&
+                Objects.equals(age, contact.age);
     }
 
     @Override
@@ -63,9 +81,10 @@ public class Person {
 
     @Override
     public String toString() {
-        String sb = "Person{" + "name='" + name + '\'' +
+        return "Person{" +
+                "name='" + name + '\'' +
                 ", age=" + age +
+                ", home=" + home +
                 '}';
-        return sb;
     }
 }

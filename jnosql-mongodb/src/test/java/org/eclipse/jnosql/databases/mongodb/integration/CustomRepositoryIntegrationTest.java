@@ -54,7 +54,7 @@ import static org.eclipse.jnosql.databases.mongodb.communication.DocumentDatabas
 
 @EnableAutoWeld
 @AddPackages(value = {Database.class, EntityConverter.class, DocumentTemplate.class, MongoDBTemplate.class})
-@AddPackages(Book.class)
+@AddPackages(Magazine.class)
 @AddPackages(Reflections.class)
 @AddPackages(Converters.class)
 @AddExtensions({EntityMetadataExtension.class,
@@ -72,14 +72,14 @@ class CustomRepositoryIntegrationTest {
 
     @Inject
     @Database(DatabaseType.DOCUMENT)
-    BookCustomRepository bookCustomRepository;
+    MagazineCustomRepository magazineCustomRepository;
 
 
     @BeforeEach
     void cleanUp() {
         try (MongoClient mongoClient = INSTANCE.mongoClient()) {
             MongoCollection<Document> collection = mongoClient.getDatabase(DATABASE_NAME)
-                    .getCollection(Book.class.getSimpleName());
+                    .getCollection(Magazine.class.getSimpleName());
             collection.deleteMany(new BsonDocument());
             await().atMost(Duration.ofSeconds(2))
                     .until(() -> collection.find().limit(1).first() == null);
@@ -88,22 +88,22 @@ class CustomRepositoryIntegrationTest {
 
     @Test
     void shouldSave() {
-        Book book = new Book(randomUUID().toString(), "Effective Java", 1);
-        assertThat(bookCustomRepository.save(book))
+        Magazine magazine = new Magazine(randomUUID().toString(), "Effective Java", 1);
+        assertThat(magazineCustomRepository.save(magazine))
                 .isNotNull()
-                .isEqualTo(book);
+                .isEqualTo(magazine);
 
-        assertThat(bookCustomRepository.getById(book.id()))
+        assertThat(magazineCustomRepository.getById(magazine.id()))
                 .as("should return the persisted book")
-                .hasValue(book);
+                .hasValue(magazine);
 
-        Book updated = new Book(book.id(), book.title() + " updated", 2);
+        Magazine updated = new Magazine(magazine.id(), magazine.title() + " updated", 2);
 
-        assertThat(bookCustomRepository.save(updated))
+        assertThat(magazineCustomRepository.save(updated))
                 .isNotNull()
-                .isNotEqualTo(book);
+                .isNotEqualTo(magazine);
 
-        assertThat(bookCustomRepository.getById(book.id()))
+        assertThat(magazineCustomRepository.getById(magazine.id()))
                 .as("should return the updated book")
                 .hasValue(updated);
     }
@@ -111,48 +111,48 @@ class CustomRepositoryIntegrationTest {
     @Test
     void shouldSaveAllAndFindByIdIn() {
 
-        List<Book> books = List.of(
-                new Book(randomUUID().toString(), "Java Persistence Layer", 1)
-                , new Book(randomUUID().toString(), "Effective Java", 3)
-                , new Book(randomUUID().toString(), "Jakarta EE Cookbook", 1)
-                , new Book(randomUUID().toString(), "Mastering The Java Virtual Machine", 1)
+        List<Magazine> magazines = List.of(
+                new Magazine(randomUUID().toString(), "Java Persistence Layer", 1)
+                , new Magazine(randomUUID().toString(), "Effective Java", 3)
+                , new Magazine(randomUUID().toString(), "Jakarta EE Cookbook", 1)
+                , new Magazine(randomUUID().toString(), "Mastering The Java Virtual Machine", 1)
         );
 
-        assertThat(bookCustomRepository.saveAll(books))
+        assertThat(magazineCustomRepository.saveAll(magazines))
                 .isNotNull()
-                .containsAll(books);
+                .containsAll(magazines);
 
-        assertThat(bookCustomRepository.findByIdIn(books.stream().map(Book::id).toList()))
+        assertThat(magazineCustomRepository.findByIdIn(magazines.stream().map(Magazine::id).toList()))
                 .as("should return the persisted books")
-                .containsAll(books);
+                .containsAll(magazines);
 
     }
 
     @Test
     void shouldSaveAllAndFindBy() {
 
-        Book javaPersistenceLayer = new Book(randomUUID().toString(), "Java Persistence Layer", 1);
-        Book effectiveJava = new Book(randomUUID().toString(), "Effective Java", 3);
-        Book jakartaEeCookbook = new Book(randomUUID().toString(), "Jakarta EE Cookbook", 1);
-        Book masteringTheJavaVirtualMachine = new Book(randomUUID().toString(), "Mastering The Java Virtual Machine", 1);
+        Magazine javaPersistenceLayer = new Magazine(randomUUID().toString(), "Java Persistence Layer", 1);
+        Magazine effectiveJava = new Magazine(randomUUID().toString(), "Effective Java", 3);
+        Magazine jakartaEeCookbook = new Magazine(randomUUID().toString(), "Jakarta EE Cookbook", 1);
+        Magazine masteringTheJavaVirtualMachine = new Magazine(randomUUID().toString(), "Mastering The Java Virtual Machine", 1);
 
-        List<Book> books = List.of(
+        List<Magazine> magazines = List.of(
                 javaPersistenceLayer
                 , effectiveJava
                 , jakartaEeCookbook
                 , masteringTheJavaVirtualMachine
         );
 
-        assertThat(bookCustomRepository.saveAll(books))
+        assertThat(magazineCustomRepository.saveAll(magazines))
                 .isNotNull()
-                .containsAll(books);
+                .containsAll(magazines);
 
         PageRequest pageRequest = PageRequest.ofSize(2);
-        Order<Book> orderByTitleAsc = Order.by(Sort.asc("title"));
+        Order<Magazine> orderByTitleAsc = Order.by(Sort.asc("title"));
 
-        Page<Book> page1 = bookCustomRepository.listAll(pageRequest, orderByTitleAsc);
-        Page<Book> page2 = bookCustomRepository.listAll(page1.nextPageRequest(), orderByTitleAsc);
-        Page<Book> page3 = bookCustomRepository.listAll(page2.nextPageRequest(), orderByTitleAsc);
+        Page<Magazine> page1 = magazineCustomRepository.listAll(pageRequest, orderByTitleAsc);
+        Page<Magazine> page2 = magazineCustomRepository.listAll(page1.nextPageRequest(), orderByTitleAsc);
+        Page<Magazine> page3 = magazineCustomRepository.listAll(page2.nextPageRequest(), orderByTitleAsc);
 
         assertSoftly(softly -> {
 
@@ -177,18 +177,18 @@ class CustomRepositoryIntegrationTest {
 
     @Test
     void shouldDelete() {
-        Book book = new Book(randomUUID().toString(), "Effective Java", 1);
-        assertThat(bookCustomRepository.save(book))
+        Magazine magazine = new Magazine(randomUUID().toString(), "Effective Java", 1);
+        assertThat(magazineCustomRepository.save(magazine))
                 .isNotNull()
-                .isEqualTo(book);
+                .isEqualTo(magazine);
 
-        assertThat(bookCustomRepository.getById(book.id()))
+        assertThat(magazineCustomRepository.getById(magazine.id()))
                 .isNotNull()
-                .hasValue(book);
+                .hasValue(magazine);
 
-        bookCustomRepository.delete(book);
+        magazineCustomRepository.delete(magazine);
 
-        assertThat(bookCustomRepository.getById(book.id()))
+        assertThat(magazineCustomRepository.getById(magazine.id()))
                 .isNotNull()
                 .isEmpty();
     }
@@ -196,31 +196,31 @@ class CustomRepositoryIntegrationTest {
     @Test
     void shouldDeleteAll() {
 
-        List<Book> books = List.of(
-                new Book(randomUUID().toString(), "Java Persistence Layer", 1)
-                , new Book(randomUUID().toString(), "Effective Java", 3)
-                , new Book(randomUUID().toString(), "Jakarta EE Cookbook", 1)
-                , new Book(randomUUID().toString(), "Mastering The Java Virtual Machine", 1)
+        List<Magazine> magazines = List.of(
+                new Magazine(randomUUID().toString(), "Java Persistence Layer", 1)
+                , new Magazine(randomUUID().toString(), "Effective Java", 3)
+                , new Magazine(randomUUID().toString(), "Jakarta EE Cookbook", 1)
+                , new Magazine(randomUUID().toString(), "Mastering The Java Virtual Machine", 1)
         );
 
-        assertThat(bookCustomRepository.saveAll(books))
+        assertThat(magazineCustomRepository.saveAll(magazines))
                 .isNotNull()
-                .containsAll(books);
+                .containsAll(magazines);
 
         await().atMost(Duration.ofSeconds(2))
-                .until(() -> bookCustomRepository.listAll().toList().size() >= books.size());
+                .until(() -> magazineCustomRepository.listAll().toList().size() >= magazines.size());
 
-        assertThat(bookCustomRepository.listAll())
+        assertThat(magazineCustomRepository.listAll())
                 .isNotNull()
-                .containsAll(books);
+                .containsAll(magazines);
 
-        bookCustomRepository.deleteAll();
+        magazineCustomRepository.deleteAll();
 
         await().atMost(Duration.ofSeconds(2))
-                .until(() -> bookCustomRepository.listAll().toList().isEmpty());
+                .until(() -> magazineCustomRepository.listAll().toList().isEmpty());
 
 
-        assertThat(bookCustomRepository.listAll())
+        assertThat(magazineCustomRepository.listAll())
                 .isNotNull()
                 .isEmpty();
 
@@ -229,32 +229,32 @@ class CustomRepositoryIntegrationTest {
     @Test
     void shouldRemoveAll() {
 
-        List<Book> books = List.of(
-                new Book(randomUUID().toString(), "Java Persistence Layer", 1)
-                , new Book(randomUUID().toString(), "Effective Java", 3)
-                , new Book(randomUUID().toString(), "Jakarta EE Cookbook", 1)
-                , new Book(randomUUID().toString(), "Mastering The Java Virtual Machine", 1)
+        List<Magazine> magazines = List.of(
+                new Magazine(randomUUID().toString(), "Java Persistence Layer", 1)
+                , new Magazine(randomUUID().toString(), "Effective Java", 3)
+                , new Magazine(randomUUID().toString(), "Jakarta EE Cookbook", 1)
+                , new Magazine(randomUUID().toString(), "Mastering The Java Virtual Machine", 1)
         );
 
-        assertThat(bookCustomRepository.saveAll(books))
+        assertThat(magazineCustomRepository.saveAll(magazines))
                 .isNotNull()
-                .containsAll(books);
+                .containsAll(magazines);
 
         await().atMost(Duration.ofSeconds(2))
-                .until(() -> bookCustomRepository.listAll().toList().size() >= books.size());
+                .until(() -> magazineCustomRepository.listAll().toList().size() >= magazines.size());
 
-        assertThat(bookCustomRepository.listAll())
+        assertThat(magazineCustomRepository.listAll())
                 .isNotNull()
-                .containsAll(books);
+                .containsAll(magazines);
 
-        bookCustomRepository.removeAll(books);
+        magazineCustomRepository.removeAll(magazines);
 
         await().atMost(Duration.ofSeconds(2))
-                .until(() -> bookCustomRepository.listAll()
-                        .filter(books::contains)
+                .until(() -> magazineCustomRepository.listAll()
+                        .filter(magazines::contains)
                         .toList().isEmpty());
 
-        assertThat(bookCustomRepository.findByIdIn(books.stream().map(Book::id).toList()))
+        assertThat(magazineCustomRepository.findByIdIn(magazines.stream().map(Magazine::id).toList()))
                 .isNotNull()
                 .isEmpty();
     }

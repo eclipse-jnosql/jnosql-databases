@@ -16,6 +16,7 @@ package org.eclipse.jnosql.databases.orientdb.mapping;
 
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import jakarta.nosql.tck.entities.Person;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
@@ -81,7 +82,7 @@ public class DefaultOrientDBTemplateTest {
 
         CommunicationEntity entity = CommunicationEntity.of("Person");
         entity.add(Element.of("name", "Ada"));
-        entity.add(Element.of("age", 10));
+        entity.add(Element.of("native_age", 10));
         when(manager.sql(Mockito.anyString(), Mockito.any(String.class)))
                 .thenReturn(Stream.of(entity));
     }
@@ -90,7 +91,10 @@ public class DefaultOrientDBTemplateTest {
     public void shouldFindQuery() {
         Stream<Person> people = template.sql("sql * from Person where name = ?", "Ada");
 
-        assertThat(people.collect(Collectors.toList())).contains(new Person("Ada", 10));
+        var person = new Person();
+        person.setName("Ada");
+        person.setAge(10);
+        assertThat(people.collect(Collectors.toList())).contains(person);
         verify(manager).sql(Mockito.eq("sql * from Person where name = ?"), Mockito.eq("Ada"));
     }
 

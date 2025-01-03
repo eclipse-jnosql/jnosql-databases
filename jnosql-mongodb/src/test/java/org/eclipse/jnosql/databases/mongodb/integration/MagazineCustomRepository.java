@@ -23,31 +23,31 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Repository
-public interface BookCustomRepository {
+public interface MagazineCustomRepository {
 
     @Save
-    Book save(Book book);
+    Magazine save(Magazine magazine);
 
     @Save
-    Iterable<Book> saveAll(Iterable<Book> books);
+    Iterable<Magazine> saveAll(Iterable<Magazine> books);
 
     @Delete
-    void delete(Book book);
+    void delete(Magazine magazine);
 
     @Delete
-    void removeAll(Iterable<Book> books);
+    void removeAll(Iterable<Magazine> books);
 
     @Find
-    Optional<Book> getById(@By("id") String id);
+    Optional<Magazine> getById(@By("id") String id);
 
     @Find
-    Stream<Book> findByIdIn(Iterable<String> ids);
+    Stream<Magazine> findByIdIn(Iterable<String> ids);
 
     @Find
-    Stream<Book> listAll();
+    Stream<Magazine> listAll();
 
     @Find
-    Page<Book> listAll(PageRequest pageRequest, Order<Book> sortBy);
+    Page<Magazine> listAll(PageRequest pageRequest, Order<Magazine> sortBy);
 
     @Query("delete from Book")
     void deleteAll();

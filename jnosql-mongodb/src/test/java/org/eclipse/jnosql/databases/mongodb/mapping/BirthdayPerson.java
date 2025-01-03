@@ -12,7 +12,7 @@
  *
  *   Otavio Santana
  */
-package org.eclipse.jnosql.databases.orientdb.mapping;
+package org.eclipse.jnosql.databases.mongodb.mapping;
 
 
 import jakarta.nosql.Column;
@@ -22,45 +22,38 @@ import jakarta.nosql.Id;
 import java.util.Objects;
 
 @Entity
-public class Person {
+public class BirthdayPerson {
 
-    @Id("name")
+    @Id
     private String name;
 
     @Column
     private Integer age;
 
+
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public Integer getAge() {
         return age;
     }
 
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    public Person(String name, Integer age) {
+    public BirthdayPerson(String name, Integer age) {
         this.name = name;
         this.age = age;
     }
 
-    public Person() {
+    public BirthdayPerson() {
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Person person = (Person) o;
-        return Objects.equals(name, person.name) &&
-                Objects.equals(age, person.age);
+        BirthdayPerson birthdayPerson = (BirthdayPerson) o;
+        return Objects.equals(name, birthdayPerson.name) &&
+                Objects.equals(age, birthdayPerson.age);
     }
 
     @Override
@@ -70,13 +63,9 @@ public class Person {
 
     @Override
     public String toString() {
-        return "Person{" +
-                "name='" + name + '\'' +
+        String sb = "Person{" + "name='" + name + '\'' +
                 ", age=" + age +
                 '}';
-    }
-
-    public static Person of(String name, Integer age) {
-        return new Person(name, age);
+        return sb;
     }
 }

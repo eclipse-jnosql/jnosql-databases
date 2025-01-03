@@ -12,6 +12,7 @@
   ~   Contributors:
   ~
   ~   Otavio Santana
+  ~   Maximillian Arruda
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -28,6 +29,7 @@
 
     <properties>
         <monbodb.driver>5.2.1</monbodb.driver>
+        <tck.nosql.skip>false</tck.nosql.skip>
     </properties>
     <dependencies>
         <dependency>

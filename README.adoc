@@ -1960,6 +1960,42 @@ class IntegrationSampleTest {
 }
 ----
 
+== Performing the Jakarta NoSQL TCK
+
+To perform the Jakarta NoSQL TCK you should activate the `tck` profile. This profile will download the TCK and run it.
+
+[IMPORTANT]
+====
+By default, the TCK will run in all modules that have the `tck.nosql.skip` property defined as `false`.
+====
+
+[source,bash]
+----
+mvn test -Ptck
+----
+
+To run the Jakarta NoSQL TCK only in a specific module, you can use the `-pl` option, for example:
+
+[source,bash]
+----
+mvn test -Ptck -pl jnosql-mongodb
+----
+
+
+[IMPORTANT]
+====
+By default, activating the `tck` profile does not disable the execution of the default tests. To skip the default tests you can use `-DskipTests`. It will skip the unit tests and run only the TCK tests.
+[source,bash]
+----
+mvn test -Ptck -DskipTests
+----
+====
+
+The JNoSQL Database API implementations that support Jakarta NoSQL TCK execution already:
+
+- link:#_mongodb[MongoDB]
+
+
 == Want to Contribute a New Driver?
 
 As an open-source project, you're free to create any driver, and you're welcome to join and participate in the process.
