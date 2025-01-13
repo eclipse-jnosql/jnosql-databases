@@ -30,8 +30,7 @@ import static java.util.Objects.requireNonNull;
  */
 public abstract class ArangoDBConfiguration {
 
-    protected ArangoDB.Builder builder = new ArangoDB.Builder()
-            .serde(new JsonbSerde());
+    protected ArangoDB.Builder builder = new ArangoDB.Builder();
 
     /**
      * Adds a host in the arangodb builder
@@ -93,13 +92,7 @@ public abstract class ArangoDBConfiguration {
     }
 
     /**
-     * Set the ArangoDB serde for the user data. Note that the provided
-     * serde must support serializing and deserializing JsonP types,
-     * i.e. {@link jakarta.json.JsonValue} and its children.
-     * By default, the builder is configured to use {@link JsonbSerde};
-     * this setter allows overriding it, i.e. providing an instance of
-     * {@link JsonbSerde} that uses a specific {@link jakarta.json.bind.Jsonb}
-     * instance.
+     * Set the ArangoDB serde
      *
      * @param serde the serde
      */
