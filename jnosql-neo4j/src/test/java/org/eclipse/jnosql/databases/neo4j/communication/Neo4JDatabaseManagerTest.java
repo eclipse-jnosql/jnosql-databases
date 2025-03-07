@@ -148,9 +148,7 @@ class Neo4JDatabaseManagerTest {
         }
         var query = select().from(COLLECTION_NAME).limit(5).build();
         var entities = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(entities).hasSize(5);
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(entities).hasSize(5));
     }
 
     @Test
@@ -160,9 +158,7 @@ class Neo4JDatabaseManagerTest {
         }
         var query = select().from(COLLECTION_NAME).skip(5).build();
         var entities = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(entities).hasSize(5);
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(entities).hasSize(5));
     }
 
     @Test
@@ -172,9 +168,7 @@ class Neo4JDatabaseManagerTest {
         }
         var query = select().from(COLLECTION_NAME).skip(5).limit(2).build();
         var entities = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(entities).hasSize(2);
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(entities).hasSize(2));
     }
 
     @Test
@@ -388,9 +382,7 @@ class Neo4JDatabaseManagerTest {
         entityManager.delete(deleteQuery);
         var query = select().from(COLLECTION_NAME).build();
         var entities = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(entities).isEmpty();
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(entities).isEmpty());
     }
 
     @Test
@@ -533,9 +525,7 @@ class Neo4JDatabaseManagerTest {
         );
 
         var result = entityManager.executeQuery(cypher, parameters).toList();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(result).isNotEmpty();
-        });
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).isNotEmpty());
 
         entityManager.remove(person1, "FRIEND", person2);
     }
@@ -557,11 +547,64 @@ class Neo4JDatabaseManagerTest {
         Map<String, Object> parameters = Map.of("_id1", startNodeId, "_id2", targetNodeId);
 
         var result = entityManager.executeQuery(cypher, parameters).toList();
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).isEmpty());
+    }
+
+    @Test
+    void shouldDeleteEdgeById() {
+        var person1 = entityManager.insert(getEntity());
+        var person2 = entityManager.insert(getEntity());
+
+        var edge = entityManager.edge(person1, "FRIEND", person2, Map.of("since", 2020));
+
+        var edgeId = edge.id();
+
+        entityManager.deleteEdge(edgeId);
+
+        String cypher = "MATCH ()-[r]-() WHERE elementId(r) = $id RETURN r";
+        Map<String, Object> parameters = Map.of("id", edgeId);
+
+        var result = entityManager.executeQuery(cypher, parameters).toList();
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).isEmpty());
+    }
+
+    @Test
+    void shouldFindEdgeById() {
+        var person1 = entityManager.insert(getEntity());
+        var person2 = entityManager.insert(getEntity());
+
+        var edge = entityManager.edge(person1, "FRIEND", person2, Map.of("since", 2020));
+
+        var edgeId = edge.id();
+
+        var retrievedEdge = entityManager.findEdgeById(edgeId);
+
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(result).isEmpty();
+            softly.assertThat(retrievedEdge).isPresent();
+            softly.assertThat(retrievedEdge.get().label()).isEqualTo("FRIEND");
+            softly.assertThat(retrievedEdge.get().properties()).containsEntry("since", 2020L);
         });
     }
 
+    @Test
+    void shouldCreateEdgeWithProperties() {
+        var person1 = entityManager.insert(getEntity());
+        var person2 = entityManager.insert(getEntity());
+
+        Map<String, Object> properties = Map.of("since", 2019, "strength", "strong");
+        var edge = entityManager.edge(person1, "FRIEND", person2, properties);
+
+        String cypher = "MATCH (p1:person)-[r:FRIEND]-(p2:person) " +
+                "WHERE elementId(r) = $edgeId RETURN r";
+        Map<String, Object> parameters = Map.of("edgeId", edge.id());
+
+        var result = entityManager.executeQuery(cypher, parameters).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).isNotEmpty();
+            softly.assertThat(edge.properties()).containsEntry("since", 2019);
+            softly.assertThat(edge.properties()).containsEntry("strength", "strong");
+        });
+    }
 
     private CommunicationEntity getEntity() {
         Faker faker = new Faker();

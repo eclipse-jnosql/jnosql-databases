@@ -16,7 +16,6 @@ package org.eclipse.jnosql.databases.neo4j.mapping;
 
 import jakarta.data.repository.Param;
 import jakarta.inject.Inject;
-import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.EntityMetadataExtension;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
@@ -59,10 +58,11 @@ public class Neo4jRepositoryProxyTest {
 
     private HumanRepository personRepository;
 
+    @SuppressWarnings("rawtypes")
     @BeforeEach
     public void setUp() {
         this.template = Mockito.mock(Neo4JTemplate.class);
-        Neo4JRepositoryProxy handler = new Neo4JRepositoryProxy(template,
+        Neo4JRepositoryProxy handler = new Neo4JRepositoryProxy<>(template,
                 HumanRepository.class, converters, entitiesMetadata);
 
         when(template.insert(any(Contact.class))).thenReturn(new Contact());
@@ -98,6 +98,7 @@ public class Neo4jRepositoryProxyTest {
         verify(template).cypher("MATCH (p:Person) WHERE p.name = $1 RETURN p", Collections.singletonMap("name", "Ada"));
     }
 
+    @SuppressWarnings("rawtypes")
     @Test
     public void shouldFindByName2CQL() {
         ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);

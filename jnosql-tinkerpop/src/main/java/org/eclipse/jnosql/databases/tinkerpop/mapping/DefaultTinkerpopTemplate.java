@@ -19,7 +19,7 @@ import jakarta.enterprise.inject.Default;
 import jakarta.inject.Inject;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.eclipse.jnosql.databases.tinkerpop.communication.GraphDatabaseManager;
+import org.eclipse.jnosql.databases.tinkerpop.communication.TinkerpopGraphDatabaseManager;
 import org.eclipse.jnosql.mapping.Database;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
@@ -31,32 +31,32 @@ import static org.eclipse.jnosql.mapping.DatabaseType.GRAPH;
 @Default
 @ApplicationScoped
 @Database(GRAPH)
-class DefaultGraphTemplate extends AbstractGraphTemplate {
+class DefaultTinkerpopTemplate extends AbstractTinkerpopTemplate {
 
     private EntityConverter converter;
-    private GraphDatabaseManager manager;
+    private TinkerpopGraphDatabaseManager manager;
     private EventPersistManager eventManager;
     private EntitiesMetadata entities;
     private Converters converters;
     private Graph graph;
 
     @Inject
-    DefaultGraphTemplate(EntityConverter converter, Graph graph,
-                         EventPersistManager eventManager,
-                         EntitiesMetadata entities, Converters converters) {
+    DefaultTinkerpopTemplate(EntityConverter converter, Graph graph,
+                             EventPersistManager eventManager,
+                             EntitiesMetadata entities, Converters converters) {
         this.converter = converter;
         this.graph = graph;
         this.eventManager = eventManager;
         this.entities = entities;
         this.converters = converters;
-        this.manager = GraphDatabaseManager.of(graph);
+        this.manager = TinkerpopGraphDatabaseManager.of(graph);
     }
 
     /**
      * Constructor for CDI
      */
     @Deprecated
-    DefaultGraphTemplate() {}
+    DefaultTinkerpopTemplate() {}
 
     @Override
     protected EntityConverter converter() {
@@ -64,7 +64,7 @@ class DefaultGraphTemplate extends AbstractGraphTemplate {
     }
 
     @Override
-    protected GraphDatabaseManager manager() {
+    protected TinkerpopGraphDatabaseManager manager() {
         return manager;
     }
 

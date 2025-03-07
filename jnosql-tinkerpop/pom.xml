@@ -37,7 +37,7 @@
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jnosql.mapping</groupId>
-            <artifactId>jnosql-mapping-semistructured</artifactId>
+            <artifactId>jnosql-mapping-graph</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>

@@ -12,6 +12,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 - Include TCK tests
 - Include support to Neo4J
+- Include Apache Tinkerpop support to Graph API
 
 === Changed
 

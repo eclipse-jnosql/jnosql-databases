@@ -1,5 +1,6 @@
 /*
- *  Copyright (c) 2023 Contributors to the Eclipse Foundation
+ *
+ *  Copyright (c) 2025 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
  *   are made available under the terms of the Eclipse Public License v1.0
  *   and Apache License v2.0 which accompanies this distribution.
@@ -10,14 +11,15 @@
  *
  *   Contributors:
  *
- *   Maximillian Arruda
+ *   Otavio Santana
+ *
  */
+package org.eclipse.jnosql.databases.neo4j.communication;
 
-package org.eclipse.jnosql.databases.neo4j.integration;
+import org.eclipse.jnosql.communication.graph.CommunicationEdge;
+import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 
-import jakarta.data.repository.Repository;
-import org.eclipse.jnosql.databases.neo4j.mapping.Neo4JRepository;
+import java.util.Map;
 
-@Repository
-public interface MagazineRepository extends Neo4JRepository<Magazine, String> {
+record Neo4jCommunicationEdge(Object id, CommunicationEntity source, CommunicationEntity target, String label, Map<String, Object> properties) implements CommunicationEdge {
 }

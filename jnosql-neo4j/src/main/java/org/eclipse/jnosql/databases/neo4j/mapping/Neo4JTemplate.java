@@ -16,7 +16,7 @@
  */
 package org.eclipse.jnosql.databases.neo4j.mapping;
 
-import org.eclipse.jnosql.mapping.semistructured.SemiStructuredTemplate;
+import org.eclipse.jnosql.mapping.graph.GraphTemplate;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -29,7 +29,7 @@ import java.util.stream.Stream;
  * traversing relationships, and handling edges between entities.
  *
  */
-public interface Neo4JTemplate extends SemiStructuredTemplate {
+public interface Neo4JTemplate extends GraphTemplate {
     /**
      * Executes a Cypher query and returns a stream of results mapped to the given entity type.
      *
@@ -65,53 +65,4 @@ public interface Neo4JTemplate extends SemiStructuredTemplate {
      */
     <T> Stream<T> traverse(String startNodeId, Supplier<String> relationship, int depth);
 
-    /**
-     * Creates an edge between two entities with the specified relationship type.
-     *
-     * @param source The source entity.
-     * @param relationshipType The relationship type to establish.
-     * @param target The target entity.
-     * @param <T> The entity type representing the source node.
-     * @param <E> The entity type representing the target node.
-     * @return The created {@link Edge} representing the relationship.
-     * @throws NullPointerException if {@code source}, {@code relationshipType}, or {@code target} is null.
-     */
-    <T, E> Edge<T, E> edge(T source, String relationshipType, E target);
-
-    /**
-     * Creates an edge between two entities using a dynamically provided relationship type.
-     *
-     * @param source The source entity.
-     * @param relationship A supplier providing the relationship type dynamically.
-     * @param target The target entity.
-     * @param <T> The entity type representing the source node.
-     * @param <E> The entity type representing the target node.
-     * @return The created {@link Edge} representing the relationship.
-     * @throws NullPointerException if {@code source}, {@code relationship}, or {@code target} is null.
-     */
-    <T, E> Edge<T, E> edge(T source, Supplier<String> relationship, E target);
-
-    /**
-     * Removes an edge between two entities with the specified relationship type.
-     *
-     * @param source The source entity.
-     * @param relationshipType The relationship type to remove.
-     * @param target The target entity.
-     * @param <T> The entity type representing the source node.
-     * @param <E> The entity type representing the target node.
-     * @throws NullPointerException if {@code source}, {@code relationshipType}, or {@code target} is null.
-     */
-    <T, E> void remove(T source, String relationshipType, E target);
-
-    /**
-     * Removes an edge between two entities using a dynamically provided relationship type.
-     *
-     * @param source The source entity.
-     * @param relationship A supplier providing the relationship type dynamically.
-     * @param target The target entity.
-     * @param <T> The entity type representing the source node.
-     * @param <E> The entity type representing the target node.
-     * @throws NullPointerException if {@code source}, {@code relationship}, or {@code target} is null.
-     */
-    <T, E> void remove(T source, Supplier<String> relationship, E target);
 }

@@ -1,5 +1,6 @@
 /*
- *  Copyright (c) 2022 Contributors to the Eclipse Foundation
+ *
+ *  Copyright (c) 2025 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
  *   are made available under the terms of the Eclipse Public License v1.0
  *   and Apache License v2.0 which accompanies this distribution.
@@ -11,23 +12,14 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *
  */
 package org.eclipse.jnosql.databases.tinkerpop.communication;
 
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.eclipse.jnosql.communication.graph.CommunicationEdge;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 
-import java.util.function.Function;
+import java.util.Map;
 
-public enum CommunicationEntityConverter implements Function<Vertex, CommunicationEntity>{
-    INSTANCE;
-
-
-    @Override
-    public CommunicationEntity apply(Vertex vertex) {
-        var entity = CommunicationEntity.of(vertex.label());
-        vertex.properties().forEachRemaining(p -> entity.add(p.key(), p.value()));
-        entity.add(DefaultTinkerpopGraphDatabaseManager.ID_PROPERTY, vertex.id());
-        return entity;
-    }
+record TinkerpopCommunicationEdge(Object id, CommunicationEntity source, CommunicationEntity target, String label, Map<String, Object> properties) implements CommunicationEdge {
 }

@@ -16,24 +16,30 @@ package org.eclipse.jnosql.databases.tinkerpop.communication;
 
 import jakarta.data.exceptions.EmptyResultException;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.eclipse.jnosql.communication.CommunicationException;
 import org.eclipse.jnosql.communication.ValueUtil;
+import org.eclipse.jnosql.communication.graph.CommunicationEdge;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.Order.asc;
 import static org.apache.tinkerpop.gremlin.process.traversal.Order.desc;
 
 /**
- * Default implementation of {@link GraphDatabaseManager} that serves as an adapter to the TinkerPop
+ * Default implementation of {@link TinkerpopGraphDatabaseManager} that serves as an adapter to the TinkerPop
  * graph database provided by the Apache TinkerPop framework.
  * <p>
  * This implementation wraps a TinkerPop {@link Graph} instance and provides methods to interact with
@@ -44,12 +50,12 @@ import static org.apache.tinkerpop.gremlin.process.traversal.Order.desc;
  * as indicated by the UnsupportedOperationException thrown by those methods.
  * </p>
  */
-public class DefaultGraphDatabaseManager implements GraphDatabaseManager {
+public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatabaseManager {
 
     public static final String ID_PROPERTY = "_id";
     private final Graph graph;
 
-    DefaultGraphDatabaseManager(Graph graph) {
+    DefaultTinkerpopGraphDatabaseManager(Graph graph) {
         this.graph = graph;
     }
 
@@ -167,4 +173,100 @@ public class DefaultGraphDatabaseManager implements GraphDatabaseManager {
             throw new CommunicationException("There is an issue when close the Graph connection", e);
         }
     }
+
+    @Override
+    public CommunicationEdge edge(CommunicationEntity source, String label, CommunicationEntity target, Map<String, Object> properties) {
+        Objects.requireNonNull(source, "source is required");
+        Objects.requireNonNull(target, "target is required");
+        Objects.requireNonNull(label, "label is required");
+
+        Vertex sourceVertex = findOrCreateVertex(source);
+
+        Vertex targetVertex = findOrCreateVertex(target);
+
+        var edge = sourceVertex.addEdge(label, targetVertex);
+        properties.forEach(edge::property);
+
+        GraphTransactionUtil.transaction(graph);
+
+        return new TinkerpopCommunicationEdge(edge.id(), source, target, label, properties);
+    }
+
+    @Override
+    public void remove(CommunicationEntity source, String label, CommunicationEntity target) {
+        Objects.requireNonNull(source, "source is required");
+        Objects.requireNonNull(target, "target is required");
+        Objects.requireNonNull(label, "label is required");
+
+        Vertex sourceVertex = findVertexById(source.find(ID_PROPERTY)
+                .orElseThrow(() -> new CommunicationException("Source entity must have an ID")).get())
+                .orElseThrow(() -> new EmptyResultException("Source entity not found"));
+
+        Vertex targetVertex = findVertexById(target.find(ID_PROPERTY)
+                .orElseThrow(() -> new CommunicationException("Target entity must have an ID")).get())
+                .orElseThrow(() -> new EmptyResultException("Target entity not found"));
+
+        Iterator<Edge> edges = sourceVertex.edges(Direction.OUT, label);
+        while (edges.hasNext()) {
+            Edge edge = edges.next();
+            if (edge.inVertex().id().equals(targetVertex.id())) {
+                edge.remove();
+            }
+        }
+
+        GraphTransactionUtil.transaction(graph);
+    }
+
+    @Override
+    public <K> void deleteEdge(K id) {
+        Objects.requireNonNull(id, "The id is required");
+
+        var traversal = graph.traversal().E(id);
+        if (!traversal.hasNext()) {
+            throw new EmptyResultException("Edge not found for ID: " + id);
+        }
+
+        traversal.next().remove();
+        GraphTransactionUtil.transaction(graph);
+    }
+
+    @Override
+    public <K> Optional<CommunicationEdge> findEdgeById(K id) {
+        Objects.requireNonNull(id, "The id is required");
+
+        var traversal = graph.traversal().E(id);
+        if (!traversal.hasNext()) {
+            return Optional.empty();
+        }
+
+        var edge = traversal.next();
+        var source = CommunicationEntity.of(edge.outVertex().label());
+        source.add(ID_PROPERTY, edge.outVertex().id());
+
+        var target = CommunicationEntity.of(edge.inVertex().label());
+        target.add(ID_PROPERTY, edge.inVertex().id());
+
+        Map<String, Object> properties = new HashMap<>();
+        edge.properties().forEachRemaining(p -> properties.put(p.key(), p.value()));
+
+        return Optional.of(new TinkerpopCommunicationEdge(id, source, target, edge.label(), properties));
+    }
+
+    private Vertex findOrCreateVertex(CommunicationEntity entity) {
+        return entity.find(ID_PROPERTY)
+                .flatMap(id -> findVertexById(id.get()))
+                .orElseGet(() -> {
+                    var newVertex = graph.addVertex(entity.name());
+                    entity.elements().forEach(e -> newVertex.property(e.name(), ValueUtil.convert(e.value())));
+                    newVertex.property(ID_PROPERTY, newVertex.id());
+                    entity.add(ID_PROPERTY, newVertex.id());
+                    return newVertex;
+                });
+    }
+
+    private Optional<Vertex> findVertexById(Object id) {
+        Iterator<Vertex> vertices = graph.vertices(id);
+        return vertices.hasNext() ? Optional.of(vertices.next()) : Optional.empty();
+    }
+
 }

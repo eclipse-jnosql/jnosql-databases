@@ -49,11 +49,11 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public abstract class AbstractGraphTemplateTest {
+public abstract class AbstractTinkerpopTemplateTest {
 
     protected abstract Graph getGraph();
 
-    protected abstract GraphTemplate getGraphTemplate();
+    protected abstract TinkerpopTemplate getGraphTemplate();
 
     @AfterEach
     void after() {
@@ -542,5 +542,51 @@ public abstract class AbstractGraphTemplateTest {
         final Human human = getGraphTemplate().update(otavio);
         assertNull(human.getName());
 
+    }
+
+    @Test
+    void shouldCreateEdgeByGraphAPI() {
+        final Human otavio = getGraphTemplate().insert(Human.builder().withAge()
+                .withName("Otavio").build());
+
+        final Human poliana = getGraphTemplate().insert(Human.builder().withAge()
+                .withName("Poliana").build());
+
+        var edge = org.eclipse.jnosql.mapping.graph.Edge.source(otavio).label("LOVES").target(poliana).build();
+        var edgeEntity = getGraphTemplate().edge(edge);
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(edgeEntity).isNotNull();
+            softly.assertThat(edgeEntity.label()).isEqualTo("LOVES");
+            softly.assertThat(edgeEntity.source()).isEqualTo(otavio);
+            softly.assertThat(edgeEntity.target()).isEqualTo(poliana);
+        });
+    }
+
+    @Test
+    void shouldCreateEdgeByGraphAPIWithProperties() {
+        final Human otavio = getGraphTemplate().insert(Human.builder().withAge()
+                .withName("Otavio").build());
+
+        final Human poliana = getGraphTemplate().insert(Human.builder().withAge()
+                .withName("Poliana").build());
+
+        var edge = org.eclipse.jnosql.mapping.graph.Edge.source(otavio)
+                .label("LOVES")
+                .target(poliana)
+                .property("when", "2017")
+                .property("where", "Brazil")
+                .build();
+        var edgeEntity = getGraphTemplate().edge(edge);
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(edgeEntity).isNotNull();
+            softly.assertThat(edgeEntity.label()).isEqualTo("LOVES");
+            softly.assertThat(edgeEntity.source()).isEqualTo(otavio);
+            softly.assertThat(edgeEntity.target()).isEqualTo(poliana);
+            softly.assertThat(edgeEntity.properties()).hasSize(2);
+            softly.assertThat(edgeEntity.property("when", String.class)).contains("2017");
+            softly.assertThat(edgeEntity.property("where", String.class)).contains("Brazil");
+        });
     }
 }

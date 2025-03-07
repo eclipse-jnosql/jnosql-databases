@@ -23,6 +23,7 @@ import org.eclipse.jnosql.mapping.Database;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.EntityMetadataExtension;
 import org.eclipse.jnosql.mapping.graph.Edge;
+import org.eclipse.jnosql.mapping.graph.GraphTemplate;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
@@ -42,11 +43,12 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 @EnableAutoWeld
 @AddPackages(value = {Database.class, EntityConverter.class, Neo4JTemplate.class})
 @AddPackages(Magazine.class)
+@AddPackages(GraphTemplate.class)
 @AddPackages(Reflections.class)
 @AddPackages(Converters.class)
 @AddExtensions({EntityMetadataExtension.class})
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
-public class TemplateIntegrationTest {
+public class GraphTemplateIntegrationTest {
 
     static {
         DatabaseContainer.INSTANCE.host();
@@ -55,7 +57,7 @@ public class TemplateIntegrationTest {
     }
 
     @Inject
-    private Neo4JTemplate template;
+    private GraphTemplate template;
 
     @BeforeEach
     void setUp() {

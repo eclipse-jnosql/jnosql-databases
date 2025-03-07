@@ -17,7 +17,6 @@ package org.eclipse.jnosql.databases.neo4j.mapping;
 
 
 import jakarta.nosql.Column;
-import jakarta.nosql.Convert;
 import jakarta.nosql.Entity;
 import jakarta.nosql.Id;
 

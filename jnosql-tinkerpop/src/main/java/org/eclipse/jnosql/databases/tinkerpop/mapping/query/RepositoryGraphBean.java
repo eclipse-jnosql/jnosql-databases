@@ -16,7 +16,7 @@ package org.eclipse.jnosql.databases.tinkerpop.mapping.query;
 
 import jakarta.data.repository.DataRepository;
 import jakarta.enterprise.context.spi.CreationalContext;
-import org.eclipse.jnosql.databases.tinkerpop.mapping.GraphTemplate;
+import org.eclipse.jnosql.databases.tinkerpop.mapping.TinkerpopTemplate;
 import org.eclipse.jnosql.mapping.DatabaseQualifier;
 import org.eclipse.jnosql.mapping.DatabaseType;
 import org.eclipse.jnosql.mapping.core.Converters;
@@ -84,8 +84,8 @@ public class RepositoryGraphBean<T extends DataRepository<T, ?>> extends Abstrac
     @SuppressWarnings("unchecked")
     public T create(CreationalContext<T> context) {
         EntitiesMetadata entities = getInstance(EntitiesMetadata.class);
-        var template = provider.isEmpty() ? getInstance(GraphTemplate.class) :
-                getInstance(GraphTemplate.class, DatabaseQualifier.ofGraph(provider));
+        var template = provider.isEmpty() ? getInstance(TinkerpopTemplate.class) :
+                getInstance(TinkerpopTemplate.class, DatabaseQualifier.ofGraph(provider));
 
         Converters converters = getInstance(Converters.class);
 

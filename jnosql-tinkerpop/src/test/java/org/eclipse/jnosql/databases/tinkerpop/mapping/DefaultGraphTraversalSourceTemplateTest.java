@@ -29,10 +29,10 @@ import org.jboss.weld.junit5.auto.EnableAutoWeld;
 @AddPackages(value = {Converters.class, EntityConverter.class, Transactional.class})
 @AddPackages({MagazineRepository.class, Reflections.class, GraphProducer.class})
 @AddExtensions({EntityMetadataExtension.class, GraphExtension.class})
-class DefaultGraphTraversalSourceTemplateTest extends AbstractGraphTemplateTest {
+class DefaultGraphTraversalSourceTemplateTest extends AbstractTinkerpopTemplateTest {
 
     @Inject
-    private GraphTemplate graphTemplate;
+    private TinkerpopTemplate tinkerpopTemplate;
 
     @Inject
     private Graph graph;
@@ -43,7 +43,7 @@ class DefaultGraphTraversalSourceTemplateTest extends AbstractGraphTemplateTest 
     }
 
     @Override
-    protected GraphTemplate getGraphTemplate() {
-        return graphTemplate;
+    protected TinkerpopTemplate getGraphTemplate() {
+        return tinkerpopTemplate;
     }
 }

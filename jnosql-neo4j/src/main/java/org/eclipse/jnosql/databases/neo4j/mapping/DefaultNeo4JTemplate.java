@@ -20,25 +20,22 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Typed;
 import jakarta.inject.Inject;
-import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
+import org.eclipse.jnosql.communication.graph.GraphDatabaseManager;
 import org.eclipse.jnosql.databases.neo4j.communication.Neo4JDatabaseManager;
 import org.eclipse.jnosql.mapping.core.Converters;
+import org.eclipse.jnosql.mapping.graph.AbstractGraphTemplate;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
-import org.eclipse.jnosql.mapping.semistructured.AbstractSemiStructuredTemplate;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 @ApplicationScoped
 @Typed(Neo4JTemplate.class)
-class DefaultNeo4JTemplate extends AbstractSemiStructuredTemplate implements Neo4JTemplate {
-
-    private static final Logger LOGGER = Logger.getLogger(DefaultNeo4JTemplate.class.getName());
+class DefaultNeo4JTemplate extends AbstractGraphTemplate implements Neo4JTemplate {
 
     private Instance<Neo4JDatabaseManager> manager;
 
@@ -91,79 +88,12 @@ class DefaultNeo4JTemplate extends AbstractSemiStructuredTemplate implements Neo
     }
 
     @Override
-    public <T, E> Edge<T, E> edge(T source, Supplier<String> relationship, E target) {
-        Objects.requireNonNull(source, "source is required");
-        Objects.requireNonNull(relationship, "relationship is required");
-        Objects.requireNonNull(target, "target is required");
-       return edge(source, relationship.get(), target);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T, E> Edge<T, E> edge(T source, String relationshipType, E target) {
-        Objects.requireNonNull(relationshipType, "relationshipType is required");
-        Objects.requireNonNull(source, "source is required");
-        Objects.requireNonNull(target, "target is required");
-
-        T findSource = this.find((Class<T>)source.getClass(), source).orElseGet(() ->{
-         LOGGER.fine("There is not entity to source: " + source + " inserting the entity");
-         return this.insert(source);
-        });
-
-        E findTarget = this.find((Class<E>)target.getClass(), source).orElseGet(() ->{
-            LOGGER.fine("There is not entity to target: " + target + " inserting the entity");
-            return this.insert(target);
-        });
-
-        var sourceCommunication = this.converter.toCommunication(findSource);
-        var targetCommunication = this.converter.toCommunication(findTarget);
-        LOGGER.fine(() -> "creating an edge from " + sourceCommunication + " to " + targetCommunication + " with the relationship: " + relationshipType);
-        manager.get().edge(sourceCommunication, relationshipType, targetCommunication);
-        return Edge.of(findSource, relationshipType, findTarget);
-    }
-
-
-
-    @Override
-    public <T, E> void remove(T source, Supplier<String> relationship, E target) {
-        Objects.requireNonNull(source, "source is required");
-        Objects.requireNonNull(relationship, "relationship is required");
-        Objects.requireNonNull(target, "target is required");
-        this.remove(source, relationship.get(), target);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T, E> void remove(T source, String relationshipType, E target) {
-        Objects.requireNonNull(source, "source is required");
-        Objects.requireNonNull(relationshipType, "relationshipType is required");
-        Objects.requireNonNull(target, "target is required");
-
-        T findSource = this.find((Class<T>)source.getClass(), source).orElseGet(() ->{
-            LOGGER.fine("There is not entity to source: " + source + " inserting the entity");
-            return this.insert(source);
-        });
-
-        E findTarget = this.find((Class<E>)target.getClass(), source).orElseGet(() ->{
-            LOGGER.fine("There is not entity to target: " + target + " inserting the entity");
-            return this.insert(target);
-        });
-
-        var sourceCommunication = this.converter.toCommunication(findSource);
-        var targetCommunication = this.converter.toCommunication(findTarget);
-
-        LOGGER.fine(() -> "removing an edge from " + sourceCommunication + " to " + targetCommunication + " with the relationship: " + relationshipType);
-        manager.get().remove(sourceCommunication, relationshipType, targetCommunication);
-
-    }
-
-    @Override
     protected EntityConverter converter() {
         return converter;
     }
 
     @Override
-    protected DatabaseManager manager() {
+    protected GraphDatabaseManager manager() {
         return manager.get();
     }
 

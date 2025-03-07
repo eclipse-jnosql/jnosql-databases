@@ -24,7 +24,6 @@ import java.lang.annotation.Target;
  * Annotation for defining Cypher queries in Neo4J repositories.
  * This annotation allows users to specify a Cypher query directly on repository methods,
  * enabling custom query execution within {@code Neo4JRepository}.
- *
  * Example usage:
  * <pre>
  * {@code

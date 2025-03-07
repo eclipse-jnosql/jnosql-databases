@@ -17,7 +17,7 @@ package org.eclipse.jnosql.databases.tinkerpop.mapping.spi;
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.nosql.Template;
 import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.eclipse.jnosql.databases.tinkerpop.mapping.GraphTemplate;
+import org.eclipse.jnosql.databases.tinkerpop.mapping.TinkerpopTemplate;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.GraphTemplateProducer;
 import org.eclipse.jnosql.mapping.DatabaseQualifier;
 import org.eclipse.jnosql.mapping.DatabaseType;
@@ -28,9 +28,9 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
 
-class TemplateBean extends AbstractBean<GraphTemplate> {
+class TemplateBean extends AbstractBean<TinkerpopTemplate> {
 
-    private static final Set<Type> TYPES = Set.of(GraphTemplate.class, Template.class);
+    private static final Set<Type> TYPES = Set.of(TinkerpopTemplate.class, Template.class);
 
     private final String provider;
 
@@ -48,12 +48,12 @@ class TemplateBean extends AbstractBean<GraphTemplate> {
 
     @Override
     public Class<?> getBeanClass() {
-        return GraphTemplate.class;
+        return TinkerpopTemplate.class;
     }
 
 
     @Override
-    public GraphTemplate create(CreationalContext<GraphTemplate> context) {
+    public TinkerpopTemplate create(CreationalContext<TinkerpopTemplate> context) {
 
         GraphTemplateProducer producer = getInstance(GraphTemplateProducer.class);
         Graph graph = getGraph();
@@ -77,7 +77,7 @@ class TemplateBean extends AbstractBean<GraphTemplate> {
 
     @Override
     public String getId() {
-        return GraphTemplate.class.getName() + DatabaseType.GRAPH + "-" + provider;
+        return TinkerpopTemplate.class.getName() + DatabaseType.GRAPH + "-" + provider;
     }
 
 }

@@ -25,10 +25,11 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.eclipse.jnosql.databases.tinkerpop.communication.CommunicationEntityConverter;
-import org.eclipse.jnosql.databases.tinkerpop.communication.GraphDatabaseManager;
+import org.eclipse.jnosql.databases.tinkerpop.communication.TinkerpopGraphDatabaseManager;
 import org.eclipse.jnosql.databases.tinkerpop.communication.GraphTransactionUtil;
 import org.eclipse.jnosql.mapping.IdNotFoundException;
 import org.eclipse.jnosql.mapping.PreparedStatement;
+import org.eclipse.jnosql.mapping.graph.AbstractGraphTemplate;
 import org.eclipse.jnosql.mapping.metadata.EntityMetadata;
 import org.eclipse.jnosql.mapping.metadata.FieldMetadata;
 import org.eclipse.jnosql.mapping.semistructured.AbstractSemiStructuredTemplate;
@@ -50,7 +51,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 import static org.apache.tinkerpop.gremlin.structure.T.id;
 
-abstract class AbstractGraphTemplate extends AbstractSemiStructuredTemplate implements GraphTemplate {
+abstract class AbstractTinkerpopTemplate extends AbstractGraphTemplate implements TinkerpopTemplate {
 
     @SuppressWarnings("unchecked")
     private static final Function<GraphTraversal<?, ?>, GraphTraversal<Vertex, Vertex>> INITIAL_VERTEX =
@@ -62,11 +63,11 @@ abstract class AbstractGraphTemplate extends AbstractSemiStructuredTemplate impl
 
 
     /**
-     * Retrieves the {@link GraphDatabaseManager} associated with this graph template.
+     * Retrieves the {@link TinkerpopGraphDatabaseManager} associated with this graph template.
      *
-     * @return the {@link GraphDatabaseManager} associated with this graph template
+     * @return the {@link TinkerpopGraphDatabaseManager} associated with this graph template
      */
-    protected abstract GraphDatabaseManager manager();
+    protected abstract TinkerpopGraphDatabaseManager manager();
 
     /**
      * Retrieves the {@link GraphTraversalSource} associated with this graph template.

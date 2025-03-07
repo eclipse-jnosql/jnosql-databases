@@ -30,7 +30,7 @@ public abstract class AbstractTraversalTest {
     static final String READS = "reads";
 
     @Inject
-    protected GraphTemplate graphTemplate;
+    protected TinkerpopTemplate tinkerpopTemplate;
 
     @Inject
     protected Graph graph;
@@ -54,21 +54,21 @@ public abstract class AbstractTraversalTest {
         graph.traversal().V().toList().forEach(Vertex::remove);
         graph.traversal().E().toList().forEach(Edge::remove);
 
-        otavio = graphTemplate.insert(Human.builder().withAge(27)
+        otavio = tinkerpopTemplate.insert(Human.builder().withAge(27)
                 .withName("Otavio").build());
-        poliana = graphTemplate.insert(Human.builder().withAge(26)
+        poliana = tinkerpopTemplate.insert(Human.builder().withAge(26)
                 .withName("Poliana").build());
-        paulo = graphTemplate.insert(Human.builder().withAge(50)
+        paulo = tinkerpopTemplate.insert(Human.builder().withAge(50)
                 .withName("Paulo").build());
 
-        shack = graphTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
-        license = graphTemplate.insert(Magazine.builder().withAge(2013).withName("Software License").build());
-        effectiveJava = graphTemplate.insert(Magazine.builder().withAge(2001).withName("Effective Java").build());
+        shack = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
+        license = tinkerpopTemplate.insert(Magazine.builder().withAge(2013).withName("Software License").build());
+        effectiveJava = tinkerpopTemplate.insert(Magazine.builder().withAge(2001).withName("Effective Java").build());
 
 
-        reads = graphTemplate.edge(otavio, READS, effectiveJava);
-        reads2 = graphTemplate.edge(poliana, READS, shack);
-        reads3 = graphTemplate.edge(paulo, READS, license);
+        reads = tinkerpopTemplate.edge(otavio, READS, effectiveJava);
+        reads2 = tinkerpopTemplate.edge(poliana, READS, shack);
+        reads3 = tinkerpopTemplate.edge(paulo, READS, license);
 
         reads.add("motivation", "hobby");
         reads.add("language", "Java");
@@ -78,13 +78,13 @@ public abstract class AbstractTraversalTest {
 
     @AfterEach
     public void after() {
-        graphTemplate.delete(otavio.getId());
-        graphTemplate.delete(poliana.getId());
-        graphTemplate.delete(paulo.getId());
+        tinkerpopTemplate.delete(otavio.getId());
+        tinkerpopTemplate.delete(poliana.getId());
+        tinkerpopTemplate.delete(paulo.getId());
 
-        graphTemplate.deleteEdge(shack.getId());
-        graphTemplate.deleteEdge(license.getId());
-        graphTemplate.deleteEdge(effectiveJava.getId());
+        tinkerpopTemplate.deleteEdge(shack.getId());
+        tinkerpopTemplate.deleteEdge(license.getId());
+        tinkerpopTemplate.deleteEdge(effectiveJava.getId());
 
         reads.delete();
         reads2.delete();

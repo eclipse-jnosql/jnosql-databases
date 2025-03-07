@@ -18,7 +18,6 @@ package org.eclipse.jnosql.databases.neo4j.mapping;
 
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import net.datafaker.Faker;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.databases.neo4j.communication.Neo4JDatabaseManager;
@@ -33,21 +32,15 @@ import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -99,56 +92,5 @@ class DefaultNeo4JTemplateTest {
     void shouldThrowExceptionWhenQueryIsNull() {
         assertThrows(NullPointerException.class, () -> template.cypher(null, Collections.emptyMap()));
         assertThrows(NullPointerException.class, () -> template.cypher("MATCH (n) RETURN n", null));
-    }
-
-    @Test
-    void shouldCreateEdge() {
-        var faker = new Faker();
-        Music source = new Music(UUID.randomUUID().toString(), faker.funnyName().name(), 10);
-        Music target =  new Music(UUID.randomUUID().toString(), faker.funnyName().name(), 15);
-        String relationshipType = "FRIENDS";
-        Edge<Music, Music> edge = Edge.of(source, relationshipType, target);
-
-
-        Mockito.when(manager.insert(Mockito.any(CommunicationEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Edge<Music, Music> result = template.edge(source, relationshipType, target);
-
-        assertNotNull(result);
-        assertEquals(edge, result);
-        verify(manager).edge(any(), eq(relationshipType), any());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenCreatingEdgeWithNullValues() {
-        var faker = new Faker();
-        Music source = new Music(UUID.randomUUID().toString(), faker.funnyName().name(), 10);
-        Music target =  new Music(UUID.randomUUID().toString(), faker.funnyName().name(), 15);
-        assertThrows(NullPointerException.class, () -> template.edge(null, "FRIENDS", target));
-        assertThrows(NullPointerException.class, () -> template.edge(source, (Supplier<String>) null, target));
-        assertThrows(NullPointerException.class, () -> template.edge(source, "FRIENDS", null));
-    }
-
-    @Test
-    void shouldRemoveEdge() {
-        var faker = new Faker();
-        Music source = new Music(UUID.randomUUID().toString(), faker.funnyName().name(), 10);
-        Music target =  new Music(UUID.randomUUID().toString(), faker.funnyName().name(), 15);
-        String relationshipType = "FRIENDS";
-
-        doNothing().when(manager).remove(any(), anyString(), any());
-        Mockito.when(manager.insert(Mockito.any(CommunicationEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        template.remove(source, relationshipType, target);
-        verify(manager).remove(any(), eq(relationshipType), any());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenRemovingEdgeWithNullValues() {
-        var faker = new Faker();
-        Music source = new Music(UUID.randomUUID().toString(), faker.funnyName().name(), 10);
-        Music target =  new Music(UUID.randomUUID().toString(), faker.funnyName().name(), 15);
-        assertThrows(NullPointerException.class, () -> template.remove(null, "FRIENDS", target));
-        assertThrows(NullPointerException.class, () -> template.remove(source, (String) null, target));
-        assertThrows(NullPointerException.class, () -> template.remove(source, "FRIENDS", null));
     }
 }

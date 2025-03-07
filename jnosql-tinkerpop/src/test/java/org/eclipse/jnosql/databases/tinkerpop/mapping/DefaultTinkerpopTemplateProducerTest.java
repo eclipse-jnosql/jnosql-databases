@@ -12,15 +12,11 @@
  *
  *   Otavio Santana
  */
-package org.eclipse.jnosql.databases.tinkerpop.mapping.spi;
+package org.eclipse.jnosql.databases.tinkerpop.mapping;
 
 import jakarta.inject.Inject;
-import org.eclipse.jnosql.databases.tinkerpop.mapping.GraphProducer;
-import org.eclipse.jnosql.databases.tinkerpop.mapping.TinkerpopTemplate;
-import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Human;
-import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.HumanRepository;
-import org.eclipse.jnosql.mapping.Database;
-import org.eclipse.jnosql.mapping.DatabaseType;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.eclipse.jnosql.databases.tinkerpop.mapping.spi.GraphExtension;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.EntityMetadataExtension;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
@@ -28,10 +24,11 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 
 @EnableAutoWeld
@@ -39,46 +36,21 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @AddPackages(GraphProducer.class)
 @AddPackages(Reflections.class)
 @AddExtensions({EntityMetadataExtension.class, GraphExtension.class})
-class GraphExtensionTest {
-
-
-    @Inject
-    @Database(value = DatabaseType.GRAPH)
-    private HumanRepository repository;
+class DefaultTinkerpopTemplateProducerTest {
 
     @Inject
-    @Database(value = DatabaseType.GRAPH, provider = "graphRepositoryMock")
-    private HumanRepository repositoryMock;
-
-    @Inject
-    @Database(value = DatabaseType.GRAPH, provider = "graphRepositoryMock")
-    private TinkerpopTemplate templateMock;
-
-    @Inject
-    private TinkerpopTemplate template;
+    private GraphTemplateProducer producer;
 
 
     @Test
-    void shouldInitiate() {
-        assertNotNull(repository);
-        Human human = repository.save(Human.builder().build());
-        assertNull(human.getName());
+    void shouldReturnErrorWhenManagerNull() {
+        Assertions.assertThrows(NullPointerException.class, () -> producer.apply(null));
     }
 
     @Test
-    void shouldUseMock(){
-        assertNotNull(repositoryMock);
-    }
-
-    @Test
-    void shouldInjectTemplate() {
-        assertNotNull(templateMock);
+    void shouldReturn() {
+        var graph = Mockito.mock(Graph.class);
+        var template = producer.apply(graph);
         assertNotNull(template);
-    }
-
-    @Test
-    void shouldInjectRepository() {
-        assertNotNull(repository);
-        assertNotNull(repositoryMock);
     }
 }

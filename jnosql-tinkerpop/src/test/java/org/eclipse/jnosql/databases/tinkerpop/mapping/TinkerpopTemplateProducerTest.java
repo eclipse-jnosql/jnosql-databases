@@ -31,11 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @EnableAutoWeld
-@AddPackages(value = {Converters.class, EntityConverter.class, GraphTemplate.class})
+@AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
 @AddPackages(GraphProducer.class)
 @AddPackages(Reflections.class)
 @AddExtensions({EntityMetadataExtension.class, GraphExtension.class})
-class GraphTemplateProducerTest {
+class TinkerpopTemplateProducerTest {
 
     @Inject
     private GraphTemplateProducer producer;
@@ -48,7 +48,7 @@ class GraphTemplateProducerTest {
     @Test
     void shouldReturnGraphTemplateWhenGetGraph() {
         Graph graph = Mockito.mock(Graph.class);
-        GraphTemplate template = producer.apply(graph);
+        TinkerpopTemplate template = producer.apply(graph);
         assertNotNull(template);
     }
 

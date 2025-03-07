@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @EnableAutoWeld
-@AddPackages(value = {Converters.class, EntityConverter.class, GraphTemplate.class})
+@AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
 @AddPackages(GraphProducer.class)
 @AddPackages(Reflections.class)
 @AddExtensions({EntityMetadataExtension.class, GraphExtension.class})
@@ -48,7 +48,7 @@ class DefaultValueMapTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldCount() {
-        long count = graphTemplate.traversalVertex()
+        long count = tinkerpopTemplate.traversalVertex()
                 .hasLabel(Human.class).valueMap("name").count();
         assertEquals(3L, count);
     }
@@ -56,7 +56,7 @@ class DefaultValueMapTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnMapValues() {
-        List<String> names = graphTemplate.traversalVertex()
+        List<String> names = tinkerpopTemplate.traversalVertex()
                 .hasLabel(Human.class).valueMap("name")
                 .stream()
                 .map(m -> m.getOrDefault("name", "").toString()).collect(Collectors.toList());
@@ -67,7 +67,7 @@ class DefaultValueMapTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnStream() {
-        Stream<Map<String, Object>> stream = graphTemplate.traversalVertex()
+        Stream<Map<String, Object>> stream = tinkerpopTemplate.traversalVertex()
                 .hasLabel(Human.class).valueMap("name")
                 .stream();
         assertNotNull(stream);
@@ -77,7 +77,7 @@ class DefaultValueMapTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnResultAsList() {
-        List<Map<String, Object>> maps = graphTemplate.traversalVertex()
+        List<Map<String, Object>> maps = tinkerpopTemplate.traversalVertex()
                 .hasLabel(Human.class).valueMap("name")
                 .resultList();
         assertEquals(3, maps.size());
@@ -85,14 +85,14 @@ class DefaultValueMapTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnErrorWhenThereAreMoreThanOneInGetSingleResult() {
-        assertThrows(NonUniqueResultException.class, () -> graphTemplate.traversalVertex()
+        assertThrows(NonUniqueResultException.class, () -> tinkerpopTemplate.traversalVertex()
                 .hasLabel(Human.class).valueMap("name")
                 .singleResult());
     }
 
     @Test
     void shouldReturnOptionalEmptyWhenThereIsNotResultInSingleResult() {
-        Optional<Map<String, Object>> entity =   graphTemplate.traversalVertex()
+        Optional<Map<String, Object>> entity =   tinkerpopTemplate.traversalVertex()
                 .hasLabel("not_found").valueMap("name").singleResult();
         assertFalse(entity.isPresent());
     }
@@ -100,7 +100,7 @@ class DefaultValueMapTraversalTest extends AbstractTraversalTest {
     @Test
     void shouldReturnSingleResult() {
         String name = "Poliana";
-        Optional<Map<String, Object>> poliana = graphTemplate.traversalVertex().hasLabel("Human").
+        Optional<Map<String, Object>> poliana = tinkerpopTemplate.traversalVertex().hasLabel("Human").
                 has("name", name).valueMap("name").singleResult();
         assertEquals(name, poliana.map(m ->  m.get("name")).orElse(""));
     }

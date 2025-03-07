@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnableAutoWeld
-@AddPackages(value = {Converters.class, EntityConverter.class, GraphTemplate.class})
+@AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
 @AddPackages(GraphProducer.class)
 @AddPackages(Reflections.class)
 @AddExtensions({EntityMetadataExtension.class, GraphExtension.class})
@@ -58,12 +58,12 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnErrorWhenEdgeIdIsNull() {
-        assertThrows(NullPointerException.class, () -> graphTemplate.traversalEdge(null));
+        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalEdge(null));
     }
 
     @Test
     void shouldReturnEdgeId() {
-        Optional<EdgeEntity> edgeEntity = graphTemplate.traversalEdge(reads.id())
+        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.traversalEdge(reads.id())
                 .next();
 
         assertTrue(edgeEntity.isPresent());
@@ -72,7 +72,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnOutE() {
-        List<EdgeEntity> edges = graphTemplate.traversalVertex().outE(READS)
+        List<EdgeEntity> edges = tinkerpopTemplate.traversalVertex().outE(READS)
                 .stream()
                 .collect(toList());
 
@@ -82,7 +82,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnOutEWithSupplier() {
-        List<EdgeEntity> edges = graphTemplate.traversalVertex().outE(() -> READS)
+        List<EdgeEntity> edges = tinkerpopTemplate.traversalVertex().outE(() -> READS)
                 .stream()
                 .collect(toList());
 
@@ -92,14 +92,14 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnErrorOutEWhenIsNull() {
-        assertThrows(NullPointerException.class, () -> graphTemplate.traversalVertex().outE((String) null)
+        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex().outE((String) null)
                 .stream()
                 .toList());
     }
 
     @Test
     void shouldReturnInE() {
-        List<EdgeEntity> edges = graphTemplate.traversalVertex().inE(READS)
+        List<EdgeEntity> edges = tinkerpopTemplate.traversalVertex().inE(READS)
                 .stream()
                 .collect(toList());
 
@@ -109,7 +109,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnInEWitSupplier() {
-        List<EdgeEntity> edges = graphTemplate.traversalVertex().inE(() -> READS)
+        List<EdgeEntity> edges = tinkerpopTemplate.traversalVertex().inE(() -> READS)
                 .stream()
                 .collect(toList());
 
@@ -120,7 +120,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnErrorWhenInEIsNull() {
-        assertThrows(NullPointerException.class, () -> graphTemplate.traversalVertex().inE((String) null)
+        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex().inE((String) null)
                 .stream()
                 .toList());
 
@@ -128,7 +128,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnBothE() {
-        List<EdgeEntity> edges = graphTemplate.traversalVertex().bothE(READS)
+        List<EdgeEntity> edges = tinkerpopTemplate.traversalVertex().bothE(READS)
                 .stream()
                 .toList();
 
@@ -137,7 +137,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnBothEWithSupplier() {
-        List<EdgeEntity> edges = graphTemplate.traversalVertex().bothE(() -> READS)
+        List<EdgeEntity> edges = tinkerpopTemplate.traversalVertex().bothE(() -> READS)
                 .stream()
                 .toList();
 
@@ -146,7 +146,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnErrorWhenBothEIsNull() {
-        assertThrows(NullPointerException.class, () -> graphTemplate.traversalVertex().bothE((String) null)
+        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex().bothE((String) null)
                 .stream()
                 .toList());
     }
@@ -154,14 +154,14 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnOut() {
-        List<Human> people = graphTemplate.traversalVertex().outE(READS).outV().<Human>result().collect(toList());
+        List<Human> people = tinkerpopTemplate.traversalVertex().outE(READS).outV().<Human>result().collect(toList());
         assertEquals(3, people.size());
         assertThat(people).contains(poliana, otavio, paulo);
     }
 
     @Test
     void shouldReturnIn() {
-        List<Magazine> magazines = graphTemplate.traversalVertex().outE(READS).inV().<Magazine>result().collect(toList());
+        List<Magazine> magazines = tinkerpopTemplate.traversalVertex().outE(READS).inV().<Magazine>result().collect(toList());
         assertEquals(3, magazines.size());
         assertThat(magazines).contains(shack, effectiveJava, license);
     }
@@ -169,7 +169,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnBoth() {
-        List<Object> entities = graphTemplate.traversalVertex().outE(READS).bothV().result().collect(toList());
+        List<Object> entities = tinkerpopTemplate.traversalVertex().outE(READS).bothV().result().collect(toList());
         assertEquals(6, entities.size());
         assertThat(entities).contains(shack, effectiveJava, license, paulo, otavio, poliana);
     }
@@ -178,7 +178,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
     @Test
     void shouldHasPropertyFromAccessor() {
 
-        Optional<EdgeEntity> edgeEntity = graphTemplate.traversalVertex()
+        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.traversalVertex()
                 .outE(READS)
                 .has(T.id, "notFound").next();
 
@@ -188,7 +188,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldHasProperty() {
-        Optional<EdgeEntity> edgeEntity = graphTemplate.traversalVertex()
+        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.traversalVertex()
                 .outE(READS)
                 .has("motivation", "hobby").next();
 
@@ -198,7 +198,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldHasSupplierProperty() {
-        Optional<EdgeEntity> edgeEntity = graphTemplate.traversalVertex()
+        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.traversalVertex()
                 .outE(READS)
                 .has(() -> "motivation", "hobby").next();
 
@@ -209,7 +209,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
     @Test
     void shouldHasPropertyPredicate() {
 
-        Optional<EdgeEntity> edgeEntity = graphTemplate.traversalVertex()
+        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.traversalVertex()
                 .outE(READS)
                 .has("motivation", P.eq("hobby")).next();
 
@@ -221,7 +221,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
     @Test
     void shouldHasPropertyKeySupplierPredicate() {
 
-        Optional<EdgeEntity> edgeEntity = graphTemplate.traversalVertex()
+        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.traversalVertex()
                 .outE(READS)
                 .has(() -> "motivation", P.eq("hobby")).next();
 
@@ -232,21 +232,21 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnErrorWhenHasPropertyWhenKeyIsNull() {
-        assertThrows(NullPointerException.class, () -> graphTemplate.traversalVertex()
+        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex()
                 .outE(READS)
                 .has((String) null, "hobby").next());
     }
 
     @Test
     void shouldReturnErrorWhenHasPropertyWhenValueIsNull() {
-        assertThrows(NullPointerException.class, () -> graphTemplate.traversalVertex()
+        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex()
                 .outE(READS)
                 .has("motivation", null).next());
     }
 
     @Test
     void shouldHasNot() {
-        List<EdgeEntity> edgeEntities = graphTemplate.traversalVertex()
+        List<EdgeEntity> edgeEntities = tinkerpopTemplate.traversalVertex()
                 .outE(READS).hasNot("language")
                 .stream()
                 .toList();
@@ -256,39 +256,39 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldCount() {
-        long count = graphTemplate.traversalVertex().outE(READS).count();
+        long count = tinkerpopTemplate.traversalVertex().outE(READS).count();
         assertEquals(3L, count);
     }
 
     @Test
     void shouldReturnZeroWhenCountIsEmpty() {
-        long count = graphTemplate.traversalVertex().outE("WRITES").count();
+        long count = tinkerpopTemplate.traversalVertex().outE("WRITES").count();
         assertEquals(0L, count);
     }
 
     @Test
     void shouldReturnErrorWhenHasNotIsNull() {
-        assertThrows(NullPointerException.class, () -> graphTemplate.traversalVertex().outE(READS).hasNot((String) null));
+        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex().outE(READS).hasNot((String) null));
     }
 
 
     @Test
     void shouldDefinesLimit() {
-        long count = graphTemplate.traversalEdge().limit(1L).count();
+        long count = tinkerpopTemplate.traversalEdge().limit(1L).count();
         assertEquals(1L, count);
-        assertNotEquals(graphTemplate.traversalEdge().count(), count);
+        assertNotEquals(tinkerpopTemplate.traversalEdge().count(), count);
     }
 
     @Test
     void shouldDefinesRange() {
-        long count = graphTemplate.traversalEdge().range(1, 3).count();
+        long count = tinkerpopTemplate.traversalEdge().range(1, 3).count();
         assertEquals(2L, count);
-        assertNotEquals(graphTemplate.traversalEdge().count(), count);
+        assertNotEquals(tinkerpopTemplate.traversalEdge().count(), count);
     }
 
     @Test
     void shouldMapValuesAsStream() {
-        List<Map<String, Object>> maps = graphTemplate.traversalVertex().inE("reads")
+        List<Map<String, Object>> maps = tinkerpopTemplate.traversalVertex().inE("reads")
                 .valueMap("motivation").stream().toList();
 
         assertFalse(maps.isEmpty());
@@ -303,7 +303,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldMapValuesAsStreamLimit() {
-        List<Map<String, Object>> maps = graphTemplate.traversalVertex().inE("reads")
+        List<Map<String, Object>> maps = tinkerpopTemplate.traversalVertex().inE("reads")
                 .valueMap("motivation").next(2).toList();
 
         assertFalse(maps.isEmpty());
@@ -313,14 +313,14 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnMapValueAsEmptyStream() {
-        Stream<Map<String, Object>> stream = graphTemplate.traversalVertex().inE("reads")
+        Stream<Map<String, Object>> stream = tinkerpopTemplate.traversalVertex().inE("reads")
                 .valueMap("noFoundProperty").stream();
         assertTrue(stream.allMatch(m -> Objects.isNull(m.get("noFoundProperty"))));
     }
 
     @Test
     void shouldReturnNext() {
-        Map<String, Object> map = graphTemplate.traversalVertex().inE("reads")
+        Map<String, Object> map = tinkerpopTemplate.traversalVertex().inE("reads")
                 .valueMap("motivation").next();
 
         assertNotNull(map);
@@ -330,33 +330,33 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnHas() {
-        Creature lion = graphTemplate.insert(new Creature("lion"));
-        Creature snake = graphTemplate.insert(new Creature("snake"));
-        Creature mouse = graphTemplate.insert(new Creature("mouse"));
-        Creature plant = graphTemplate.insert(new Creature("plant"));
+        Creature lion = tinkerpopTemplate.insert(new Creature("lion"));
+        Creature snake = tinkerpopTemplate.insert(new Creature("snake"));
+        Creature mouse = tinkerpopTemplate.insert(new Creature("mouse"));
+        Creature plant = tinkerpopTemplate.insert(new Creature("plant"));
 
-        graphTemplate.edge(lion, "eats", snake).add("when", "night");
-        graphTemplate.edge(snake, "eats", mouse);
-        graphTemplate.edge(mouse, "eats", plant);
+        tinkerpopTemplate.edge(lion, "eats", snake).add("when", "night");
+        tinkerpopTemplate.edge(snake, "eats", mouse);
+        tinkerpopTemplate.edge(mouse, "eats", plant);
 
 
-        Optional<EdgeEntity> result = graphTemplate.traversalEdge().has("when").next();
+        Optional<EdgeEntity> result = tinkerpopTemplate.traversalEdge().has("when").next();
         assertNotNull(result);
 
-        graphTemplate.deleteEdge(lion.getId());
+        tinkerpopTemplate.deleteEdge(lion.getId());
     }
 
     @Test
     void shouldRepeatTimesTraversal() {
-        Creature lion = graphTemplate.insert(new Creature("lion"));
-        Creature snake = graphTemplate.insert(new Creature("snake"));
-        Creature mouse = graphTemplate.insert(new Creature("mouse"));
-        Creature plant = graphTemplate.insert(new Creature("plant"));
+        Creature lion = tinkerpopTemplate.insert(new Creature("lion"));
+        Creature snake = tinkerpopTemplate.insert(new Creature("snake"));
+        Creature mouse = tinkerpopTemplate.insert(new Creature("mouse"));
+        Creature plant = tinkerpopTemplate.insert(new Creature("plant"));
 
-        graphTemplate.edge(lion, "eats", snake).add("when", "night");
-        graphTemplate.edge(snake, "eats", mouse);
-        graphTemplate.edge(mouse, "eats", plant);
-        Optional<EdgeEntity> result = graphTemplate.traversalEdge().repeat().has("when").times(2).next();
+        tinkerpopTemplate.edge(lion, "eats", snake).add("when", "night");
+        tinkerpopTemplate.edge(snake, "eats", mouse);
+        tinkerpopTemplate.edge(mouse, "eats", plant);
+        Optional<EdgeEntity> result = tinkerpopTemplate.traversalEdge().repeat().has("when").times(2).next();
         assertNotNull(result);
         assertEquals(snake, result.get().incoming());
         assertEquals(lion, result.get().outgoing());
@@ -364,16 +364,16 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldRepeatUntilTraversal() {
-        Creature lion = graphTemplate.insert(new Creature("lion"));
-        Creature snake = graphTemplate.insert(new Creature("snake"));
-        Creature mouse = graphTemplate.insert(new Creature("mouse"));
-        Creature plant = graphTemplate.insert(new Creature("plant"));
+        Creature lion = tinkerpopTemplate.insert(new Creature("lion"));
+        Creature snake = tinkerpopTemplate.insert(new Creature("snake"));
+        Creature mouse = tinkerpopTemplate.insert(new Creature("mouse"));
+        Creature plant = tinkerpopTemplate.insert(new Creature("plant"));
 
-        graphTemplate.edge(lion, "eats", snake).add("when", "night");
-        graphTemplate.edge(snake, "eats", mouse);
-        graphTemplate.edge(mouse, "eats", plant);
+        tinkerpopTemplate.edge(lion, "eats", snake).add("when", "night");
+        tinkerpopTemplate.edge(snake, "eats", mouse);
+        tinkerpopTemplate.edge(mouse, "eats", plant);
 
-        Optional<EdgeEntity> result = graphTemplate.traversalEdge().repeat().has("when")
+        Optional<EdgeEntity> result = tinkerpopTemplate.traversalEdge().repeat().has("when")
                 .until().has("when").next();
 
         assertTrue(result.isPresent());
@@ -385,16 +385,16 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldRepeatUntilHasValueTraversal() {
-        Creature lion = graphTemplate.insert(new Creature("lion"));
-        Creature snake = graphTemplate.insert(new Creature("snake"));
-        Creature mouse = graphTemplate.insert(new Creature("mouse"));
-        Creature plant = graphTemplate.insert(new Creature("plant"));
+        Creature lion = tinkerpopTemplate.insert(new Creature("lion"));
+        Creature snake = tinkerpopTemplate.insert(new Creature("snake"));
+        Creature mouse = tinkerpopTemplate.insert(new Creature("mouse"));
+        Creature plant = tinkerpopTemplate.insert(new Creature("plant"));
 
-        graphTemplate.edge(lion, "eats", snake).add("when", "night");
-        graphTemplate.edge(snake, "eats", mouse);
-        graphTemplate.edge(mouse, "eats", plant);
+        tinkerpopTemplate.edge(lion, "eats", snake).add("when", "night");
+        tinkerpopTemplate.edge(snake, "eats", mouse);
+        tinkerpopTemplate.edge(mouse, "eats", plant);
 
-        Optional<EdgeEntity> result = graphTemplate.traversalEdge().repeat().has("when")
+        Optional<EdgeEntity> result = tinkerpopTemplate.traversalEdge().repeat().has("when")
                 .until().has("when", "night").next();
 
         assertTrue(result.isPresent());
@@ -406,16 +406,16 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldRepeatUntilHasPredicateTraversal() {
-        Creature lion = graphTemplate.insert(new Creature("lion"));
-        Creature snake = graphTemplate.insert(new Creature("snake"));
-        Creature mouse = graphTemplate.insert(new Creature("mouse"));
-        Creature plant = graphTemplate.insert(new Creature("plant"));
+        Creature lion = tinkerpopTemplate.insert(new Creature("lion"));
+        Creature snake = tinkerpopTemplate.insert(new Creature("snake"));
+        Creature mouse = tinkerpopTemplate.insert(new Creature("mouse"));
+        Creature plant = tinkerpopTemplate.insert(new Creature("plant"));
 
-        graphTemplate.edge(lion, "eats", snake).add("when", "night");
-        graphTemplate.edge(snake, "eats", mouse);
-        graphTemplate.edge(mouse, "eats", plant);
+        tinkerpopTemplate.edge(lion, "eats", snake).add("when", "night");
+        tinkerpopTemplate.edge(snake, "eats", mouse);
+        tinkerpopTemplate.edge(mouse, "eats", plant);
 
-        EdgeEntity result = graphTemplate.traversalEdge().repeat().has("when")
+        EdgeEntity result = tinkerpopTemplate.traversalEdge().repeat().has("when")
                 .until().has("when", new P<Object>((a, b) -> true, "night")).next().orElseThrow();
 
 
@@ -431,20 +431,20 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnErrorWhenTheOrderIsNull() {
-        assertThrows(NullPointerException.class, () -> graphTemplate.traversalEdge().orderBy(null));
+        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalEdge().orderBy(null));
     }
 
     @Test
     void shouldReturnErrorWhenThePropertyDoesNotExist() {
        assertThrows(NoSuchElementException.class, () ->
-               graphTemplate.traversalEdge().orderBy("wrong property").asc().next().get());
+               tinkerpopTemplate.traversalEdge().orderBy("wrong property").asc().next().get());
     }
 
     @Test
     void shouldOrderAsc() {
         String property = "motivation";
 
-        List<String> properties = graphTemplate.traversalEdge()
+        List<String> properties = tinkerpopTemplate.traversalEdge()
                 .has(property)
                 .orderBy(property)
                 .asc().stream()
@@ -461,7 +461,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
     void shouldOrderDesc() {
         String property = "motivation";
 
-        List<String> properties = graphTemplate.traversalEdge()
+        List<String> properties = tinkerpopTemplate.traversalEdge()
                 .has(property)
                 .orderBy(property)
                 .desc().stream()
@@ -477,58 +477,58 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnResultAsList() {
-        List<EdgeEntity> entities = graphTemplate.traversalEdge().result()
+        List<EdgeEntity> entities = tinkerpopTemplate.traversalEdge().result()
                 .toList();
         assertEquals(3, entities.size());
     }
 
     @Test
     void shouldReturnErrorWhenThereAreMoreThanOneInGetSingleResult() {
-        assertThrows(NonUniqueResultException.class, () -> graphTemplate.traversalEdge().singleResult());
+        assertThrows(NonUniqueResultException.class, () -> tinkerpopTemplate.traversalEdge().singleResult());
     }
 
     @Test
     void shouldReturnOptionalEmptyWhenThereIsNotResultInSingleResult() {
-        Optional<EdgeEntity> entity = graphTemplate.traversalEdge(-1L).singleResult();
+        Optional<EdgeEntity> entity = tinkerpopTemplate.traversalEdge(-1L).singleResult();
         assertFalse(entity.isPresent());
     }
 
     @Test
     void shouldReturnSingleResult() {
         String name = "Poliana";
-        Optional<EdgeEntity> entity = graphTemplate.traversalEdge(reads.id()).singleResult();
+        Optional<EdgeEntity> entity = tinkerpopTemplate.traversalEdge(reads.id()).singleResult();
         assertEquals(reads, entity.get());
     }
 
     @Test
     void shouldReturnErrorWhenPredicateIsNull() {
-        assertThrows(NullPointerException.class, () -> graphTemplate.traversalEdge().filter(null));
+        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalEdge().filter(null));
     }
 
     @Test
     void shouldReturnFromPredicate() {
-        long count = graphTemplate.traversalEdge().filter(reads::equals).count();
+        long count = tinkerpopTemplate.traversalEdge().filter(reads::equals).count();
         assertEquals(1L, count);
     }
 
     @Test
     void shouldDedup() {
 
-        graphTemplate.edge(otavio, "knows", paulo);
-        graphTemplate.edge(paulo, "knows", otavio);
-        graphTemplate.edge(otavio, "knows", poliana);
-        graphTemplate.edge(poliana, "knows", otavio);
-        graphTemplate.edge(poliana, "knows", paulo);
-        graphTemplate.edge(paulo, "knows", poliana);
+        tinkerpopTemplate.edge(otavio, "knows", paulo);
+        tinkerpopTemplate.edge(paulo, "knows", otavio);
+        tinkerpopTemplate.edge(otavio, "knows", poliana);
+        tinkerpopTemplate.edge(poliana, "knows", otavio);
+        tinkerpopTemplate.edge(poliana, "knows", paulo);
+        tinkerpopTemplate.edge(paulo, "knows", poliana);
 
-        List<EdgeEntity> edges = graphTemplate.traversalVertex()
+        List<EdgeEntity> edges = tinkerpopTemplate.traversalVertex()
                 .hasLabel(Human.class)
                 .inE("knows").result()
                 .collect(Collectors.toList());
 
         assertEquals(6, edges.size());
 
-        edges = graphTemplate.traversalVertex()
+        edges = tinkerpopTemplate.traversalVertex()
                 .hasLabel(Human.class)
                 .inE("knows")
                 .dedup()

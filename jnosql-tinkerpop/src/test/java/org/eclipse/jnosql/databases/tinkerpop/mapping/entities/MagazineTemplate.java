@@ -16,28 +16,28 @@ package org.eclipse.jnosql.databases.tinkerpop.mapping.entities;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.jnosql.databases.tinkerpop.mapping.GraphTemplate;
+import org.eclipse.jnosql.databases.tinkerpop.mapping.TinkerpopTemplate;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.Transactional;
 
 @ApplicationScoped
 public class MagazineTemplate {
 
     @Inject
-    private GraphTemplate graphTemplate;
+    private TinkerpopTemplate tinkerpopTemplate;
 
     @Transactional
     public void insert(Magazine actor) {
-        graphTemplate.insert(actor);
+        tinkerpopTemplate.insert(actor);
     }
 
     @Transactional
     public void insertException(Magazine actor) {
-        graphTemplate.insert(actor);
+        tinkerpopTemplate.insert(actor);
         throw new NullPointerException("should get a rollback");
     }
 
     public void normalInsertion(Magazine actor) {
-        graphTemplate.insert(actor);
+        tinkerpopTemplate.insert(actor);
     }
 
 }

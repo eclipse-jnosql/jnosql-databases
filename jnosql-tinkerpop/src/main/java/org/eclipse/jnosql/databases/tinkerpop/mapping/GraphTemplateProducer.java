@@ -20,7 +20,7 @@ import jakarta.inject.Inject;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
-import org.eclipse.jnosql.databases.tinkerpop.communication.GraphDatabaseManager;
+import org.eclipse.jnosql.databases.tinkerpop.communication.TinkerpopGraphDatabaseManager;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
@@ -30,11 +30,11 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * An {@code ApplicationScoped} producer class responsible for creating instances of {@link GraphTemplate}.
- * It implements the {@link Function} interface with {@link DatabaseManager} as input and {@link GraphTemplate} as output.
+ * An {@code ApplicationScoped} producer class responsible for creating instances of {@link TinkerpopTemplate}.
+ * It implements the {@link Function} interface with {@link DatabaseManager} as input and {@link TinkerpopTemplate} as output.
  */
 @ApplicationScoped
-public class GraphTemplateProducer implements Function<Graph, GraphTemplate> {
+public class GraphTemplateProducer implements Function<Graph, TinkerpopTemplate> {
 
     @Inject
     private EntityConverter converter;
@@ -50,14 +50,14 @@ public class GraphTemplateProducer implements Function<Graph, GraphTemplate> {
 
 
     @Override
-    public GraphTemplate apply(Graph graph) {
+    public TinkerpopTemplate apply(Graph graph) {
         Objects.requireNonNull(graph, "graph is required");
-        return new ProducerGraphTemplate(converter, graph,
+        return new ProducerTinkerpopTemplate(converter, graph,
                 eventManager, entities, converters);
     }
 
     @Vetoed
-    static class ProducerGraphTemplate  extends AbstractGraphTemplate {
+    static class ProducerTinkerpopTemplate extends AbstractTinkerpopTemplate {
 
         private final EntityConverter converter;
 
@@ -70,20 +70,20 @@ public class GraphTemplateProducer implements Function<Graph, GraphTemplate> {
 
         private final Graph graph;
 
-        private final GraphDatabaseManager manager;
+        private final TinkerpopGraphDatabaseManager manager;
 
-        public ProducerGraphTemplate(EntityConverter converter, Graph graph,
-                                     EventPersistManager eventManager,
-                                     EntitiesMetadata entities, Converters converters) {
+        public ProducerTinkerpopTemplate(EntityConverter converter, Graph graph,
+                                         EventPersistManager eventManager,
+                                         EntitiesMetadata entities, Converters converters) {
             this.converter = converter;
             this.graph = graph;
-            this.manager = GraphDatabaseManager.of(graph);
+            this.manager = TinkerpopGraphDatabaseManager.of(graph);
             this.eventManager = eventManager;
             this.entities = entities;
             this.converters = converters;
         }
 
-        ProducerGraphTemplate() {
+        ProducerTinkerpopTemplate() {
             this(null, null, null, null, null);
         }
 
@@ -93,7 +93,7 @@ public class GraphTemplateProducer implements Function<Graph, GraphTemplate> {
         }
 
         @Override
-        protected GraphDatabaseManager manager() {
+        protected TinkerpopGraphDatabaseManager manager() {
             return manager;
         }
 

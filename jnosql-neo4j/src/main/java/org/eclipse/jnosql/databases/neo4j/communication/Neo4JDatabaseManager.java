@@ -16,6 +16,7 @@
  */
 package org.eclipse.jnosql.databases.neo4j.communication;
 
+import org.eclipse.jnosql.communication.graph.GraphDatabaseManager;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 
@@ -48,7 +49,7 @@ import java.util.stream.Stream;
  *
  * @see DatabaseManager
  */
-public interface Neo4JDatabaseManager extends DatabaseManager {
+public interface Neo4JDatabaseManager extends GraphDatabaseManager {
 
     /**
      * Executes a custom Cypher query with parameters and returns a stream of {@link CommunicationEntity}.
