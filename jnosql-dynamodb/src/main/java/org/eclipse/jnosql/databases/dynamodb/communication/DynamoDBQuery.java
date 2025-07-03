@@ -28,8 +28,7 @@ public record DynamoDBQuery(String table,
                             Map<String, AttributeValue> expressionAttributeValues) {
 
     public static Supplier<DynamoDBQuery> builderOf(String table,
-                                                    String partitionKey,
                                                     SelectQuery query) {
-        return new DynamoDBQuerySelectBuilder(table, partitionKey, query);
+        return new DynamoDBQuerySelectBuilder(table, query);
     }
 }

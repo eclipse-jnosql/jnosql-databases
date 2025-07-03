@@ -46,6 +46,8 @@ class OrientDBDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposi
 
     private final Converters converters;
 
+    private final EntitiesMetadata entitiesMetadata;
+
     private final EntityMetadata entityMetadata;
 
 
@@ -57,6 +59,7 @@ class OrientDBDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposi
                 .getActualTypeArguments()[0]);
         this.repositoryType = repositoryType;
         this.converters = converters;
+        this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
         this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
     }
@@ -75,6 +78,11 @@ class OrientDBDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposi
     @Override
     protected Converters converters() {
         return converters;
+    }
+
+    @Override
+    protected EntitiesMetadata entitiesMetadata() {
+        return entitiesMetadata;
     }
 
     @Override

@@ -15,26 +15,23 @@
 
 package org.eclipse.jnosql.databases.dynamodb.communication;
 
-import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
-import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 class DynamoDBQuerySelectBuilder extends DynamoDBQueryBuilder {
 
     private final String table;
 
-    private final String partitionKey;
-
     private final SelectQuery selectQuery;
 
     public DynamoDBQuerySelectBuilder(String table,
-                                      String partitionKey,
                                       SelectQuery selectQuery) {
         this.table = table;
-        this.partitionKey = partitionKey;
         this.selectQuery = selectQuery;
     }
 
@@ -45,33 +42,33 @@ class DynamoDBQuerySelectBuilder extends DynamoDBQueryBuilder {
         var expressionAttributeNames = new HashMap<String, String>();
         var expressionAttributeValues = new HashMap<String, AttributeValue>();
 
-        super.condition(
-                CriteriaCondition.eq(Element.of(partitionKey, selectQuery.name())),
-                filterExpression, expressionAttributeNames, expressionAttributeValues);
-
         this.selectQuery.condition().ifPresent(c -> {
-            filterExpression.append(" AND ");
             super.condition(c,
                     filterExpression,
                     expressionAttributeNames,
                     expressionAttributeValues);
         });
 
-
         return new DynamoDBQuery(
                 table,
-                projectionExpression(),
+                projectionExpression(expressionAttributeNames),
                 filterExpression.toString(),
                 expressionAttributeNames,
                 expressionAttributeValues);
     }
 
-    String projectionExpression() {
+    String projectionExpression(HashMap<String, String> expressionAttributeNames) {
         var columns = selectQuery.columns();
         if (columns.isEmpty()) {
             return null;
         }
-        return String.join(", ", columns);
+        List<String> projectionAttributes = new ArrayList<>(columns.size());
+        columns.forEach(column -> {
+            var alias = "#%s".formatted(column);
+            expressionAttributeNames.computeIfAbsent(alias, k -> column);
+            projectionAttributes.add(alias);
+        });
+        return projectionAttributes.stream().collect(Collectors.joining(","));
     }
 
 

@@ -35,7 +35,7 @@ public interface DynamoDBDatabaseManager extends DatabaseManager {
      * @return a {@link Stream} of {@link CommunicationEntity} representing the query result
      * @throws NullPointerException  when the query is null
      */
-    Stream<CommunicationEntity> partiQL(String query, Object... params);
+    Stream<CommunicationEntity> partiQL(String query, String entityName, Object... params);
 
 
     /**

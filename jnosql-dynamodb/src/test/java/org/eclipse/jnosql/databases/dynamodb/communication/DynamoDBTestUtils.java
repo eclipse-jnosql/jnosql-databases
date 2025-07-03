@@ -14,6 +14,7 @@
  */
 package org.eclipse.jnosql.databases.dynamodb.communication;
 
+import jakarta.nosql.DiscriminatorColumn;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.SettingsBuilder;
 import org.eclipse.jnosql.communication.keyvalue.BucketManagerFactory;
@@ -31,7 +32,7 @@ public enum DynamoDBTestUtils {
 
     private final GenericContainer dynamodb =
             new GenericContainer("amazon/dynamodb-local:latest")
-                    .withReuse(true)
+                    //.withReuse(true)
                     .withExposedPorts(8000)
                     .waitingFor(Wait.defaultWaitStrategy());
 
@@ -84,7 +85,7 @@ public enum DynamoDBTestUtils {
                 .put(DynamoDBConfigurations.AWS_SECRET_ACCESS, System.getProperty("AWS_SECRET_ACCESS_KEY", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"))
                 .put(DynamoDBConfigurations.PROFILE, System.getProperty("AWS_PROFILE", "default"))
                 .put(DynamoDBConfigurations.REGION, "us-west-2")
-                .put(DynamoDBConfigurations.ENTITY_PARTITION_KEY, "entityType");
+                .put(DynamoDBConfigurations.ENTITY_PARTITION_KEY, DiscriminatorColumn.DEFAULT_DISCRIMINATOR_COLUMN);
     }
 
     public void setupSystemProperties(SettingsBuilder builder) {

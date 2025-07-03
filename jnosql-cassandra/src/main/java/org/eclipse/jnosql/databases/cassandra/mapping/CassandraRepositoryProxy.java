@@ -43,6 +43,8 @@ class CassandraRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryPro
 
     private final Converters converters;
 
+    private final EntitiesMetadata entitiesMetadata;
+
     private final EntityMetadata entityMetadata;
 
     private final Class<?> repositoryType;
@@ -55,6 +57,7 @@ class CassandraRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryPro
                 .getActualTypeArguments()[0]);
 
         this.converters = converters;
+        this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
         this.repositoryType = repositoryType;
         this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
@@ -78,6 +81,11 @@ class CassandraRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryPro
     @Override
     protected EntityMetadata entityMetadata() {
         return entityMetadata;
+    }
+
+    @Override
+    protected EntitiesMetadata entitiesMetadata() {
+        return this.entitiesMetadata;
     }
 
     @Override

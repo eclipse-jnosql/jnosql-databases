@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.eclipse.jnosql.mapping.core.repository.DynamicReturn.toSingleResult;
@@ -46,6 +47,8 @@ class DynamoDBRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProx
     private final Converters converters;
 
     private final Class<T> typeClass;
+
+    private final EntitiesMetadata entitiesMetadata;
 
     private final EntityMetadata entityMetadata;
 
@@ -62,6 +65,7 @@ class DynamoDBRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProx
         this.type = type;
         this.typeClass = (Class<T>) ((ParameterizedType) type.getGenericInterfaces()[0]).getActualTypeArguments()[0];
         this.converters = converters;
+        this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
         this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
     }
@@ -75,6 +79,7 @@ class DynamoDBRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProx
         this.type = null;
         this.typeClass = null;
         this.converters = null;
+        this.entitiesMetadata = null;
         this.entityMetadata = null;
         this.repository = null;
     }
@@ -84,18 +89,16 @@ class DynamoDBRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProx
     public Object invoke(Object instance, Method method, Object[] args) throws Throwable {
         PartiQL sql = method.getAnnotation(PartiQL.class);
         if (Objects.nonNull(sql)) {
-            Stream<T> result;
+
+            Class<T> returnType = (Class<T>) method.getReturnType();
             List<Object> params = getParams(args, method);
-            if (params.isEmpty()) {
-                result = template.partiQL(sql.value());
-            } else {
-                result = template.partiQL(sql.value(), params.toArray());
-            }
+            Supplier<Stream<T>> resultSupplier = () -> template.partiQL(sql.value(), typeClass, params.toArray());
+
             return DynamicReturn.builder()
                     .classSource(typeClass)
                     .methodSource(method)
-                    .result(() -> result)
-                    .singleResult(toSingleResult(method).apply(() -> result))
+                    .result(resultSupplier)
+                    .singleResult(toSingleResult(method).apply(resultSupplier::get))
                     .build().execute();
         }
         return super.invoke(instance, method, args);
@@ -127,7 +130,7 @@ class DynamoDBRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProx
     }
 
     @Override
-    @SuppressWarnings({"rawtypes","unchecked"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected AbstractRepository repository() {
         return repository;
     }
@@ -135,6 +138,11 @@ class DynamoDBRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProx
     @Override
     protected Class<?> repositoryType() {
         return type;
+    }
+
+    @Override
+    protected EntitiesMetadata entitiesMetadata() {
+        return entitiesMetadata;
     }
 
     @Override

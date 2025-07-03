@@ -39,10 +39,13 @@ public interface DynamoDBTemplate extends DocumentTemplate {
      * <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html">PartiQL</a>.
      *
      * @param query the PartiQL query
+     * @param entityType the class of the result entity type
      * @return a {@link Stream} of results representing the query result
      * @throws NullPointerException  when the query is null
      */
-    <T> Stream<T> partiQL(String query);
+    default <T> Stream<T> partiQL(String query, Class<T> entityType){
+        return partiQL(query, entityType, new Object[0]);
+    }
 
     /**
      * Executes a DynamoDB query using
@@ -50,8 +53,9 @@ public interface DynamoDBTemplate extends DocumentTemplate {
      * <p>Example query: {@code SELECT * FROM users WHERE status = ?}</p>
      *
      * @param query the PartiQL query
+     * @param entityType the class of the result entity type
      * @return a {@link Stream} of results representing the query result
      * @throws NullPointerException  when the query is null
      */
-    <T> Stream<T> partiQL(String query, Object... params);
+    <T> Stream<T> partiQL(String query, Class<T> entityType, Object... params);
 }

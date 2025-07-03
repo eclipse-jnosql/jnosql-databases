@@ -57,7 +57,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static java.util.Objects.requireNonNull;
-import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBConverter.entityAttributeName;
 import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBConverter.toAttributeValue;
 import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBConverter.toCommunicationEntity;
 import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBConverter.toItem;
@@ -81,10 +80,6 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
         this.dynamoDbClient = dynamoDbClient;
     }
 
-    private String resolveEntityNameAttributeName(String entityName) {
-        return this.settings.get(DynamoDBConfigurations.ENTITY_PARTITION_KEY, String.class).orElse(entityName);
-    }
-
     public DynamoDbClient dynamoDbClient() {
         return dynamoDbClient;
     }
@@ -99,7 +94,7 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
         requireNonNull(documentEntity, "documentEntity is required");
         dynamoDbClient().putItem(PutItemRequest.builder()
                 .tableName(createTableIfNeeded(documentEntity.name()).table().tableName())
-                .item(toItem(this::resolveEntityNameAttributeName, documentEntity))
+                .item(toItem(documentEntity))
                 .build());
         return documentEntity;
     }
@@ -141,11 +136,12 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
 
     private DescribeTableResponse createTable(String tableName) {
         try (var waiter = dynamoDbClient().waiter()) {
+
             dynamoDbClient().createTable(CreateTableRequest.builder()
                     .tableName(tableName)
-                    .keySchema(defaultKeySchemaFor())
-                    .attributeDefinitions(defaultAttributeDefinitionsFor())
-                    .provisionedThroughput(defaultProvisionedThroughputFor())
+                    .keySchema(defaultKeySchemaFor(tableName))
+                    .attributeDefinitions(defaultAttributeDefinitionsFor(tableName))
+                    .provisionedThroughput(defaultProvisionedThroughputFor(tableName))
                     .build());
 
             var tableRequest = DescribeTableRequest.builder().tableName(tableName).build();
@@ -154,32 +150,38 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
         }
     }
 
-    private ProvisionedThroughput defaultProvisionedThroughputFor() {
-        return DynamoTableUtils.createProvisionedThroughput(null, null);
+    private ProvisionedThroughput defaultProvisionedThroughputFor(String tableName) {
+        return DynamoTableUtils.createProvisionedThroughput(
+                this.settings.get(DynamoDBConfigurations.ENTITY_READ_CAPACITY_UNITS.get().formatted(tableName), Long.class)
+                        .orElse(null),
+                this.settings.get(DynamoDBConfigurations.ENTITY_WRITE_CAPACITY_UNITS.get().formatted(tableName), Long.class)
+                        .orElse(null));
     }
 
-    private Collection<AttributeDefinition> defaultAttributeDefinitionsFor() {
+    private Collection<AttributeDefinition> defaultAttributeDefinitionsFor(String tableName) {
         return List.of(
-                AttributeDefinition.builder().attributeName(getEntityAttributeName()).attributeType(ScalarAttributeType.S).build(),
-                AttributeDefinition.builder().attributeName(DynamoDBConverter.ID).attributeType(ScalarAttributeType.S).build()
+                AttributeDefinition.builder()
+                        .attributeName(partitionKeyName(tableName, DynamoDBConverter.ID)).attributeType(ScalarAttributeType.S).build()
         );
     }
 
-    private Collection<KeySchemaElement> defaultKeySchemaFor() {
+    private Collection<KeySchemaElement> defaultKeySchemaFor(String tableName) {
         return List.of(
-                KeySchemaElement.builder().attributeName(getEntityAttributeName()).keyType(KeyType.HASH).build(),
-                KeySchemaElement.builder().attributeName(DynamoDBConverter.ID).keyType(KeyType.RANGE).build()
+                KeySchemaElement.builder()
+                        .attributeName(partitionKeyName(tableName, DynamoDBConverter.ID)).keyType(KeyType.HASH).build()
         );
+    }
+
+    private String partitionKeyName(String table, String defaultName) {
+        return this.settings
+                .get(DynamoDBConfigurations.ENTITY_PARTITION_KEY.name().formatted(table), String.class)
+                .orElse(defaultName);
     }
 
     private boolean shouldCreateTables() {
         return this.settings
                 .get(DynamoDBConfigurations.CREATE_TABLES, Boolean.class)
                 .orElse(false);
-    }
-
-    private String getEntityAttributeName() {
-        return entityAttributeName(this::resolveEntityNameAttributeName);
     }
 
     @Override
@@ -233,12 +235,11 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
                     a.putAll(b);
                     return a;
                 });
-        itemKey.put(getEntityAttributeName(), toAttributeValue(documentEntity.name()));
         return itemKey;
     }
 
     private Map<String, AttributeValueUpdate> asItemToUpdate(CommunicationEntity documentEntity) {
-        return toItemUpdate(this::resolveEntityNameAttributeName, documentEntity);
+        return toItemUpdate(documentEntity);
     }
 
     @Override
@@ -278,22 +279,29 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
     public Stream<CommunicationEntity> select(SelectQuery query) {
         Objects.requireNonNull(query, "query is required");
         DynamoDBQuery dynamoDBQuery = DynamoDBQuery
-                .builderOf(query.name(), getEntityAttributeName(), query)
+                .builderOf(query.name(), query)
                 .get();
 
         ScanRequest.Builder selectRequest = ScanRequest.builder()
                 .consistentRead(true)
-                .tableName(dynamoDBQuery.table())
+                .tableName(createTableIfNeeded(dynamoDBQuery.table()).table().tableName())
                 .projectionExpression(dynamoDBQuery.projectionExpression())
-                .filterExpression(dynamoDBQuery.filterExpression())
-                .expressionAttributeNames(dynamoDBQuery.expressionAttributeNames())
-                .expressionAttributeValues(dynamoDBQuery.expressionAttributeValues())
                 .select(dynamoDBQuery.projectionExpression() != null ? Select.SPECIFIC_ATTRIBUTES : Select.ALL_ATTRIBUTES);
+
+        if (!dynamoDBQuery.filterExpression().isBlank()) {
+            selectRequest = selectRequest.filterExpression(dynamoDBQuery.filterExpression());
+        }
+
+        if (!dynamoDBQuery.expressionAttributeNames().isEmpty()) {
+            selectRequest = selectRequest
+                    .expressionAttributeNames(dynamoDBQuery.expressionAttributeNames())
+                    .expressionAttributeValues(dynamoDBQuery.expressionAttributeValues());
+        }
 
         return StreamSupport
                 .stream(dynamoDbClient().scanPaginator(selectRequest.build()).spliterator(), false)
                 .flatMap(scanResponse -> scanResponse.items().stream()
-                        .map(item -> toCommunicationEntity(this::resolveEntityNameAttributeName, item)));
+                        .map(item -> toCommunicationEntity(dynamoDBQuery.table(), item)));
     }
 
     @Override
@@ -314,7 +322,7 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
     }
 
     @Override
-    public Stream<CommunicationEntity> partiQL(String query, Object... params) {
+    public Stream<CommunicationEntity> partiQL(String query, String entityName, Object... params) {
         Objects.requireNonNull(query, "query is required");
         List<AttributeValue> parameters = Stream.of(params).map(DynamoDBConverter::toAttributeValue).toList();
         ExecuteStatementResponse executeStatementResponse = dynamoDbClient()
@@ -323,7 +331,7 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
                         .parameters(parameters)
                         .build());
         List<CommunicationEntity> result = new LinkedList<>();
-        executeStatementResponse.items().forEach(item -> result.add(toCommunicationEntity(this::resolveEntityNameAttributeName, item)));
+        executeStatementResponse.items().forEach(item -> result.add(toCommunicationEntity(entityName, item)));
         while (executeStatementResponse.nextToken() != null) {
             executeStatementResponse = dynamoDbClient()
                     .executeStatement(ExecuteStatementRequest.builder()
@@ -331,7 +339,7 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
                             .parameters(parameters)
                             .nextToken(executeStatementResponse.nextToken())
                             .build());
-            executeStatementResponse.items().forEach(item -> result.add(toCommunicationEntity(this::resolveEntityNameAttributeName, item)));
+            executeStatementResponse.items().forEach(item -> result.add(toCommunicationEntity(entityName, item)));
         }
         return result.stream();
     }

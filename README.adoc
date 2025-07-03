@@ -597,27 +597,6 @@ jnosql.keyvalue.database=heroes
 
 === Using the Document API
 
-The DynamoDB's Document API implementation follows the *SINGLE TABLE* strategy, it means, the table will store multiple entity types. To satisfy this strategy, the implementation assumes that the target table will have a composed primary key:
-
-- The `entityType` field as the partitioning key;
-- The `id` field as the sort key;
-
-To customize the partitioning key field name, you can define the following configuration
-
-[source,properties]
-----
-jnosql.dynamodb.entity.pk=entityType
-----
-
-By default, the implementation doesn't create the table on-the-fly, letting this requirement for the users. If you prefer, the implementation is able to create the table on-the-fly as well. To activate this capability you should define explicitly the following configuration:
-
-[source,properties]
-----
-jnosql.dynamodb.create.tables=true
-----
-
-The table will be created with the composed primary key mentioned previously.
-
 Here's an example using DynamoDB's Document API with MicroProfile Config.
 
 [source,properties]
@@ -648,7 +627,7 @@ public class ManagerSupplier implements Supplier<DynamoDBDocumentManager> {
 
 === Repository
 
-The ```DynamoDBRepository``` interface is an extension of the ```Repository``` interface that allows execution of PartiQL via the ```@PartiQL``` annotation.
+The `DynamoDBRepository` interface is an extension of the `Repository` interface that allows execution of PartiQL via the `@PartiQL` annotation.
 
 WARNING: DynamoDB supports a limited subset of
 https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
@@ -669,10 +648,9 @@ List<Person> findByName(@Param("") String name);
 }
 ----
 
-
 === Template
 
-The ```DynamoDBTemplate``` interface is a specialization of the ```DocumentTemplate``` interface that allows using PartiQL queries.
+The `DynamoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using PartiQL queries.
 
 WARNING: DynamoDB supports a limited subset of
 https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
@@ -681,8 +659,43 @@ NOTE: This implementation doesn't provide pagination on the queries.
 
 [source,java]
 ----
-List<Person> people = template.partiQL("select * from Person where name = ? ", params);
+List<Person> people = template.partiQL("select * from Person where name = ? ", Person.class, params);
 ----
+
+==== Creating the tables on-the-fly
+
+[IMPORTANT]
+====
+It's highly recommended to create the tables in a proper way, paying attention to the partition key and sort key, as well as the indexes.
+====
+
+The DynamoDB implementation allows you to create tables on-the-fly, which can be useful for development and testing purposes. However, this feature should be used with caution in production environments, as it may lead to unexpected behavior or performance issues if not properly configured.
+
+To create tables on-the-fly, you need to define the following properties:
+
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="DynamoDB"]
+|===
+|Configuration property |Description | Default value
+
+|`jnosql.dynamodb.create.tables`
+| If set to true, the implementation will create the tables on-the-fly when the application starts. This is useful for development and testing purposes, but should be used with caution in production environments.
+| false
+
+|`jnosql.dynamodb.<table>.pk`
+| The partition key field name for the table. This is used to define the primary key of the table. The `<table>` part should be replaced with the actual table name.
+| _id
+
+|`jnosql.dynamodb.<table>.read.capacity.units`
+| The read capacity units for the table. This defines the number of strongly consistent reads per second that the table can support.The `<table>` part should be replaced with the actual table name. It's optional.
+| none
+
+|`jnosql.dynamodb.<table>.write.capacity.units`
+| The write capacity units for the table. This defines the number of strongly consistent writes per second that the table can support.The `<table>` part should be replaced with the actual table name. It's optional.
+| none
+
+|===
 
 == Elasticsearch
 

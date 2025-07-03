@@ -12,6 +12,11 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 - Update query at Oracle NoSQL to support parameter with enum type
 
+=== Changes
+
+- Changes on the document entities persistence operations at the Eclipse JNoSQL DynamoDB Database
+
+
 == [1.1.8] - 2025-05-21
 
 === Changed

@@ -29,17 +29,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 import java.util.stream.StreamSupport;
 
 import static java.util.Collections.singletonMap;
 
 class DynamoDBConverter {
 
-    static final String ENTITY = "@entity";
-    static final String ID = "id";
+    static final String ID = "_id";
 
     private DynamoDBConverter() {
     }
@@ -64,16 +61,10 @@ class DynamoDBConverter {
         return value;
     }
 
-    static Map<String, Object> getMap(UnaryOperator<String> entityNameResolver, CommunicationEntity entity) {
-        var nameResolver = Optional.ofNullable(entityNameResolver).orElse(UnaryOperator.identity());
+    static Map<String, Object> getMap(CommunicationEntity entity) {
         Map<String, Object> jsonObject = new HashMap<>();
         entity.elements().forEach(feedJSON(jsonObject));
-        jsonObject.put(entityAttributeName(nameResolver), entity.name());
         return jsonObject;
-    }
-
-    public static String entityAttributeName(UnaryOperator<String> nameResolver) {
-        return Optional.ofNullable(nameResolver.apply(ENTITY)).orElse(ENTITY);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -111,9 +102,8 @@ class DynamoDBConverter {
                 allMatch(d -> d instanceof Iterable && isSudDocument(d));
     }
 
-    public static Map<String, AttributeValue> toItem(UnaryOperator<String> entityNameResolver, CommunicationEntity entity) {
-        UnaryOperator<String> resolver = Optional.ofNullable(entityNameResolver).orElse(UnaryOperator.identity());
-        Map<String, Object> documentAttributes = getMap(resolver, entity);
+    public static Map<String, AttributeValue> toItem(CommunicationEntity entity) {
+        Map<String, Object> documentAttributes = getMap(entity);
         return toItem(documentAttributes);
     }
 
@@ -156,9 +146,8 @@ class DynamoDBConverter {
         return AttributeValue.builder().s(String.valueOf(value)).build();
     }
 
-    public static Map<String, AttributeValueUpdate> toItemUpdate(UnaryOperator<String> entityNameResolver, CommunicationEntity entity) {
-        UnaryOperator<String> resolver = Optional.ofNullable(entityNameResolver).orElse(UnaryOperator.identity());
-        Map<String, Object> documentAttributes = getMap(resolver, entity);
+    public static Map<String, AttributeValueUpdate> toItemUpdate(CommunicationEntity entity) {
+        Map<String, Object> documentAttributes = getMap(entity);
         return toItemUpdate(documentAttributes);
     }
 
@@ -178,19 +167,15 @@ class DynamoDBConverter {
     }
 
 
-    public static CommunicationEntity toCommunicationEntity(UnaryOperator<String> entityNameResolver, Map<String, AttributeValue> item) {
+    public static CommunicationEntity toCommunicationEntity(String entityName, Map<String, AttributeValue> item) {
         if (item == null) {
             return null;
         }
         if (item.isEmpty()) {
             return null;
         }
-        UnaryOperator<String> resolver = Optional.ofNullable(entityNameResolver).orElse(UnaryOperator.identity());
-        String entityAttribute = resolver.apply(ENTITY);
-        var entityName = item.containsKey(entityAttribute) ? item.get(entityAttribute).s() : entityAttribute;
         var elements = item.entrySet()
                 .stream()
-                .filter(entry -> !Objects.equals(entityAttribute, entry.getKey()))
                 .map(entry -> Element.of(entry.getKey(), convertValue(entry.getValue())))
                 .toList();
         return CommunicationEntity.of(entityName, elements);

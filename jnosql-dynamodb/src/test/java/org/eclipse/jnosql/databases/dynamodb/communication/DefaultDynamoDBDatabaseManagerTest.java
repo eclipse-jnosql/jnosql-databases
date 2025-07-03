@@ -55,7 +55,7 @@ import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBTestUt
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class DefaultDynamoDBDatabaseManagerTest {
 
-    private static Faker faker = new Faker();
+    private static final Faker faker = new Faker();
 
     private DynamoDbClient dynamoDbClient;
 
@@ -431,13 +431,14 @@ class DefaultDynamoDBDatabaseManagerTest {
 
             if (manager instanceof DynamoDBDatabaseManager partiManager) {
 
-                assertSoftly(softly -> softly.assertThat(partiManager.partiQL("SELECT * FROM " + entity1.name()))
+                assertSoftly(softly -> softly.assertThat(partiManager.partiQL("SELECT * FROM " + entity1.name(), entity1.name()))
                         .as("the returned count number of items from a given DocumentQuery is incorrect")
                         .hasSize(3));
 
                 assertSoftly(softly -> softly.assertThat(partiManager.partiQL("""
                                         SELECT * FROM %s WHERE %s = ?
                                         """.formatted(entity1.name(), ID),
+                                entity1.name(),
                                 entity1.find(ID).orElseThrow().get()))
                         .as("the returned count number of items from a given DocumentQuery is incorrect")
                         .hasSize(1));

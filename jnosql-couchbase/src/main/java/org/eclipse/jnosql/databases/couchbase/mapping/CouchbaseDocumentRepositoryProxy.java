@@ -43,6 +43,8 @@ class CouchbaseDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredRepos
 
     private final Converters converters;
 
+    private final EntitiesMetadata entitiesMetadata;
+
     private final EntityMetadata entityMetadata;
 
     private final Class<?> repositoryType;
@@ -54,6 +56,7 @@ class CouchbaseDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredRepos
         this.typeClass = Class.class.cast(ParameterizedType.class.cast(repositoryType.getGenericInterfaces()[0])
                 .getActualTypeArguments()[0]);
         this.converters = converters;
+        this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
         this.repositoryType = repositoryType;
         this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
@@ -78,6 +81,11 @@ class CouchbaseDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredRepos
     @Override
     protected EntityMetadata entityMetadata() {
         return entityMetadata;
+    }
+
+    @Override
+    protected EntitiesMetadata entitiesMetadata() {
+        return entitiesMetadata;
     }
 
     @Override

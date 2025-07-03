@@ -45,6 +45,8 @@ class OracleDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposito
 
     private final Converters converters;
 
+    private final EntitiesMetadata entitiesMetadata;
+
     private final EntityMetadata entityMetadata;
 
     @Inject
@@ -57,6 +59,7 @@ class OracleDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposito
                 .getActualTypeArguments()[0]);
         this.type = type;
         this.converters = converters;
+        this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
         this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
     }
@@ -67,6 +70,7 @@ class OracleDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposito
         this.repository = null;
         this.type = null;
         this.converters = null;
+        this.entitiesMetadata = null;
         this.entityMetadata = null;
     }
 
@@ -83,6 +87,11 @@ class OracleDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposito
     @Override
     protected Converters converters() {
         return converters;
+    }
+
+    @Override
+    protected EntitiesMetadata entitiesMetadata() {
+        return entitiesMetadata;
     }
 
     @Override

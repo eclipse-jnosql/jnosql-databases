@@ -44,6 +44,8 @@ class SolrRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProxy<T,
 
     private final Converters converters;
 
+    private final EntitiesMetadata entitiesMetadata;
+
     private final EntityMetadata entityMetadata;
 
 
@@ -55,6 +57,7 @@ class SolrRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProxy<T,
                 .getActualTypeArguments()[0]);
         this.converters = converters;
         this.repositoryType = repositoryType;
+        this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
         this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
     }
@@ -72,6 +75,11 @@ class SolrRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProxy<T,
     @Override
     protected Converters converters() {
         return converters;
+    }
+
+    @Override
+    protected EntitiesMetadata entitiesMetadata() {
+        return entitiesMetadata;
     }
 
     @Override

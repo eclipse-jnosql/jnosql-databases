@@ -23,8 +23,11 @@ public enum  DynamoDBConfigurations implements Supplier<String> {
     PROFILE("jnosql.dynamodb.profile"),
     AWS_ACCESSKEY("jnosql.dynamodb.awsaccesskey"),
     AWS_SECRET_ACCESS("jnosql.dynamodb.secretaccess"),
-    ENTITY_PARTITION_KEY("jnosql.dynamodb.entity.pk"),
-    CREATE_TABLES("jnosql.dynamodb.create.tables");
+    CREATE_TABLES("jnosql.dynamodb.create.tables"),
+    ENTITY_PARTITION_KEY("jnosql.dynamodb.%s.pk"),
+    ENTITY_READ_CAPACITY_UNITS("jnosql.dynamodb.%s.read.capacity.units"),
+    ENTITY_WRITE_CAPACITY_UNITS("jnosql.dynamodb.%s.write.capacity.units"),
+    ;
 
     private final String configuration;
 

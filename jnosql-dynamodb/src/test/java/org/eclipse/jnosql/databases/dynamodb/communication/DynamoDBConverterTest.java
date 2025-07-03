@@ -27,7 +27,6 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import java.io.StringReader;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.UnaryOperator;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
@@ -39,8 +38,6 @@ class DynamoDBConverterTest {
     static final Faker faker = new Faker();
 
     private static final Jsonb JSONB = JsonbSupplier.getInstance().get();
-
-    private static final UnaryOperator<String> entityNameResolver = UnaryOperator.identity();
 
     @Test
     void shouldConvertToItemRequest() {
@@ -57,13 +54,13 @@ class DynamoDBConverterTest {
                             Element.of("phones", List.of(faker.name().firstName(), faker.name().firstName(), faker.name().firstName()))
                     ));
 
-            var item = DynamoDBConverter.toItem(entityNameResolver, entity);
+            var item = DynamoDBConverter.toItem(entity);
 
-            var entityFromItem = DynamoDBConverter.toCommunicationEntity(entityNameResolver, item);
+            var entityFromItem = DynamoDBConverter.toCommunicationEntity("entityA", item);
 
-            var expected = Json.createReader(new StringReader(JSONB.toJson(DynamoDBConverter.getMap(entityNameResolver, entity)))).readObject();
+            var expected = Json.createReader(new StringReader(JSONB.toJson(DynamoDBConverter.getMap(entity)))).readObject();
 
-            var actual = Json.createReader(new StringReader(JSONB.toJson(DynamoDBConverter.getMap(entityNameResolver, entityFromItem)))).readObject();
+            var actual = Json.createReader(new StringReader(JSONB.toJson(DynamoDBConverter.getMap(entityFromItem)))).readObject();
 
             softly.assertThat(actual).as("cannot convert a simple DocumentEntity")
                     .isEqualTo(expected);

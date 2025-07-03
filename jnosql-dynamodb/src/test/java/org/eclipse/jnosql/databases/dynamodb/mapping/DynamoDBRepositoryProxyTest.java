@@ -15,6 +15,7 @@
 
 package org.eclipse.jnosql.databases.dynamodb.mapping;
 
+import ee.jakarta.tck.nosql.entities.Person;
 import jakarta.data.repository.Param;
 import jakarta.inject.Inject;
 import org.assertj.core.api.Assertions;
@@ -79,14 +80,14 @@ class DynamoDBRepositoryProxyTest {
     @Test
     public void shouldFindAll() {
         personRepository.findAllQuery();
-        verify(template).partiQL("select * from Person");
+        verify(template).partiQL(eq("select * from Person"), eq(Human.class), eq(new Object[0]));
     }
 
     @Test
     public void shouldFindByNameSQL() {
         ArgumentCaptor<Object[]> captor = ArgumentCaptor.forClass(Object[].class);
         personRepository.findByName("Ada");
-        verify(template).partiQL(eq("select * from Person where name= ?"), captor.capture());
+        verify(template).partiQL(eq("select * from Person where name= ?"), eq(Human.class), captor.capture());
 
         Object[] value = captor.getValue();
         Assertions.assertThat(value).hasSize(1).contains("Ada");
@@ -109,14 +110,14 @@ class DynamoDBRepositoryProxyTest {
     }
 
     @Test
-    public void shouldDelete(){
+    public void shouldDelete() {
         personRepository.deleteById("id");
         verify(template).delete(Human.class, "id");
     }
 
 
     @Test
-    public void shouldDeleteEntity(){
+    public void shouldDeleteEntity() {
         Human human = Human.of("Ada", 10);
         personRepository.delete(human);
         verify(template).delete(Human.class, human.getName());

@@ -128,4 +128,24 @@ public class DynamoDBUtils {
         GetItemRequest.Builder getItemRequest = GetItemRequest.builder();
         return getItemRequest.tableName(tableName).key(createKeyAttributeValues(key)).build();
     }
+
+    public static String replaceInvalidCharactersForKey(String attributeName) {
+        if (attributeName == null || attributeName.isEmpty())
+            return attributeName;
+        StringBuilder sb = new StringBuilder();
+        for (char c : attributeName.trim().toCharArray()) {
+            if (isEnglishLetterOrDigit(c) || c == '_') {
+                sb.append(c);
+            } else {
+                sb.append("_").append((int) c);
+            }
+        }
+        return sb.toString();
+    }
+
+    private static boolean isEnglishLetterOrDigit(char c) {
+        return (c >= 'a' && c <= 'z')
+                || (c >= 'A' && c <= 'Z')
+                || (c >= '0' && c <= '9');
+    }
 }

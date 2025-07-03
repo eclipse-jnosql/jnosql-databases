@@ -27,8 +27,9 @@ import org.eclipse.jnosql.mapping.semistructured.AbstractSemiStructuredTemplate;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
-import java.util.Objects;
 import java.util.stream.Stream;
+
+import static java.util.Objects.requireNonNull;
 
 @Typed(DynamoDBTemplate.class)
 @ApplicationScoped
@@ -92,16 +93,12 @@ class DefaultDynamoDBTemplate extends AbstractSemiStructuredTemplate implements 
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> Stream<T> partiQL(String query) {
-        Objects.requireNonNull(query, "query is required");
-        return manager.get().partiQL(query).map(converter::toEntity).map(d -> (T) d);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> Stream<T> partiQL(String query, Object... params) {
-        Objects.requireNonNull(query, "query is required");
-        Objects.requireNonNull(params, "params is required");
-        return manager.get().partiQL(query, params).map(converter::toEntity).map(d -> (T) d);
+    public <T> Stream<T> partiQL(String query, Class<T> entityType, Object... params) {
+        requireNonNull(query, "query is required");
+        requireNonNull(entityType, "entityType is required");
+        requireNonNull(params, "params is required");
+        var entityMetadata = entities().findByClassName(entityType.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Entity type not found: " + entityType.getName()));
+        return manager.get().partiQL(query, entityMetadata.name(), params).map(converter::toEntity).map(d -> (T) d);
     }
 }

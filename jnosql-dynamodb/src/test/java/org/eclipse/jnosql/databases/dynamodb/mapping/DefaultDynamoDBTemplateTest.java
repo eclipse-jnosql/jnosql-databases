@@ -75,14 +75,14 @@ class DefaultDynamoDBTemplateTest {
 
     @Test
     void shouldFindSQL() {
-        template.partiQL("select from database");
-        Mockito.verify(manager).partiQL("select from database");
+        template.partiQL("select from human", Human.class);
+        Mockito.verify(manager).partiQL("select from human", "Human");
     }
 
     @Test
     void shouldFindSQLWithTypeAndParameters() {
-        template.partiQL("select from database where content.name = ?", List.of("Ada"), String.class);
-        Mockito.verify(manager).partiQL("select from database where content.name = ?", List.of("Ada"), String.class);
+        template.partiQL("select from database where content.name = ?", Human.class,  List.of("Ada"), String.class);
+        Mockito.verify(manager).partiQL("select from database where content.name = ?", "Human", List.of("Ada"), String.class);
     }
 
     @Test

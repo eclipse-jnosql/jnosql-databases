@@ -43,6 +43,8 @@ class TinkerpopRepositoryProxy <T, K> extends AbstractSemiStructuredRepositoryPr
 
     private final Converters converters;
 
+    private final EntitiesMetadata entitiesMetadata;
+
     private final EntityMetadata entityMetadata;
 
     private final Class<?> repositoryType;
@@ -55,6 +57,7 @@ class TinkerpopRepositoryProxy <T, K> extends AbstractSemiStructuredRepositoryPr
                 .getActualTypeArguments()[0]);
 
         this.converters = converters;
+        this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
         this.repositoryType = repositoryType;
         this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
@@ -73,6 +76,11 @@ class TinkerpopRepositoryProxy <T, K> extends AbstractSemiStructuredRepositoryPr
     @Override
     protected Class<?> repositoryType() {
         return repositoryType;
+    }
+
+    @Override
+    protected EntitiesMetadata entitiesMetadata() {
+        return entitiesMetadata;
     }
 
     @Override

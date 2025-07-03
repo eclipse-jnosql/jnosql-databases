@@ -48,6 +48,8 @@ class ArangoDBDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposi
 
     private final EntityMetadata entityMetadata;
 
+    private final EntitiesMetadata entitiesMetadata;
+
     ArangoDBDocumentRepositoryProxy(ArangoDBTemplate template,
                                     Class<?> type,
                                     Converters converters,
@@ -57,6 +59,7 @@ class ArangoDBDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposi
                 .getActualTypeArguments()[0]);
         this.type = type;
         this.converters = converters;
+        this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
         this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
     }
@@ -80,6 +83,11 @@ class ArangoDBDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposi
     @Override
     protected EntityMetadata entityMetadata() {
         return entityMetadata;
+    }
+
+    @Override
+    protected EntitiesMetadata entitiesMetadata() {
+        return this.entitiesMetadata;
     }
 
     @Override
