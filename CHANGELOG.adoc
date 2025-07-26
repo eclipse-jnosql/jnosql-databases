@@ -8,6 +8,17 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+=== Changed
+
+- Update Apache solr driver to 9.9.0
+- Update Jedis to version 6.0.0
+- Update OrientDB driver to 3.2.42
+- Update  MongoDB driver to 5.5.1
+- Update Infinispan driver to 15.2.5.Final
+- Update Couchbase driver to 3.8.3
+- Update ArangoDB driver to 7.21.0
+
+
 == [1.1.8] - 2025-05-21
 
 === Changed

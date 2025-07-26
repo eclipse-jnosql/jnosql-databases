@@ -39,7 +39,7 @@
     </scm>
 
     <properties>
-        <testcontainers.version>1.21.0</testcontainers.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
         <jnosql.test.integration>false</jnosql.test.integration>
         <pmd.url>https://raw.githubusercontent.com/eclipse/jnosql-databases/refs/heads/main/pmd/pmd-rules.xml</pmd.url>
     </properties>

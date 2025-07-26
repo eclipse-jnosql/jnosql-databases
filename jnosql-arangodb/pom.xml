@@ -28,8 +28,7 @@
     <description>The Eclipse JNoSQL layer to ArangoDB</description>
 
     <properties>
-        <arango.driver>7.17.0</arango.driver>
-
+        <arango.driver>7.21.0</arango.driver>
     </properties>
 
     <dependencies>
