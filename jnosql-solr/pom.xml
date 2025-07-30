@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-solr</artifactId>
+    <name>JNoSQL Apache Solr Driver</name>
     <description>The Eclipse JNoSQL layer implementation to Apache Solr</description>
     <dependencies>
         <dependency>

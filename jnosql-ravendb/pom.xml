@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-ravendb</artifactId>
+    <name>JNoSQL Ravendb Driver</name>
     <description>The Eclipse JNoSQL layer to RavenDB</description>
 
     <properties>

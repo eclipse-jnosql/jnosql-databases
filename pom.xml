@@ -28,6 +28,7 @@
 
     <groupId>org.eclipse.jnosql.databases</groupId>
     <artifactId>jnosql-databases-parent</artifactId>
+    <name>JNoSQL Databases Parent</name>
     <packaging>pom</packaging>
 
     <description>The Eclipse JNoSQL databases vendors</description>

@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-orientdb</artifactId>
+    <name>JNoSQL Orientdb Driver</name>
     <description>The Eclipse JNoSQL layer implementation to OrientDB</description>
 
     <properties>

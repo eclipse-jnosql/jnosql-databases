@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-hbase</artifactId>
+    <name>JNoSQL Apache Hbase Driver</name>
     <description>The Eclipse JNoSQL layer to Hbase</description>
 
     <dependencies>

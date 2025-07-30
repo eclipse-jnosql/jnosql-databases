@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-memcached</artifactId>
+    <name>JNoSQL Memcached Driver</name>
     <description>The Eclipse JNoSQL layer implementation to Memcached</description>
 
     <properties>

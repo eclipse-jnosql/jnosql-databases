@@ -25,7 +25,7 @@
     </parent>
 
     <artifactId>jnosql-riak</artifactId>
-
+    <name>JNoSQL Riak Driver</name>
     <description>The Eclipse JNoSQL layer implementation to Riak</description>
 
     <dependencies>

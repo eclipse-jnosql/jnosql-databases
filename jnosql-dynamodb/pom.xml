@@ -19,11 +19,11 @@
     </parent>
 
     <artifactId>jnosql-dynamodb</artifactId>
+    <name>JNoSQL AWS DynamoDB</name>
     <description>The Eclipse JNoSQL layer implementation AWS DynamoDB</description>
 
     <properties>
         <dynamodb.version>2.31.47</dynamodb.version>
-
     </properties>
 
     <dependencies>

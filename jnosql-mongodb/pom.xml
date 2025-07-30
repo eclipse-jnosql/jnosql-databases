@@ -25,6 +25,7 @@
     </parent>
 
     <artifactId>jnosql-mongodb</artifactId>
+    <name>JNoSQL MongoDB Driver</name>
     <description>The Eclipse JNoSQL layer to MongoDB</description>
 
     <properties>

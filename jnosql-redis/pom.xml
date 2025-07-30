@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-redis</artifactId>
+    <name>JNoSQL Redis Driver</name>
     <description>The Eclipse JNoSQL layer implementation Redis</description>
 
     <properties>

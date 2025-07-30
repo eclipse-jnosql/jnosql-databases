@@ -23,6 +23,7 @@
     </parent>
 
     <artifactId>jnosql-infinispan</artifactId>
+    <name>JNoSQL Infinispan Driver</name>
     <description>The Eclipse JNoSQL layer implementation for Infinispan</description>
 
     <properties>

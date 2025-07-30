@@ -25,6 +25,7 @@
     </parent>
 
     <artifactId>jnosql-couchbase</artifactId>
+    <name>JNoSQL Couchbase Driver</name>
     <description>The Eclipse JNoSQL layer to Couchbase</description>
 
     <properties>

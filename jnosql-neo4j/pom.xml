@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-neo4j</artifactId>
+    <name>JNoSQL Neo4J Driver</name>
 
     <properties>
         <neo4j.driver>5.28.5</neo4j.driver>

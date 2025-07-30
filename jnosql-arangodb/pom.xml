@@ -25,6 +25,7 @@
     </parent>
 
     <artifactId>jnosql-arangodb</artifactId>
+    <name>JNoSQL ArangoDB Driver</name>
     <description>The Eclipse JNoSQL layer to ArangoDB</description>
 
     <properties>

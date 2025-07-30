@@ -25,11 +25,11 @@
     </parent>
 
     <artifactId>jnosql-cassandra</artifactId>
+    <name>JNoSQL Apache Cassandra Driver</name>
     <description>The Eclipse JNoSQL layer to Cassandra</description>
 
     <properties>
         <casandra.driver.version>4.17.0</casandra.driver.version>
-
     </properties>
     <dependencies>
         <dependency>

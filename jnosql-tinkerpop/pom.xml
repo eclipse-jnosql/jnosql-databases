@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-tinkerpop</artifactId>
+    <name>JNoSQL Apache Tinkerpop Driver</name>
 
     <properties>
         <tinkerpop.version>3.7.3</tinkerpop.version>

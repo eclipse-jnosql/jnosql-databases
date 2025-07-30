@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-database-commons</artifactId>
+    <name>JNoSQL Database Commons</name>
 
     <dependencies>
         <dependency>

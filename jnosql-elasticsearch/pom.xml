@@ -25,6 +25,7 @@
     </parent>
 
     <artifactId>jnosql-elasticsearch</artifactId>
+    <name>JNoSQL Elasticsearch Driver</name>
     <description>The Eclipse JNoSQL layer to Elasticsearch</description>
 
     <properties>

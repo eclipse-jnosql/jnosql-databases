@@ -23,11 +23,8 @@
         <version>1.1.9-SNAPSHOT</version>
     </parent>
 
-    <properties>
-
-    </properties>
-
     <artifactId>jnosql-oracle-nosql</artifactId>
+    <name>JNoSQL Oracle NoSQL Driver</name>
     <description>The Eclipse JNoSQL layer implementation Oracle NoSQL</description>
     <dependencies>
         <dependency>

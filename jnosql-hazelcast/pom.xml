@@ -24,6 +24,7 @@
     </parent>
 
     <artifactId>jnosql-hazelcast</artifactId>
+    <name>JNoSQL Hazelcast Driver</name>
     <description>The Eclipse JNoSQL layer to Hazelcast</description>
 
     <properties>
