@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.eclipse.jnosql.databases</groupId>
         <artifactId>jnosql-databases-parent</artifactId>
-        <version>1.1.9</version>
+        <version>1.1.10-SNAPSHOT</version>
     </parent>
 
     <artifactId>jnosql-memcached</artifactId>
