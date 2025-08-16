@@ -27,7 +27,7 @@
     <name>JNoSQL Apache Tinkerpop Driver</name>
 
     <properties>
-        <tinkerpop.version>3.7.3</tinkerpop.version>
+        <tinkerpop.version>3.7.4</tinkerpop.version>
         <neo4j.connector.version>0.9-3.4.0</neo4j.connector.version>
         <antlr4.version>4.9.1</antlr4.version>
         <!-- it's required by the 'org.neo4j' libraries  -->

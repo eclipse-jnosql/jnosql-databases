@@ -17,6 +17,7 @@ package org.eclipse.jnosql.databases.couchbase.communication;
 import com.couchbase.client.java.json.JsonObject;
 import jakarta.data.Direction;
 import org.eclipse.jnosql.communication.TypeReference;
+import org.eclipse.jnosql.communication.driver.StringMatch;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
@@ -112,6 +113,15 @@ final class N1QLBuilder implements Supplier<N1QLQuery> {
                 return;
             case LIKE:
                 predicate(n1ql, " LIKE ", document, params);
+                return;
+            case CONTAINS:
+                predicate(n1ql, " LIKE ", Element.of(document.name(), StringMatch.CONTAINS.format(document.get(String.class))), params);
+                return;
+            case STARTS_WITH:
+                predicate(n1ql, " LIKE ", Element.of(document.name(), StringMatch.STARTS_WITH.format(document.get(String.class))), params);
+                return;
+            case ENDS_WITH:
+                predicate(n1ql, " LIKE ", Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), params);
                 return;
             case NOT:
                 n1ql.append(" NOT ");

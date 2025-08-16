@@ -8,6 +8,22 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+=== Changed
+
+- Update ArangoDB driver to 7.22.0
+- Update Apache Cassandra driver to 4.19.0
+- Update Couchbase driver to 3.9.0
+- Update Neo4J driver to 5.28.9
+- Update OrientDB driver to 3.2.43
+- Update Elasticsearch driver to 8.19.1
+- Update Apache Hbase to version 2.6.3
+- Update Jedis version to 6.1.0
+- Update Apache Tinkerpop core to 3.7.4
+
+=== Added
+
+- Include support to Contains, StartsWith, EndsWith for NoSQL databases
+
 == [1.1.9] - 2025-07-30
 
 === Changed

@@ -27,7 +27,7 @@
     <name>JNoSQL Neo4J Driver</name>
 
     <properties>
-        <neo4j.driver>5.28.5</neo4j.driver>
+        <neo4j.driver>5.28.9</neo4j.driver>
     </properties>
 
     <dependencies>

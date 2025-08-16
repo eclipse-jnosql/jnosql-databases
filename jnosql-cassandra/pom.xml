@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to Cassandra</description>
 
     <properties>
-        <casandra.driver.version>4.17.0</casandra.driver.version>
+        <casandra.driver.version>4.19.0</casandra.driver.version>
     </properties>
     <dependencies>
         <dependency>
@@ -42,12 +42,12 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.datastax.oss</groupId>
+            <groupId>org.apache.cassandra</groupId>
             <artifactId>java-driver-core</artifactId>
             <version>${casandra.driver.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.datastax.oss</groupId>
+            <groupId>org.apache.cassandra</groupId>
             <artifactId>java-driver-query-builder</artifactId>
             <version>${casandra.driver.version}</version>
         </dependency>

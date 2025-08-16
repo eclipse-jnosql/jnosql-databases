@@ -22,16 +22,19 @@ import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.keyvalue.BucketManager;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -208,6 +211,51 @@ public class CouchbaseDocumentManagerTest {
         entityManager.insert(entity);
         long counted = entityManager.count(COLLECTION_PERSON_NAME);
         assertTrue(counted > 0);
+    }
+
+    @Test
+    void shouldFindContains() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.contains(Element.of("name",
+                "lia")), COLLECTION_PERSON_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldStartsWith() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.startsWith(Element.of("name",
+                "Pol")), COLLECTION_PERSON_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldEndsWith() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.endsWith(Element.of("name",
+                "ana")), COLLECTION_PERSON_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
     }
 
     private CommunicationEntity createSubdocumentList() {

@@ -19,13 +19,16 @@ package org.eclipse.jnosql.databases.neo4j.communication;
 import net.datafaker.Faker;
 import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
+import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -606,6 +609,52 @@ class Neo4JDatabaseManagerTest {
             softly.assertThat(edge.properties()).containsEntry("strength", "strong");
         });
     }
+
+    @Test
+    void shouldFindContains() {
+        var entity = getEntity();
+        entity.add("name", "Poliana");
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.contains(Element.of("name",
+                "lia")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldStartsWith() {
+        var entity = getEntity();
+        entity.add("name", "Poliana");
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.startsWith(Element.of("name",
+                "Pol")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldEndsWith() {
+        var entity = getEntity();
+        entity.add("name", "Poliana");
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.endsWith(Element.of("name",
+                "ana")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
 
     private CommunicationEntity getEntity() {
         Faker faker = new Faker();

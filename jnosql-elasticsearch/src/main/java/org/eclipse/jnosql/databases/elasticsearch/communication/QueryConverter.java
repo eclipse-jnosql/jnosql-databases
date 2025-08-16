@@ -29,6 +29,7 @@ import co.elastic.clients.json.JsonData;
 import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.ValueUtil;
+import org.eclipse.jnosql.communication.driver.StringMatch;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
@@ -158,6 +159,24 @@ final class QueryConverter {
                 return (Query.Builder) new Query.Builder()
                         .queryString(QueryStringQuery.of(rq -> rq
                                 .query(document.value().get(String.class))
+                                .allowLeadingWildcard(true)
+                                .fields(fieldName)));
+            case CONTAINS:
+                return (Query.Builder) new Query.Builder()
+                        .queryString(QueryStringQuery.of(rq -> rq
+                                .query(StringMatch.CONTAINS.format(document.value().get(String.class)))
+                                .allowLeadingWildcard(true)
+                                .fields(fieldName)));
+            case STARTS_WITH:
+                return (Query.Builder) new Query.Builder()
+                        .queryString(QueryStringQuery.of(rq -> rq
+                                .query(StringMatch.STARTS_WITH.format(document.value().get(String.class)))
+                                .allowLeadingWildcard(true)
+                                .fields(fieldName)));
+            case ENDS_WITH:
+                return (Query.Builder) new Query.Builder()
+                        .queryString(QueryStringQuery.of(rq -> rq
+                                .query(StringMatch.ENDS_WITH.format(document.value().get(String.class)))
                                 .allowLeadingWildcard(true)
                                 .fields(fieldName)));
             case IN:
