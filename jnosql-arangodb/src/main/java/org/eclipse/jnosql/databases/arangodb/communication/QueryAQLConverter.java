@@ -153,6 +153,7 @@ final class QueryAQLConverter {
                 return;
             case LIKE:
                 appendCondition(aql, params, entity, document, LIKE);
+                return;
             case CONTAINS:
                 appendCondition(aql, params, entity, Element.of(document.name(), StringMatch.CONTAINS.format(document.get(String.class))), LIKE);
                 return;
