@@ -21,6 +21,7 @@ import jakarta.data.Direction;
 import jakarta.data.Sort;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.ValueUtil;
+import org.eclipse.jnosql.communication.driver.StringMatch;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
@@ -97,6 +98,15 @@ final class QueryOSQLConverter {
                 return;
             case LIKE:
                 appendCondition(query, params, document, LIKE, ids);
+                return;
+            case STARTS_WITH:
+                appendCondition(query, params, Element.of(document.name(), StringMatch.STARTS_WITH.format(document.get(String.class))), LIKE, ids);
+                return;
+            case CONTAINS:
+                appendCondition(query, params, Element.of(document.name(), StringMatch.CONTAINS.format(document.get(String.class))), LIKE, ids);
+                return;
+            case ENDS_WITH:
+                appendCondition(query, params, Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), LIKE, ids);
                 return;
             case AND:
                 for (CriteriaCondition dc : document.get(new TypeReference<List<CriteriaCondition>>() {

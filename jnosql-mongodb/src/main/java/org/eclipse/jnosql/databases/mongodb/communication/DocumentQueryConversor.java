@@ -56,6 +56,9 @@ final class DocumentQueryConversor {
                 yield Filters.nor(convert(criteriaCondition));
             }
             case LIKE -> Filters.regex(document.name(), Pattern.compile(prepareRegexValue(value.toString())));
+            case CONTAINS -> Filters.regex(document.name(), Pattern.compile(prepareContains(value.toString())));
+            case STARTS_WITH -> Filters.regex(document.name(), Pattern.compile(prepareStartsWith(value.toString())));
+            case ENDS_WITH -> Filters.regex(document.name(), Pattern.compile(prepareEndsWith(value.toString())));
             case AND -> {
                 List<CriteriaCondition> andConditions = condition.element().value().get(new TypeReference<>() {
                 });
@@ -79,12 +82,39 @@ final class DocumentQueryConversor {
         };
     }
 
-    public static String prepareRegexValue(String rawData) {
-        if (rawData == null)
-            return "^$";
-        return "^" + rawData
-                .replaceAll("_", ".{1}")
-                .replaceAll("%", ".{1,}");
+    static String prepareRegexValue(String likePattern) {
+        if (likePattern == null) {
+            return "(?!)"; // never matches
+        }
+        StringBuilder sb = new StringBuilder("^");
+        for (char c : likePattern.toCharArray()) {
+            switch (c) {
+                case '%':
+                    sb.append(".*");
+                    break;
+                case '_':
+                    sb.append('.');
+                    break;
+                default:
+                    sb.append(Pattern.quote(String.valueOf(c)));
+            }
+        }
+        sb.append('$');
+        return sb.toString();
+    }
+
+    static String prepareStartsWith(String raw) {
+        if (raw == null) return "(?!)";
+        return "^" + Pattern.quote(raw) + ".*$";
+    }
+    static String prepareEndsWith(String raw) {
+        if (raw == null) return "(?!)";
+        return "^.*" + Pattern.quote(raw) + "$";
+    }
+
+    static String prepareContains(String raw) {
+        if (raw == null) return "(?!)";
+        return "^.*" + Pattern.quote(raw) + ".*$";
     }
 
 }
