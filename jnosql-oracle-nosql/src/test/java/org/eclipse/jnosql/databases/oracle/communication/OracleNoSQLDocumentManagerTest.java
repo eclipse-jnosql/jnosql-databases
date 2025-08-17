@@ -17,8 +17,11 @@ package org.eclipse.jnosql.databases.oracle.communication;
 import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
+import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
+import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -579,6 +582,76 @@ class OracleNoSQLDocumentManagerTest {
 
         entity.add(Element.of("contacts", documents));
         return entity;
+    }
+
+    @Test
+    void shouldFindDocumentLike() {
+        DeleteQuery deleteQuery = delete().from(COLLECTION_NAME).where("type").eq("V").build();
+        entityManager.delete(deleteQuery);
+        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
+        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
+
+        var query = select().from(COLLECTION_NAME)
+                .where("name").like("Lu%")
+                .and("type").eq("V")
+                .build();
+
+        List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(entitiesFound).hasSize(2);
+            var names = entitiesFound.stream()
+                    .flatMap(d -> d.find("name").stream())
+                    .map(d -> d.get(String.class))
+                    .toList();
+            soft.assertThat(names).contains("Lucas", "Luna");
+
+        });
+    }
+
+    @Test
+    void shouldFindContains() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.contains(Element.of("name",
+                "lia")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldStartsWith() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.startsWith(Element.of("name",
+                "Pol")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldEndsWith() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.endsWith(Element.of("name",
+                "ana")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
     }
 
     private CommunicationEntity getEntity() {

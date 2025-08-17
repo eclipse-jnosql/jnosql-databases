@@ -19,10 +19,12 @@ import com.arangodb.ArangoDB;
 import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -401,6 +404,51 @@ public class ArangoDBDocumentManagerTest {
             softly.assertThat(result).hasSize(2);
             softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).contains(22, 23);
             softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).doesNotContain(25);
+        });
+    }
+
+    @Test
+    void shouldFindContains() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.contains(Element.of("name",
+                "lia")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldStartsWith() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.startsWith(Element.of("name",
+                "Pol")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldEndsWith() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.endsWith(Element.of("name",
+                "ana")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 

@@ -19,6 +19,7 @@ import jakarta.data.Direction;
 import jakarta.data.Sort;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.ValueUtil;
+import org.eclipse.jnosql.communication.driver.StringMatch;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
@@ -152,6 +153,15 @@ final class QueryAQLConverter {
                 return;
             case LIKE:
                 appendCondition(aql, params, entity, document, LIKE);
+                return;
+            case CONTAINS:
+                appendCondition(aql, params, entity, Element.of(document.name(), StringMatch.CONTAINS.format(document.get(String.class))), LIKE);
+                return;
+            case STARTS_WITH:
+                appendCondition(aql, params, entity, Element.of(document.name(), StringMatch.STARTS_WITH.format(document.get(String.class))), LIKE);
+                return;
+            case ENDS_WITH:
+                appendCondition(aql, params, entity, Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), LIKE);
                 return;
             case AND:
 

@@ -15,6 +15,7 @@
 package org.eclipse.jnosql.databases.tinkerpop.communication;
 
 import org.apache.tinkerpop.gremlin.process.traversal.P;
+import org.apache.tinkerpop.gremlin.process.traversal.TextP;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -40,6 +41,18 @@ final class TraversalExecutor {
         switch (operator) {
             case EQUALS -> {
                 return __.has(name, P.eq(value));
+            }
+            case LIKE -> {
+                return  __.has(name, TextP.regex(LikeToRegex.INSTANCE.likeToRegex(value)));
+            }
+            case ENDS_WITH -> {
+                return  __.has(name, TextP.endingWith(value == null ? "" : value.toString()));
+            }
+            case STARTS_WITH -> {
+                return __.has(name, TextP.startingWith(value == null ? "" : value.toString()));
+            }
+            case CONTAINS -> {
+                return __.has(name, TextP.containing(value == null ? "" : value.toString()));
             }
             case GREATER_THAN -> {
                 return __.has(name, P.gt(value));
