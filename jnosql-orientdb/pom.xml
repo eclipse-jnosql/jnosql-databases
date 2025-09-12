@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.orientechnologies</groupId>
             <artifactId>orientdb-graphdb</artifactId>
-            <version>3.2.43</version>
+            <version>3.2.44</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
