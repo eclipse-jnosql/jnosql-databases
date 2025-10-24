@@ -19,15 +19,16 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 
 import java.util.function.Function;
 
-public enum CommunicationEntityConverter implements Function<Vertex, CommunicationEntity>{
-    INSTANCE;
+import static org.eclipse.jnosql.databases.tinkerpop.communication.TinkerpopGraphDatabaseManager.ID;
 
+public enum CommunicationEntityConverter implements Function<Vertex, CommunicationEntity> {
+    INSTANCE;
 
     @Override
     public CommunicationEntity apply(Vertex vertex) {
         var entity = CommunicationEntity.of(vertex.label());
         vertex.properties().forEachRemaining(p -> entity.add(p.key(), p.value()));
-        entity.add(DefaultTinkerpopGraphDatabaseManager.ID_PROPERTY, vertex.id());
+        entity.add(ID, vertex.id());
         return entity;
     }
 }

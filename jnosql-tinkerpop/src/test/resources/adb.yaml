@@ -1,0 +1,10 @@
+gremlin:
+  graph: "com.arangodb.tinkerpop.gremlin.structure.ArangoDBGraph"
+  arangodb:
+    conf:
+      graph:
+        enableDataDefinition: true
+      driver:
+        password: "test"
+        hosts:
+          - "172.28.0.1:8529"

@@ -83,7 +83,7 @@ class EdgeEntityTest {
     @Test
     void shouldReturnNullWhenInboundIdIsNull() {
         Assertions.assertThrows(EmptyResultException.class, () -> {
-            Human human = Human.builder().withId(-5).withName("Poliana").withAge().build();
+            Human human = Human.builder().withId("-5").withName("Poliana").withAge().build();
             Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
             tinkerpopTemplate.edge(human, "reads", magazine);
         });
@@ -102,7 +102,7 @@ class EdgeEntityTest {
     @Test
     void shouldReturnEntityNotFoundWhenOutBoundDidNotFound() {
         Assertions.assertThrows( EmptyResultException.class, () -> {
-            Human human = Human.builder().withId(-10L).withName("Poliana").withAge().build();
+            Human human = Human.builder().withId("-10L").withName("Poliana").withAge().build();
             Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
             tinkerpopTemplate.edge(human, "reads", magazine);
         });
@@ -112,7 +112,7 @@ class EdgeEntityTest {
     void shouldReturnEntityNotFoundWhenInBoundDidNotFound() {
         Assertions.assertThrows( EmptyResultException.class, () -> {
             Human human = tinkerpopTemplate.insert(Human.builder().withName("Poliana").withAge().build());
-            Magazine magazine = Magazine.builder().withId(10L).withAge(2007).withName("The Shack").build();
+            Magazine magazine = Magazine.builder().withId("10L").withAge(2007).withName("The Shack").build();
             tinkerpopTemplate.edge(human, "reads", magazine);
         });
     }
@@ -141,10 +141,10 @@ class EdgeEntityTest {
         assertEquals(magazine, edge.incoming());
         assertTrue(edge.isEmpty());
         assertNotNull(edge.id());
-        final Long id = edge.id(Long.class);
+        final String id = edge.id(String.class);
         assertNotNull(id);
 
-        assertEquals(id, edge.id(Integer.class).longValue());
+        assertEquals(id, edge.id(String.class));
 
     }
 
@@ -352,7 +352,7 @@ class EdgeEntityTest {
 
     @Test
     void shouldNotFindAnEdge() {
-        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.edge(-12L);
+        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.edge("-12L");
 
         assertFalse(edgeEntity.isPresent());
     }

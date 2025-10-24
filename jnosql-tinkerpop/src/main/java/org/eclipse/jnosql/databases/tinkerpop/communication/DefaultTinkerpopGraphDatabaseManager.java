@@ -19,12 +19,14 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.eclipse.jnosql.communication.CommunicationException;
 import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.graph.CommunicationEdge;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.time.Duration;
@@ -52,7 +54,6 @@ import static org.apache.tinkerpop.gremlin.process.traversal.Order.desc;
  */
 public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatabaseManager {
 
-    public static final String ID_PROPERTY = "_id";
     private final Graph graph;
 
     DefaultTinkerpopGraphDatabaseManager(Graph graph) {
@@ -71,13 +72,8 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
 
     @Override
     public CommunicationEntity insert(CommunicationEntity entity) {
-
         Objects.requireNonNull(entity, "entity is required");
-        Vertex vertex = graph.addVertex(entity.name());
-        entity.elements().forEach(e -> vertex.property(e.name(), ValueUtil.convert(e.value())));
-        entity.add(ID_PROPERTY, vertex.id());
-        vertex.property(ID_PROPERTY, vertex.id());
-        GraphTransactionUtil.transaction(graph);
+        addVertex(entity);
         return entity;
     }
 
@@ -101,14 +97,16 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
     @Override
     public CommunicationEntity update(CommunicationEntity entity) {
         Objects.requireNonNull(entity, "entity is required");
-        entity.find(ID_PROPERTY).ifPresent(id -> {
-            Iterator<Vertex> vertices = graph.vertices(id.get());
-            if(!vertices.hasNext()) {
-                throw new EmptyResultException("The entity does not exist with the id: " + id);
-            }
-            Vertex vertex = vertices.next();
-            entity.elements().forEach(e -> vertex.property(e.name(), ValueUtil.convert(e.value())));
-        });
+        Object id = entity.find(ID).map(Element::get)
+                .orElseThrow(() -> new IllegalArgumentException("Entity must have an ID"));
+        Iterator<Vertex> vertices = graph.vertices(id);
+        if (!vertices.hasNext()) {
+            throw new EmptyResultException("The entity does not exist with the id: " + id);
+        }
+        Vertex vertex = vertices.next();
+        entity.elements().stream()
+                .filter(it -> !ID.equals(it.name()))
+                .forEach(e -> vertex.property(e.name(), ValueUtil.convert(e.value())));
         GraphTransactionUtil.transaction(graph);
         return entity;
     }
@@ -209,11 +207,11 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
         Objects.requireNonNull(target, "target is required");
         Objects.requireNonNull(label, "label is required");
 
-        Vertex sourceVertex = findVertexById(source.find(ID_PROPERTY)
+        Vertex sourceVertex = findVertexById(source.find(ID)
                 .orElseThrow(() -> new CommunicationException("Source entity must have an ID")).get())
                 .orElseThrow(() -> new EmptyResultException("Source entity not found"));
 
-        Vertex targetVertex = findVertexById(target.find(ID_PROPERTY)
+        Vertex targetVertex = findVertexById(target.find(ID)
                 .orElseThrow(() -> new CommunicationException("Target entity must have an ID")).get())
                 .orElseThrow(() -> new EmptyResultException("Target entity not found"));
 
@@ -252,10 +250,10 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
 
         var edge = traversal.next();
         var source = CommunicationEntity.of(edge.outVertex().label());
-        source.add(ID_PROPERTY, edge.outVertex().id());
+        source.add(ID, edge.outVertex().id());
 
         var target = CommunicationEntity.of(edge.inVertex().label());
-        target.add(ID_PROPERTY, edge.inVertex().id());
+        target.add(ID, edge.inVertex().id());
 
         Map<String, Object> properties = new HashMap<>();
         edge.properties().forEachRemaining(p -> properties.put(p.key(), p.value()));
@@ -263,16 +261,22 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
         return Optional.of(new TinkerpopCommunicationEdge(id, source, target, edge.label(), properties));
     }
 
+    private Vertex addVertex(CommunicationEntity entity) {
+        Object[] args = Stream.concat(
+                Stream.of(T.label, entity.name()),
+                entity.elements().stream().flatMap(it -> ID.equals(it.name()) ?
+                        Stream.of(T.id, it.get()) :
+                        Stream.of(it.name(), ValueUtil.convert(it.value())))
+        ).toArray();
+        Vertex vertex = graph.addVertex(args);
+        entity.add(ID, vertex.id());
+        return vertex;
+    }
+
     private Vertex findOrCreateVertex(CommunicationEntity entity) {
-        return entity.find(ID_PROPERTY)
+        return entity.find(ID)
                 .flatMap(id -> findVertexById(id.get()))
-                .orElseGet(() -> {
-                    var newVertex = graph.addVertex(entity.name());
-                    entity.elements().forEach(e -> newVertex.property(e.name(), ValueUtil.convert(e.value())));
-                    newVertex.property(ID_PROPERTY, newVertex.id());
-                    entity.add(ID_PROPERTY, newVertex.id());
-                    return newVertex;
-                });
+                .orElseGet(() -> addVertex(entity));
     }
 
     private Optional<Vertex> findVertexById(Object id) {

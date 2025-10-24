@@ -100,7 +100,7 @@ class DefaultVertexTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldEmptyNext() {
-        Optional<?> next = tinkerpopTemplate.traversalVertex(-12).next();
+        Optional<?> next = tinkerpopTemplate.traversalVertex("-12").next();
         assertFalse(next.isPresent());
     }
 

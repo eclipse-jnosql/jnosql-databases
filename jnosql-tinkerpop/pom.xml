@@ -54,15 +54,15 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.tinkerpop</groupId>
-            <artifactId>neo4j-gremlin</artifactId>
-            <version>${tinkerpop.version}</version>
+            <groupId>com.arangodb</groupId>
+            <artifactId>arangodb-tinkerpop-provider</artifactId>
+            <version>3.2.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-tinkerpop-api-impl</artifactId>
-            <version>${neo4j.connector.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.25</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

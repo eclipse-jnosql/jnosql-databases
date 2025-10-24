@@ -23,9 +23,8 @@ import java.util.Objects;
 @Entity
 public class Creature {
 
-
-    @Id
-    private Long id;
+    @Id("~id")
+    private String id;
 
     @Column
     private String name;
@@ -37,7 +36,7 @@ public class Creature {
         this.name = name;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 

@@ -23,8 +23,8 @@ import java.util.Objects;
 @Entity
 public class Magazine {
 
-    @Id
-    private Long id;
+    @Id("~id")
+    private String id;
 
     @Column
     private String name;
@@ -36,13 +36,13 @@ public class Magazine {
     Magazine() {
     }
 
-    Magazine(Long id, String name, Integer age) {
+    Magazine(String id, String name, Integer age) {
         this.id = id;
         this.name = name;
         this.age = age;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -86,7 +86,7 @@ public class Magazine {
     public static class MagazineBuilder {
         private String name;
         private Integer age;
-        private Long id;
+        private String id;
 
         private MagazineBuilder() {
         }
@@ -101,7 +101,7 @@ public class Magazine {
             return this;
         }
 
-        public MagazineBuilder withId(Long id) {
+        public MagazineBuilder withId(String id) {
             this.id = id;
             return this;
         }

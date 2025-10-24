@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.apache.tinkerpop.gremlin.structure.Transaction.Status.COMMIT;
 import static org.apache.tinkerpop.gremlin.structure.Transaction.Status.ROLLBACK;
+import static org.junit.Assume.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -53,6 +54,8 @@ class MagazineTemplateTest {
 
     @Test
     void shouldSaveWithTransaction() {
+        assumeTrue("transactions not supported", graph.features().graph().supportsTransactions());
+
         AtomicReference<Status> status = new AtomicReference<>();
 
         Magazine magazine = Magazine.builder().withName("The Book").build();
@@ -65,6 +68,8 @@ class MagazineTemplateTest {
 
     @Test
     void shouldSaveWithRollback() {
+        assumeTrue("transactions not supported", graph.features().graph().supportsTransactions());
+
         AtomicReference<Status> status = new AtomicReference<>();
 
         Magazine magazine = Magazine.builder().withName("The Book").build();
@@ -83,6 +88,8 @@ class MagazineTemplateTest {
 
     @Test
     void shouldUseAutomaticNormalTransaction() {
+        assumeTrue("transactions not supported", graph.features().graph().supportsTransactions());
+
         AtomicReference<Status> status = new AtomicReference<>();
 
         Magazine magazine = Magazine.builder().withName("The Book").build();

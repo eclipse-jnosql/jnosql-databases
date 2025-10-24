@@ -27,8 +27,8 @@ import java.util.Objects;
 @MappedSuperclass
 public class Human {
 
-    @Id
-    private Long id;
+    @Id("~id")
+    private String id;
 
     @Column
     private String name;
@@ -42,7 +42,7 @@ public class Human {
     private String ignore;
 
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -69,7 +69,7 @@ public class Human {
     Human() {
     }
 
-    Human(Long id, String name, int age, List<String> phones, String ignore) {
+    Human(String id, String name, int age, List<String> phones, String ignore) {
         this.id = id;
         this.name = name;
         this.age = age;
@@ -79,7 +79,7 @@ public class Human {
 
     @Override
     public String toString() {
-        return  "Person{" + "id=" + id +
+        return  "Human{" + "id=" + id +
                 ", name='" + name + '\'' +
                 ", age=" + age +
                 ", phones=" + phones +
@@ -96,7 +96,7 @@ public class Human {
             return false;
         }
         Human human = (Human) o;
-        return id == human.id &&
+        return Objects.equals(id, human.id) &&
                 age == human.age &&
                 Objects.equals(name, human.name) &&
                 Objects.equals(phones, human.phones);

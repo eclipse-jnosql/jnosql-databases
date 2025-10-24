@@ -489,7 +489,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnOptionalEmptyWhenThereIsNotResultInSingleResult() {
-        Optional<EdgeEntity> entity = tinkerpopTemplate.traversalEdge(-1L).singleResult();
+        Optional<EdgeEntity> entity = tinkerpopTemplate.traversalEdge("-1L").singleResult();
         assertFalse(entity.isPresent());
     }
 

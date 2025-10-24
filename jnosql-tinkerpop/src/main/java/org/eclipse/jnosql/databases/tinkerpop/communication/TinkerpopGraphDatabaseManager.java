@@ -15,6 +15,7 @@
 package org.eclipse.jnosql.databases.tinkerpop.communication;
 
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.eclipse.jnosql.communication.graph.GraphDatabaseManager;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 
@@ -34,6 +35,8 @@ import java.util.function.Supplier;
  * </p>
  */
 public interface TinkerpopGraphDatabaseManager extends GraphDatabaseManager, Supplier<Graph> {
+
+    String ID = T.id.getAccessor();
 
     /**
      * Creates a new instance of DefaultGraphDatabaseManager with the specified TinkerPop Graph.

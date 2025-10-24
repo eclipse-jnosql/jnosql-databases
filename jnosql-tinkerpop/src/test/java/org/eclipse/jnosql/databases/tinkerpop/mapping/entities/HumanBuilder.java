@@ -17,13 +17,13 @@ package org.eclipse.jnosql.databases.tinkerpop.mapping.entities;
 import java.util.List;
 
 public class HumanBuilder {
-    private Long id;
+    private String id;
     private String name;
     private int age;
     private List<String> phones;
     private String ignore;
 
-    public HumanBuilder withId(long id) {
+    public HumanBuilder withId(String id) {
         this.id = id;
         return this;
     }
