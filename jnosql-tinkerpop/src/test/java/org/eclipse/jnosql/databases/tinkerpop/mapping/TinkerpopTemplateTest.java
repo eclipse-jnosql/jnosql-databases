@@ -16,6 +16,7 @@ package org.eclipse.jnosql.databases.tinkerpop.mapping;
 
 import jakarta.inject.Inject;
 import jakarta.nosql.Template;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.mock.MockGraphProducer;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.spi.TinkerpopExtension;
 import org.eclipse.jnosql.mapping.Database;
 import org.eclipse.jnosql.mapping.core.Converters;
@@ -34,7 +35,7 @@ import static org.eclipse.jnosql.mapping.DatabaseType.GRAPH;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class, GraphTemplate.class})
-@AddPackages(GraphProducer.class)
+@AddPackages(MockGraphProducer.class)
 @AddPackages(Reflections.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class, TinkerpopExtension.class, GraphExtension.class})
 class TinkerpopTemplateTest {

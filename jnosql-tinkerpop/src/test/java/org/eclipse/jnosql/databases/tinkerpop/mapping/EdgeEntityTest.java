@@ -18,6 +18,9 @@ import jakarta.data.exceptions.EmptyResultException;
 import jakarta.inject.Inject;
 import org.eclipse.jnosql.communication.Value;
 import org.eclipse.jnosql.communication.semistructured.Element;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.arangodb.ArangoDBGraphProducer;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.neo4j.Neo4jGraphProducer;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.tinkergraph.TinkerGraphProducer;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Human;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Magazine;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.spi.TinkerpopExtension;
@@ -43,11 +46,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
-@AddPackages(GraphProducer.class)
 @AddPackages(Reflections.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class, TinkerpopExtension.class})
-class EdgeEntityTest {
+abstract class EdgeEntityTest {
 
+    @AddPackages(ArangoDBGraphProducer.class)
+    static class ArangoDBTest extends EdgeEntityTest {
+    }
+
+    @AddPackages(Neo4jGraphProducer.class)
+    static class Neo4jTest extends EdgeEntityTest {
+    }
+
+    @AddPackages(TinkerGraphProducer.class)
+    static class TinkerGraphTest extends EdgeEntityTest {
+    }
 
     @Inject
     private TinkerpopTemplate tinkerpopTemplate;
@@ -102,7 +115,7 @@ class EdgeEntityTest {
     @Test
     void shouldReturnEntityNotFoundWhenOutBoundDidNotFound() {
         Assertions.assertThrows( EmptyResultException.class, () -> {
-            Human human = Human.builder().withId("-10L").withName("Poliana").withAge().build();
+            Human human = Human.builder().withId("-10").withName("Poliana").withAge().build();
             Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
             tinkerpopTemplate.edge(human, "reads", magazine);
         });
@@ -112,7 +125,7 @@ class EdgeEntityTest {
     void shouldReturnEntityNotFoundWhenInBoundDidNotFound() {
         Assertions.assertThrows( EmptyResultException.class, () -> {
             Human human = tinkerpopTemplate.insert(Human.builder().withName("Poliana").withAge().build());
-            Magazine magazine = Magazine.builder().withId("10L").withAge(2007).withName("The Shack").build();
+            Magazine magazine = Magazine.builder().withId("10").withAge(2007).withName("The Shack").build();
             tinkerpopTemplate.edge(human, "reads", magazine);
         });
     }
@@ -352,7 +365,7 @@ class EdgeEntityTest {
 
     @Test
     void shouldNotFindAnEdge() {
-        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.edge("-12L");
+        Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.edge("-12");
 
         assertFalse(edgeEntity.isPresent());
     }

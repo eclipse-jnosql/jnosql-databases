@@ -25,9 +25,14 @@ import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.TestGraphSupplier;
 import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -35,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -49,18 +55,22 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class DefaultTinkerpopGraphDatabaseManagerTest {
+@ParameterizedClass
+@EnumSource(TestGraphSupplier.class)
+public class DefaultTinkerpopGraphDatabaseManagerTest {
 
-    public static final String COLLECTION_NAME = "Person";
+    static final String COLLECTION_NAME = "Person";
 
     private TinkerpopGraphDatabaseManager entityManager;
 
     private final Faker faker = new Faker();
 
+    @Parameter
+    private Supplier<Graph> graphSupplier;
+
     @BeforeEach
-    void setUp(){
-        Graph graph = GraphSupplier.INSTANCE.get();
-        this.entityManager = TinkerpopGraphDatabaseManager.of(graph);
+    void setUp() {
+        this.entityManager = TinkerpopGraphDatabaseManager.of(graphSupplier.get());
     }
 
     @BeforeEach
@@ -68,8 +78,13 @@ class DefaultTinkerpopGraphDatabaseManagerTest {
         delete().from(COLLECTION_NAME).delete(entityManager);
     }
 
+    @AfterEach
+    void close() {
+        entityManager.close();
+    }
+
     @Test
-    void shouldInsertEntity(){
+    void shouldInsertEntity() {
         String name = faker.name().fullName();
         var age = faker.number().randomDigit();
         var entity = CommunicationEntity.of("Person");
@@ -86,7 +101,7 @@ class DefaultTinkerpopGraphDatabaseManagerTest {
     }
 
     @Test
-    void shouldInsertEntities(){
+    void shouldInsertEntities() {
         String name = faker.name().fullName();
         var age = faker.number().randomDigit();
         var entity = CommunicationEntity.of("Person");
@@ -304,7 +319,6 @@ class DefaultTinkerpopGraphDatabaseManagerTest {
             softly.assertThat(entities).extracting(e -> e.find("name").orElseThrow().get(String.class))
                     .contains("Luna", "Lucas");
         });
-
 
 
     }

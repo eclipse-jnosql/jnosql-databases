@@ -15,9 +15,8 @@
 package org.eclipse.jnosql.databases.tinkerpop.mapping.spi;
 
 import jakarta.inject.Inject;
-import org.eclipse.jnosql.databases.tinkerpop.mapping.GraphProducer;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.TinkerpopTemplate;
-import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Human;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.mock.MockGraphProducer;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.HumanRepository;
 import org.eclipse.jnosql.mapping.Database;
 import org.eclipse.jnosql.mapping.DatabaseType;
@@ -33,16 +32,14 @@ import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class, GraphTemplate.class})
-@AddPackages(GraphProducer.class)
+@AddPackages(MockGraphProducer.class)
 @AddPackages(Reflections.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class, TinkerpopExtension.class, GraphExtension.class})
 class TinkerpopExtensionTest {
-
 
     @Inject
     @Database(value = DatabaseType.GRAPH)
@@ -69,7 +66,7 @@ class TinkerpopExtensionTest {
     }
 
     @Test
-    void shouldUseMock(){
+    void shouldUseMock() {
         assertNotNull(repositoryMock);
     }
 

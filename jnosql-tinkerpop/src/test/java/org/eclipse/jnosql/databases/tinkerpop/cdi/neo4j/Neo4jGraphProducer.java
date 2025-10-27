@@ -11,8 +11,9 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Michele Rastelli
  */
-package org.eclipse.jnosql.databases.tinkerpop.mapping;
+package org.eclipse.jnosql.databases.tinkerpop.cdi.neo4j;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Priority;
@@ -22,32 +23,23 @@ import jakarta.enterprise.inject.Disposes;
 import jakarta.enterprise.inject.Produces;
 import jakarta.interceptor.Interceptor;
 import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.eclipse.jnosql.databases.tinkerpop.communication.GraphSupplier;
-import org.eclipse.jnosql.mapping.Database;
-import org.eclipse.jnosql.mapping.DatabaseType;
-import org.mockito.Mockito;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.TestGraphSupplier;
 
-import java.util.Collections;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
-
-import static java.util.Collections.singleton;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ApplicationScoped
 @Alternative
 @Priority(Interceptor.Priority.APPLICATION)
-public class GraphProducer implements Supplier<Graph> {
+public class Neo4jGraphProducer implements Supplier<Graph> {
 
-    private static final Logger LOGGER = Logger.getLogger(GraphProducer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(Neo4jGraphProducer.class.getName());
 
     private Graph graph;
 
     @PostConstruct
     public void init() {
-        graph = GraphSupplier.INSTANCE.get();
+        graph = TestGraphSupplier.NEO4J.get();
         LOGGER.info("Graph database created");
     }
 
@@ -58,27 +50,10 @@ public class GraphProducer implements Supplier<Graph> {
         return graph;
     }
 
-
-    @Produces
-    @ApplicationScoped
-    @Database(value = DatabaseType.GRAPH, provider = "graphRepositoryMock")
-    public Graph getGraphMock() {
-
-        Graph graphMock = mock(Graph.class);
-        Vertex vertex = mock(Vertex.class);
-        when(vertex.label()).thenReturn("Person");
-        when(vertex.id()).thenReturn("10L");
-        when(graphMock.vertices("10L")).thenReturn(Collections.emptyIterator());
-        when(vertex.keys()).thenReturn(singleton("name"));
-        when(vertex.value("name")).thenReturn("nameMock");
-        when(graphMock.addVertex(Mockito.anyString())).thenReturn(vertex);
-        when(graphMock.vertices(Mockito.any())).thenReturn(Collections.emptyIterator());
-        return graphMock;
-    }
-
     public void dispose(@Disposes Graph graph) throws Exception {
         LOGGER.info("Graph database closing");
         graph.close();
         LOGGER.info("Graph Database closed");
     }
+
 }

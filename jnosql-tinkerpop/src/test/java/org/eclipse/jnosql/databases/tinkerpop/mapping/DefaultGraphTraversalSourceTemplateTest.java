@@ -16,6 +16,9 @@ package org.eclipse.jnosql.databases.tinkerpop.mapping;
 
 import jakarta.inject.Inject;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.arangodb.ArangoDBGraphProducer;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.neo4j.Neo4jGraphProducer;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.tinkergraph.TinkerGraphProducer;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.spi.TinkerpopExtension;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
@@ -27,9 +30,21 @@ import org.jboss.weld.junit5.auto.EnableAutoWeld;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, Transactional.class})
-@AddPackages({MagazineRepository.class, Reflections.class, GraphProducer.class})
+@AddPackages({MagazineRepository.class, Reflections.class})
 @AddExtensions({ReflectionEntityMetadataExtension.class, TinkerpopExtension.class})
-class DefaultGraphTraversalSourceTemplateTest extends AbstractTinkerpopTemplateTest {
+abstract class DefaultGraphTraversalSourceTemplateTest extends AbstractTinkerpopTemplateTest {
+
+    @AddPackages(ArangoDBGraphProducer.class)
+    static class ArangoDBTest extends DefaultGraphTraversalSourceTemplateTest {
+    }
+
+    @AddPackages(Neo4jGraphProducer.class)
+    static class Neo4jTest extends DefaultGraphTraversalSourceTemplateTest {
+    }
+
+    @AddPackages(TinkerGraphProducer.class)
+    static class TinkerGraphTest extends DefaultGraphTraversalSourceTemplateTest {
+    }
 
     @Inject
     private TinkerpopTemplate graphTemplate;

@@ -16,8 +16,10 @@ package org.eclipse.jnosql.databases.tinkerpop.mapping;
 
 
 import jakarta.inject.Inject;
-import org.apache.tinkerpop.gremlin.process.traversal.Order;
 import org.assertj.core.api.SoftAssertions;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.arangodb.ArangoDBGraphProducer;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.neo4j.Neo4jGraphProducer;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.tinkergraph.TinkerGraphProducer;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Human;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.spi.TinkerpopExtension;
 import org.eclipse.jnosql.mapping.core.Converters;
@@ -36,10 +38,21 @@ import java.util.List;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class, GraphTemplate.class})
-@AddPackages(GraphProducer.class)
 @AddPackages(Reflections.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class, TinkerpopExtension.class, GraphExtension.class})
-public class PopulationTest {
+abstract class PopulationTest {
+
+    @AddPackages(ArangoDBGraphProducer.class)
+    static class ArangoDBTest extends PopulationTest {
+    }
+
+    @AddPackages(Neo4jGraphProducer.class)
+    static class Neo4jTest extends PopulationTest {
+    }
+
+    @AddPackages(TinkerGraphProducer.class)
+    static class TinkerGraphTest extends PopulationTest {
+    }
 
     @Inject
     private Population population;

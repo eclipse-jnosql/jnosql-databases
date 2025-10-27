@@ -132,7 +132,7 @@ public abstract class AbstractTinkerpopTemplateTest {
     void shouldGetErrorWhenEntityIsNotSavedYet() {
         assertThrows(EmptyResultException.class, () -> {
             Human human = Human.builder().withAge()
-                    .withId("10L")
+                    .withId("10")
                     .withName("Otavio").build();
 
             getGraphTemplate().update(human);
@@ -214,7 +214,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
     @Test
     void shouldNotFindAnEntity() {
-        Optional<Human> personFound = getGraphTemplate().find("0L");
+        Optional<Human> personFound = getGraphTemplate().find("0");
         assertFalse(personFound.isPresent());
     }
 
@@ -351,7 +351,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
     @Test
     void shouldReturnErrorWhenGetEdgesHasNullId2() {
-        Human otavio = Human.builder().withId("0L").withAge().withName("Otavio").build();
+        Human otavio = Human.builder().withId("0").withAge().withName("Otavio").build();
         Collection<EdgeEntity> edges = getGraphTemplate().edges(otavio, Direction.BOTH);
         assertThat(edges).isEmpty();
     }
@@ -367,7 +367,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
     @Test
     void shouldReturnEmptyWhenEntityDoesNotExist() {
-        Human otavio = Human.builder().withAge().withName("Otavio").withId("10L").build();
+        Human otavio = Human.builder().withAge().withName("Otavio").withId("10").build();
         Collection<EdgeEntity> edges = getGraphTemplate().edges(otavio, Direction.BOTH);
         assertTrue(edges.isEmpty());
     }
@@ -551,7 +551,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
     @Test
     void shouldReturnEmptyWhenFindByIdNotFound() {
-        final Optional<Human> person = getGraphTemplate().find(Human.class, "-2L");
+        final Optional<Human> person = getGraphTemplate().find(Human.class, "-2");
         assertNotNull(person);
         assertFalse(person.isPresent());
     }

@@ -18,6 +18,9 @@ import jakarta.data.exceptions.NonUniqueResultException;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.assertj.core.api.SoftAssertions;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.arangodb.ArangoDBGraphProducer;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.neo4j.Neo4jGraphProducer;
+import org.eclipse.jnosql.databases.tinkerpop.cdi.tinkergraph.TinkerGraphProducer;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Creature;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Human;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Magazine;
@@ -51,10 +54,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
-@AddPackages(GraphProducer.class)
 @AddPackages(Reflections.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class, TinkerpopExtension.class})
-class DefaultEdgeTraversalTest extends AbstractTraversalTest {
+abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
+
+    @AddPackages(ArangoDBGraphProducer.class)
+    static class ArangoDBTest extends DefaultEdgeTraversalTest {
+    }
+
+    @AddPackages(Neo4jGraphProducer.class)
+    static class Neo4jTest extends DefaultEdgeTraversalTest {
+    }
+
+    @AddPackages(TinkerGraphProducer.class)
+    static class TinkerGraphTest extends DefaultEdgeTraversalTest {
+    }
 
     @Test
     void shouldReturnErrorWhenEdgeIdIsNull() {
@@ -489,7 +503,7 @@ class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnOptionalEmptyWhenThereIsNotResultInSingleResult() {
-        Optional<EdgeEntity> entity = tinkerpopTemplate.traversalEdge("-1L").singleResult();
+        Optional<EdgeEntity> entity = tinkerpopTemplate.traversalEdge("-1").singleResult();
         assertFalse(entity.isPresent());
     }
 
