@@ -14,8 +14,12 @@
  */
 package org.eclipse.jnosql.databases.tinkerpop.communication;
 
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -23,17 +27,26 @@ import java.util.logging.Logger;
 public enum GraphSupplier implements Supplier<Graph> {
     INSTANCE;
 
-    private static final Logger LOGGER = Logger.getLogger(GraphSupplier.class.getName());
-
-    private final Graph graph;
+    private final GenericContainer<?> arangodb =
+            new GenericContainer<>("arangodb/arangodb:latest")
+                    .withExposedPorts(8529)
+                    .withEnv("ARANGO_NO_AUTH", "1")
+                    .waitingFor(Wait.forHttp("/")
+                            .forStatusCode(200));
 
     {
-        graph = GraphFactory.open("src/test/resources/adb.yaml");
+        arangodb.start();
     }
+
+    private static final Logger LOGGER = Logger.getLogger(GraphSupplier.class.getName());
 
     @Override
     public Graph get() {
         LOGGER.info("Starting Graph database");
-        return graph;
+        Configuration configuration = new BaseConfiguration();
+        configuration.addProperty("gremlin.graph", "com.arangodb.tinkerpop.gremlin.structure.ArangoDBGraph");
+        configuration.addProperty("gremlin.arangodb.conf.graph.enableDataDefinition", true);
+        configuration.addProperty("gremlin.arangodb.conf.driver.hosts", arangodb.getHost() + ":" + arangodb.getFirstMappedPort());
+        return GraphFactory.open(configuration);
     }
 }

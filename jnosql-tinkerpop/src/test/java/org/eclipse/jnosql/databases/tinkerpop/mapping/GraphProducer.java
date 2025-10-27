@@ -23,7 +23,7 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.interceptor.Interceptor;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
+import org.eclipse.jnosql.databases.tinkerpop.communication.GraphSupplier;
 import org.eclipse.jnosql.mapping.Database;
 import org.eclipse.jnosql.mapping.DatabaseType;
 import org.mockito.Mockito;
@@ -47,7 +47,7 @@ public class GraphProducer implements Supplier<Graph> {
 
     @PostConstruct
     public void init() {
-        graph = GraphFactory.open("src/test/resources/adb.yaml");
+        graph = GraphSupplier.INSTANCE.get();
         LOGGER.info("Graph database created");
     }
 
