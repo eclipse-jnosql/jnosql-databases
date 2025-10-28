@@ -30,9 +30,6 @@ import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.Parameter;
-import org.junit.jupiter.params.ParameterizedClass;
-import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -40,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -55,9 +51,28 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ParameterizedClass
-@EnumSource(TestGraphSupplier.class)
-public class DefaultTinkerpopGraphDatabaseManagerTest {
+abstract class DefaultTinkerpopGraphDatabaseManagerTest {
+
+    static class ArangoDBTest extends DefaultTinkerpopGraphDatabaseManagerTest {
+        @Override
+        Graph graph() {
+            return TestGraphSupplier.ARANGODB.get();
+        }
+    }
+
+    static class Neo4jTest extends DefaultTinkerpopGraphDatabaseManagerTest {
+        @Override
+        Graph graph() {
+            return TestGraphSupplier.NEO4J.get();
+        }
+    }
+
+    static class TinkerGraphTest extends DefaultTinkerpopGraphDatabaseManagerTest {
+        @Override
+        Graph graph() {
+            return TestGraphSupplier.TINKER_GRAPH.get();
+        }
+    }
 
     static final String COLLECTION_NAME = "Person";
 
@@ -65,12 +80,11 @@ public class DefaultTinkerpopGraphDatabaseManagerTest {
 
     private final Faker faker = new Faker();
 
-    @Parameter
-    private Supplier<Graph> graphSupplier;
+    abstract Graph graph();
 
     @BeforeEach
     void setUp() {
-        this.entityManager = TinkerpopGraphDatabaseManager.of(graphSupplier.get());
+        this.entityManager = TinkerpopGraphDatabaseManager.of(graph());
     }
 
     @BeforeEach
