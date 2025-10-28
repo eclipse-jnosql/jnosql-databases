@@ -22,6 +22,7 @@ import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerTransactionGraph;
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.File;
@@ -61,7 +62,8 @@ public enum TestGraphSupplier implements Supplier<Graph> {
             Configuration configuration = new BaseConfiguration();
             configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_VERTEX_ID_MANAGER, TinkerGraph.DefaultIdManager.STRING.name());
             configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_EDGE_ID_MANAGER, TinkerGraph.DefaultIdManager.STRING.name());
-            return TinkerGraph.open(configuration);
+            configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_VERTEX_PROPERTY_ID_MANAGER, TinkerGraph.DefaultIdManager.STRING.name());
+            return TinkerTransactionGraph.open(configuration);
         }
     }
 
