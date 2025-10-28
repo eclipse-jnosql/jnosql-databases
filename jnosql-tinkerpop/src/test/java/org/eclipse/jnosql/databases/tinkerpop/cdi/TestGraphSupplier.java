@@ -16,6 +16,7 @@
 package org.eclipse.jnosql.databases.tinkerpop.cdi;
 
 import com.arangodb.tinkerpop.gremlin.structure.ArangoDBGraph;
+import com.arangodb.tinkerpop.gremlin.structure.ArangoDBGraphConfig;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.tinkerpop.gremlin.neo4j.structure.Neo4jGraph;
@@ -26,6 +27,7 @@ import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerTransactionGraph
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.File;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -51,6 +53,15 @@ public enum TestGraphSupplier implements Supplier<Graph> {
             Configuration configuration = new BaseConfiguration();
             configuration.addProperty("gremlin.graph", ArangoDBGraph.class.getName());
             configuration.addProperty("gremlin.arangodb.conf.graph.enableDataDefinition", true);
+            configuration.addProperty("gremlin.arangodb.conf.graph.type", ArangoDBGraphConfig.GraphType.COMPLEX.name());
+            configuration.addProperty("gremlin.arangodb.conf.graph.edgeDefinitions", List.of(
+                    "reads:[Human]->[Magazine]",
+                    "knows:[Person]->[Person]",
+                    "eats:[Creature]->[Creature]",
+                    "loves:[Human]->[Human]",
+                    "likes:[Human]->[Creature]",
+                    "friend:[Person]->[Person]"
+            ));
             configuration.addProperty("gremlin.arangodb.conf.driver.hosts", container.getHost() + ":" + container.getFirstMappedPort());
             return GraphFactory.open(configuration);
         }
