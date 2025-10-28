@@ -23,7 +23,6 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.util.function.Supplier;
@@ -45,23 +44,13 @@ public enum TestGraphSupplier implements Supplier<Graph> {
     },
 
     ARANGODB {
-        private final GenericContainer<?> arangodb =
-                new GenericContainer<>("arangodb/arangodb:latest")
-                        .withExposedPorts(8529)
-                        .withEnv("ARANGO_NO_AUTH", "1")
-                        .waitingFor(Wait.forHttp("/")
-                                .forStatusCode(200));
-
-        {
-            arangodb.start();
-        }
-
         @Override
         public Graph get() {
+            GenericContainer<?> container = ArangoDeployment.INSTANCE.getContainer();
             Configuration configuration = new BaseConfiguration();
             configuration.addProperty("gremlin.graph", ArangoDBGraph.class.getName());
             configuration.addProperty("gremlin.arangodb.conf.graph.enableDataDefinition", true);
-            configuration.addProperty("gremlin.arangodb.conf.driver.hosts", arangodb.getHost() + ":" + arangodb.getFirstMappedPort());
+            configuration.addProperty("gremlin.arangodb.conf.driver.hosts", container.getHost() + ":" + container.getFirstMappedPort());
             return GraphFactory.open(configuration);
         }
     },
@@ -69,7 +58,10 @@ public enum TestGraphSupplier implements Supplier<Graph> {
     TINKER_GRAPH {
         @Override
         public Graph get() {
-            return TinkerGraph.open();
+            Configuration configuration = new BaseConfiguration();
+            configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_VERTEX_ID_MANAGER, TinkerGraph.DefaultIdManager.STRING.name());
+            configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_EDGE_ID_MANAGER, TinkerGraph.DefaultIdManager.STRING.name());
+            return TinkerGraph.open(configuration);
         }
     }
 
