@@ -8,6 +8,8 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+== [1.1.11] - 2025-11-16
+
 === Changed
 
 - Update OrientDB driver to 3.2.44
@@ -16,7 +18,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Update ArangoDB version to 7.23.0
 - Update Cassandra version to 4.19.1
 - Update Couchabase version to 3.9.2
-- Update DynamioDB version to 2.37.5
+- Update DynamicDB version to 2.37.5
 - Update Hazelcast to version 5.6.0
 - Update Redis driver to version 7.0.0
 - Update Oracle driver to version 5.4.18
