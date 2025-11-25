@@ -16,8 +16,10 @@
 package org.eclipse.jnosql.databases.arangodb.communication;
 
 
+import com.arangodb.ArangoCollection;
 import com.arangodb.ArangoDB;
-import com.arangodb.entity.CollectionEntity;
+import com.arangodb.entity.CollectionType;
+import com.arangodb.model.CollectionCreateOptions;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
@@ -67,14 +69,21 @@ public final class ArangoDBUtil {
         }
     }
 
-    public static void checkCollection(String bucketName, ArangoDB arangoDB, String namespace) {
-        checkDatabase(bucketName, arangoDB);
-        List<String> collections = arangoDB.db(bucketName)
-                .getCollections().stream()
-                .map(CollectionEntity::getName)
-                .toList();
-        if (!collections.contains(namespace)) {
-            arangoDB.db(bucketName).createCollection(namespace);
+    public static void checkCollection(String dbName, ArangoDB arangoDB, String collectionName) {
+        checkDatabase(dbName, arangoDB);
+        ArangoCollection collection = arangoDB.db(dbName).collection(collectionName);
+        if (!collection.exists()) {
+            collection.create();
+        }
+    }
+
+    public static void checkEdgeCollection(String dbName, ArangoDB arangoDB, String collectionName) {
+        checkDatabase(dbName, arangoDB);
+        ArangoCollection collection = arangoDB.db(dbName).collection(collectionName);
+        if (!collection.exists()) {
+            collection.create(new CollectionCreateOptions().type(CollectionType.EDGES));
+        } else if (collection.getInfo().getType() != CollectionType.EDGES) {
+            throw new IllegalStateException(String.format("The collection %s is not an edge collection", collectionName));
         }
     }
 

@@ -22,12 +22,15 @@ import jakarta.inject.Inject;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 import org.eclipse.jnosql.databases.arangodb.communication.ArangoDBDocumentManager;
 import org.eclipse.jnosql.mapping.core.Converters;
+import org.eclipse.jnosql.mapping.graph.Edge;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.semistructured.AbstractSemiStructuredTemplate;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -107,5 +110,35 @@ class DefaultArangoDBTemplate extends AbstractSemiStructuredTemplate implements 
     @Override
     public <T> Stream<T> aql(String query, Class<T> type) {
         return manager.get().aql(query, type);
+    }
+
+    @Override
+    public <T, E> Edge<T, E> edge(T source, String label, E target, Map<String, Object> properties) {
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public <T, E> Edge<T, E> edge(T source, Supplier<String> label, E target, Map<String, Object> properties) {
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public <T, E> Edge<T, E> edge(Edge<T, E> edge) {
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public <T, E> void delete(Edge<T, E> edge) {
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public <K> void deleteEdge(K id) {
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override
+    public <K, T, E> Optional<Edge<T, E>> findEdgeById(K id) {
+        throw new UnsupportedOperationException("TODO");
     }
 }

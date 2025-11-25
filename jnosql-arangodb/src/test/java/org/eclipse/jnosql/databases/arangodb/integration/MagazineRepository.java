@@ -10,14 +10,28 @@
  *
  *   Contributors:
  *
- *   Otavio Santana
+ *   Maximillian Arruda
  */
+
 package org.eclipse.jnosql.databases.arangodb.integration;
 
-import jakarta.nosql.Column;
-import jakarta.nosql.Entity;
-import jakarta.nosql.Id;
+import jakarta.data.repository.Param;
+import jakarta.data.repository.Repository;
+import org.eclipse.jnosql.databases.arangodb.mapping.AQL;
+import org.eclipse.jnosql.databases.arangodb.mapping.ArangoDBRepository;
 
-@Entity
-public record Magazine(@Id("_key") String id, @Column("title") String title, @Column("edition") int edition) {
+import java.util.List;
+
+@Repository
+public interface MagazineRepository extends ArangoDBRepository<Magazine, String> {
+
+    @AQL("FOR m IN Magazine RETURN m")
+    List<Magazine> findAllByCypher();
+
+    @AQL("""
+            FOR m IN Magazine
+            FILTER m.title == @title
+            RETURN m
+            """)
+    List<Magazine> findByTitle(@Param("title") String title);
 }

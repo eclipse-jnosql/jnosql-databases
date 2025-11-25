@@ -30,6 +30,7 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -62,6 +63,10 @@ class TemplateIntegrationTest {
         System.setProperty(MappingConfigurations.DOCUMENT_DATABASE.get(), "library");
     }
 
+    @BeforeEach
+    void setup() {
+        template.deleteAll(WorkflowStep.class);
+    }
 
     @Test
     void shouldInsert() {

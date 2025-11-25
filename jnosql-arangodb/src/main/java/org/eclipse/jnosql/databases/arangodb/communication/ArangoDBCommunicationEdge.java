@@ -1,5 +1,6 @@
 /*
- *  Copyright (c) 2023 Contributors to the Eclipse Foundation
+ *
+ *  Copyright (c) 2025 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
  *   are made available under the terms of the Eclipse Public License v1.0
  *   and Apache License v2.0 which accompanies this distribution.
@@ -11,13 +12,14 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *
  */
-package org.eclipse.jnosql.databases.arangodb.integration;
+package org.eclipse.jnosql.databases.arangodb.communication;
 
-import jakarta.nosql.Column;
-import jakarta.nosql.Entity;
-import jakarta.nosql.Id;
+import org.eclipse.jnosql.communication.graph.CommunicationEdge;
+import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 
-@Entity
-public record Magazine(@Id("_key") String id, @Column("title") String title, @Column("edition") int edition) {
+import java.util.Map;
+
+record ArangoDBCommunicationEdge(String id, CommunicationEntity source, CommunicationEntity target, String label, Map<String, Object> properties) implements CommunicationEdge {
 }

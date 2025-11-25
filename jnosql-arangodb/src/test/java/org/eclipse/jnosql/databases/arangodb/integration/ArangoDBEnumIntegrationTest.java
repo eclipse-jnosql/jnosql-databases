@@ -29,6 +29,7 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -62,6 +63,11 @@ public class ArangoDBEnumIntegrationTest {
 
     @Inject
     private MailTemplateRepository repository;
+
+    @BeforeEach
+    void setup() {
+        template.deleteAll(MailTemplate.class);
+    }
 
     @Test
     void shouldCreateAndQueryByEnumAndDefaultTrue() {

@@ -14,6 +14,7 @@
  */
 package org.eclipse.jnosql.databases.arangodb.communication;
 
+import org.eclipse.jnosql.communication.graph.GraphDatabaseManager;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
  * The ArangoDB implementation of {@link DatabaseManager}. This implementation does not support TTL methods in the context of
  * {@link DatabaseManager#insert(org.eclipse.jnosql.communication.semistructured.CommunicationEntity)}.
  */
-public interface ArangoDBDocumentManager extends DatabaseManager, ArangoDBAccessor {
+public interface ArangoDBDocumentManager extends DatabaseManager, GraphDatabaseManager, ArangoDBAccessor {
 
     /**
      * Executes an ArangoDB query using the ArangoDB Query Language (AQL).
