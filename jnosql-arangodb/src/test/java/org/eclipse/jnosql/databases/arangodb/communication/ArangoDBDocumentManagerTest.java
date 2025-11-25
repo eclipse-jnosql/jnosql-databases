@@ -18,19 +18,22 @@ package org.eclipse.jnosql.databases.arangodb.communication;
 import com.arangodb.ArangoDB;
 import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.TypeReference;
+import org.eclipse.jnosql.communication.graph.CommunicationEdge;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +43,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
@@ -134,7 +138,7 @@ public class ArangoDBDocumentManagerTest {
         CommunicationEntity entitySaved = entityManager.insert(entity);
         Element id = entitySaved.find(KEY_NAME).get();
         SelectQuery query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
-        CommunicationEntity entityFound = entityManager.select(query).collect(Collectors.toList()).get(0);
+        CommunicationEntity entityFound = entityManager.select(query).toList().get(0);
         Element subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -148,7 +152,7 @@ public class ArangoDBDocumentManagerTest {
         CommunicationEntity entitySaved = entityManager.insert(entity);
         Element id = entitySaved.find(KEY_NAME).get();
         SelectQuery query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
-        CommunicationEntity entityFound = entityManager.select(query).collect(Collectors.toList()).get(0);
+        CommunicationEntity entityFound = entityManager.select(query).toList().get(0);
         Element subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -167,6 +171,28 @@ public class ArangoDBDocumentManagerTest {
     @Test
     void shouldRetrieveListSubdocumentList() {
         CommunicationEntity entity = entityManager.insert(createDocumentList());
+        Element key = entity.find(KEY_NAME).get();
+        SelectQuery query = select().from("AppointmentBook").where(key.name()).eq(key.get()).build();
+
+        CommunicationEntity documentEntity = entityManager.singleResult(query).get();
+        assertNotNull(documentEntity);
+
+        List<List<Element>> contacts = (List<List<Element>>) documentEntity.find("contacts").get().get();
+
+        assertEquals(3, contacts.size());
+        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
+    }
+
+    @Test
+    void shouldConvertFromListSubdocumentListNotUsingKey() {
+        CommunicationEntity entity = createDocumentListNotHavingId();
+        entityManager.insert(entity);
+
+    }
+
+    @Test
+    void shouldRetrieveListSubdocumentListNotUsingKey() {
+        CommunicationEntity entity = entityManager.insert(createDocumentListNotHavingId());
         Element key = entity.find(KEY_NAME).get();
         SelectQuery query = select().from("AppointmentBook").where(key.name()).eq(key.get()).build();
 
@@ -203,9 +229,9 @@ public class ArangoDBDocumentManagerTest {
     void shouldReadFromDifferentBaseDocumentUsingInstance() {
         entityManager.insert(getEntity());
         ArangoDB arangoDB = DefaultArangoDBDocumentManager.class.cast(entityManager).getArangoDB();
-        arangoDB.db(DATABASE).collection(COLLECTION_NAME).insertDocument(new Person());
+        arangoDB.db(DATABASE).collection(COLLECTION_NAME).insertDocument(new Human());
         SelectQuery select = select().from(COLLECTION_NAME).build();
-        List<CommunicationEntity> entities = entityManager.select(select).collect(Collectors.toList());
+        List<CommunicationEntity> entities = entityManager.select(select).toList();
         assertFalse(entities.isEmpty());
     }
 
@@ -218,7 +244,7 @@ public class ArangoDBDocumentManagerTest {
         map.put("city", "Salvador");
         arangoDB.db(DATABASE).collection(COLLECTION_NAME).insertDocument(map);
         SelectQuery select = select().from(COLLECTION_NAME).build();
-        List<CommunicationEntity> entities = entityManager.select(select).collect(Collectors.toList());
+        List<CommunicationEntity> entities = entityManager.select(select).toList();
         assertFalse(entities.isEmpty());
     }
 
@@ -227,7 +253,7 @@ public class ArangoDBDocumentManagerTest {
         entityManager.insert(getEntity());
         String aql = "FOR a IN person FILTER a.name == @name RETURN a.name";
         List<String> entities = entityManager.aql(aql,
-                singletonMap("name", "Poliana"), String.class).collect(Collectors.toList());
+                singletonMap("name", "Poliana"), String.class).toList();
 
         assertFalse(entities.isEmpty());
     }
@@ -236,7 +262,7 @@ public class ArangoDBDocumentManagerTest {
     void shouldExecuteAQLWithType() {
         entityManager.insert(getEntity());
         String aql = "FOR a IN person RETURN a.name";
-        List<String> entities = entityManager.aql(aql, String.class).collect(Collectors.toList());
+        List<String> entities = entityManager.aql(aql, String.class).toList();
         assertFalse(entities.isEmpty());
     }
 
@@ -383,6 +409,159 @@ public class ArangoDBDocumentManagerTest {
         });
     }
 
+    @Test
+    void shouldFindContains() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.contains(Element.of("name",
+                "lia")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldStartsWith() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.startsWith(Element.of("name",
+                "Pol")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldEndsWith() {
+        var entity = getEntity();
+
+        entityManager.insert(entity);
+        var query = new MappingQuery(Collections.emptyList(), 0L, 0L, CriteriaCondition.endsWith(Element.of("name",
+                "ana")), COLLECTION_NAME, Collections.emptyList());
+
+        var result = entityManager.select(query).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).hasSize(1);
+            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+        });
+    }
+
+    @Test
+    void shouldCreateEdge() {
+        var person1 = entityManager.insert(getEntity());
+        var person2 = entityManager.insert(getEntity());
+
+        String person1Id = entityManager.select(select().from(COLLECTION_NAME)
+                        .where("_key").eq(person1.find("_key").orElseThrow().get()).build())
+                .findFirst().orElseThrow().find("_id").orElseThrow().get(String.class);
+
+        String person2Id = entityManager.select(select().from(COLLECTION_NAME)
+                        .where("_key").eq(person2.find("_key").orElseThrow().get()).build())
+                .findFirst().orElseThrow().find("_id").orElseThrow().get(String.class);
+
+        entityManager.edge(person1, "FRIEND", person2, emptyMap());
+
+        String aql = """
+                FOR e IN FRIEND
+                FILTER e._from == @id1 && e._to == @id2
+                RETURN e
+                """;
+
+        Map<String, Object> parameters = Map.of(
+                "id1", person1Id,
+                "id2", person2Id
+        );
+
+        var result = entityManager.aql(aql, parameters).toList();
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).isNotEmpty());
+
+        entityManager.remove(person1, "FRIEND", person2);
+    }
+
+    @Test
+    void shouldRemoveEdge() {
+        var person1 = getEntity();
+        var person2 = getEntity();
+
+        entityManager.insert(person1);
+        entityManager.insert(person2);
+
+        CommunicationEdge edge = entityManager.edge(person1, "FRIEND", person2, emptyMap());
+        entityManager.remove(person1, "FRIEND", person2);
+
+        String aql = """
+                     FOR e IN FRIEND
+                     FILTER e._key == @edgeId
+                     RETURN e
+                     """;
+        Map<String, Object> parameters = Map.of("edgeId", edge.id());
+        var result = entityManager.aql(aql, parameters).toList();
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).isEmpty());
+    }
+
+    @Test
+    void shouldDeleteEdgeById() {
+        var person1 = entityManager.insert(getEntity());
+        var person2 = entityManager.insert(getEntity());
+        var edge = entityManager.edge(person1, "FRIEND", person2, Map.of("since", 2020));
+        entityManager.deleteEdge(edge.id());
+        String aql = """
+                FOR e IN FRIEND
+                FILTER e._id == @id
+                RETURN e
+                """;
+        Map<String, Object> parameters = Map.of("id", edge.id());
+        var result = entityManager.aql(aql, parameters).toList();
+        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).isEmpty());
+    }
+
+    @Test
+    void shouldFindEdgeById() {
+        var person1 = entityManager.insert(getEntity());
+        var person2 = entityManager.insert(getEntity());
+
+        var edge = entityManager.edge(person1, "FRIEND", person2, Map.of("since", 2020));
+        var edgeId = edge.id();
+        var retrievedEdge = entityManager.findEdgeById(edgeId);
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(retrievedEdge).isPresent();
+            softly.assertThat(retrievedEdge.get().label()).isEqualTo("FRIEND");
+            softly.assertThat(retrievedEdge.get().properties()).containsEntry("since", 2020);
+        });
+    }
+
+    @Test
+    void shouldCreateEdgeWithProperties() {
+        var person1 = entityManager.insert(getEntity());
+        var person2 = entityManager.insert(getEntity());
+
+        Map<String, Object> properties = Map.of("since", 2019, "strength", "strong");
+        var edge = entityManager.edge(person1, "FRIEND", person2, properties);
+
+        String aql = """
+                FOR e IN FRIEND
+                FILTER e._id == @edgeId
+                RETURN e
+                """;
+        Map<String, Object> parameters = Map.of("edgeId", edge.id());
+
+        var result = entityManager.aql(aql, parameters).toList();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(result).isNotEmpty();
+            softly.assertThat(edge.properties()).containsEntry("since", 2019);
+            softly.assertThat(edge.properties()).containsEntry("strength", "strong");
+        });
+    }
+
     private CommunicationEntity getEntity() {
         CommunicationEntity entity = CommunicationEntity.of(COLLECTION_NAME);
         Map<String, Object> map = new HashMap<>();
@@ -398,6 +577,24 @@ public class ArangoDBDocumentManagerTest {
         String id = UUID.randomUUID().toString();
         CommunicationEntity entity = CommunicationEntity.of("AppointmentBook");
         entity.add(Element.of("_key", id));
+        List<List<Element>> documents = new ArrayList<>();
+
+        documents.add(asList(Element.of("name", "Ada"), Element.of("type", ContactType.EMAIL),
+                Element.of("information", "ada@lovelace.com")));
+
+        documents.add(asList(Element.of("name", "Ada"), Element.of("type", ContactType.MOBILE),
+                Element.of("information", "11 1231231 123")));
+
+        documents.add(asList(Element.of("name", "Ada"), Element.of("type", ContactType.PHONE),
+                Element.of("information", "phone")));
+
+        entity.add(Element.of("contacts", documents));
+        return entity;
+    }
+
+    private CommunicationEntity createDocumentListNotHavingId() {
+        CommunicationEntity entity = CommunicationEntity.of("AppointmentBook");
+        entity.add(Element.of("_id", "ids"));
         List<List<Element>> documents = new ArrayList<>();
 
         documents.add(asList(Element.of("name", "Ada"), Element.of("type", ContactType.EMAIL),

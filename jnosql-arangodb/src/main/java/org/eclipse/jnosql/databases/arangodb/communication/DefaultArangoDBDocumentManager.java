@@ -169,7 +169,6 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
         return db.query(query, type, emptyMap(), null).stream();
     }
 
-
     @Override
     public void close() {
         db.arango().shutdown();
@@ -232,13 +231,13 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
         target = ensureEntityExists(target);
 
         CommunicationEntity entity = CommunicationEntity.of(label);
-        entity.add(FROM, extractId(source));
-        entity.add(TO, extractId(target));
+        entity.add(FROM, extractId(source).orElseThrow());
+        entity.add(TO, extractId(target).orElseThrow());
         properties.forEach(entity::add);
 
         JsonObject jsonObject = ArangoDBUtil.toJsonObject(entity);
-        String key = db.collection(label).insertDocument(jsonObject).getKey();
-        return new ArangoDBCommunicationEdge(key, source, target, label, properties);
+        String id = db.collection(label).insertDocument(jsonObject).getId();
+        return new ArangoDBCommunicationEdge(id, source, target, label, properties);
     }
 
     private CommunicationEntity ensureEntityExists(CommunicationEntity entity) {
@@ -250,17 +249,76 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
 
     @Override
     public void remove(CommunicationEntity source, String label, CommunicationEntity target) {
-        throw new UnsupportedOperationException("TODO");
+        Objects.requireNonNull(source, "Source entity is required");
+        Objects.requireNonNull(target, "Target entity is required");
+        Objects.requireNonNull(label, "Relationship type is required");
+
+        String sourceId = extractId(source).orElseThrow();
+        String targetId = extractId(target).orElseThrow();
+
+        db.query("""
+                FOR e IN @@collection
+                FILTER e._from == @source AND e._to == @target
+                REMOVE e IN @@collection
+                """, Void.class, Map.of(
+                "@collection", label,
+                "source", sourceId,
+                "target", targetId
+        ));
     }
 
     @Override
     public <K> void deleteEdge(K id) {
-        throw new UnsupportedOperationException("TODO");
+        if (!(id instanceof String idString)) {
+            throw new IllegalArgumentException("The id must be a String");
+        }
+        var elements = idString.split("/");
+        if (elements.length != 2) {
+            throw new IllegalArgumentException("The id must be in the format collection/key");
+        }
+        String collection = elements[0];
+        String key = elements[1];
+        String query = """
+                FOR e IN @@collection
+                FILTER e._key == @key
+                REMOVE e IN @@collection
+                """;
+        var bindVars = Map.of(
+                "@collection", collection,
+                "key", key);
+        db.query(query, Void.class, bindVars);
     }
 
     @Override
     public <K> Optional<CommunicationEdge> findEdgeById(K id) {
-        throw new UnsupportedOperationException("TODO");
+        if (!(id instanceof String idString)) {
+            throw new IllegalArgumentException("The id must be a String");
+        }
+        var elements = idString.split("/");
+        if (elements.length != 2) {
+            throw new IllegalArgumentException("The id must be in the format collection/key");
+        }
+        String collection = elements[0];
+        String key = elements[1];
+        String query = """
+                FOR e IN @@collection
+                FILTER e._key == @key
+                RETURN {
+                  edge: e,
+                  source: DOCUMENT(e._from),
+                  target: DOCUMENT(e._to)
+                }
+                """;
+        var bindVars = Map.of(
+                "@collection", collection,
+                "key", key);
+        return db.query(query, JsonObject.class, bindVars)
+                .stream()
+                .findFirst()
+                .map(it-> ArangoDBUtil.toEdge(
+                        it.getJsonObject("edge"),
+                        it.getJsonObject("source"),
+                        it.getJsonObject("target")));
     }
 
     private Optional<String> extractId(CommunicationEntity entity) {
