@@ -27,7 +27,7 @@ import java.util.Objects;
 @MappedSuperclass
 public class Human {
 
-    @Id("~id")
+    @Id
     private String id;
 
     @Column

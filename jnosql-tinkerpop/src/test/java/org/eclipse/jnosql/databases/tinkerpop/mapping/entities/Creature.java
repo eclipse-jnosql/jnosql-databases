@@ -23,7 +23,7 @@ import java.util.Objects;
 @Entity
 public class Creature {
 
-    @Id("~id")
+    @Id
     private String id;
 
     @Column

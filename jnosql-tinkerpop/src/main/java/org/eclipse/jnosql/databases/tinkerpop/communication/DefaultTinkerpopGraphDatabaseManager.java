@@ -61,6 +61,11 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
     }
 
     @Override
+    public Optional<String> defaultIdFieldName() {
+        return Optional.of(T.id.getAccessor());
+    }
+
+    @Override
     public Graph get() {
         return graph;
     }

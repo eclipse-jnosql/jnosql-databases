@@ -25,6 +25,7 @@ import org.eclipse.jnosql.mapping.Database;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
+import org.eclipse.jnosql.mapping.semistructured.EntityConverterFactory;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
 import static org.eclipse.jnosql.mapping.DatabaseType.GRAPH;
@@ -43,15 +44,15 @@ class DefaultTinkerpopTemplate extends AbstractTinkerpopTemplate {
     private Graph graph;
 
     @Inject
-    DefaultTinkerpopTemplate(EntityConverter converter, Graph graph,
+    DefaultTinkerpopTemplate(EntityConverterFactory converter, Graph graph,
                              EventPersistManager eventManager,
                              EntitiesMetadata entities, Converters converters) {
-        this.converter = converter;
         this.graph = graph;
         this.eventManager = eventManager;
         this.entities = entities;
         this.converters = converters;
         this.manager = TinkerpopGraphDatabaseManager.of(graph);
+        this.converter = converter.create(manager);
     }
 
     /**

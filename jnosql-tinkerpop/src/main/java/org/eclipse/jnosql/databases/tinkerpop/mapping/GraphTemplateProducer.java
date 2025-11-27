@@ -24,6 +24,7 @@ import org.eclipse.jnosql.databases.tinkerpop.communication.TinkerpopGraphDataba
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
+import org.eclipse.jnosql.mapping.semistructured.EntityConverterFactory;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
 import java.util.Objects;
@@ -37,7 +38,7 @@ import java.util.function.Function;
 public class GraphTemplateProducer implements Function<Graph, TinkerpopTemplate> {
 
     @Inject
-    private EntityConverter converter;
+    private EntityConverterFactory converter;
 
     @Inject
     private EventPersistManager eventManager;
@@ -72,12 +73,12 @@ public class GraphTemplateProducer implements Function<Graph, TinkerpopTemplate>
 
         private final TinkerpopGraphDatabaseManager manager;
 
-        public ProducerTinkerpopTemplate(EntityConverter converter, Graph graph,
+        public ProducerTinkerpopTemplate(EntityConverterFactory converter, Graph graph,
                                          EventPersistManager eventManager,
                                          EntitiesMetadata entities, Converters converters) {
-            this.converter = converter;
             this.graph = graph;
             this.manager = TinkerpopGraphDatabaseManager.of(graph);
+            this.converter = converter.create(manager);
             this.eventManager = eventManager;
             this.entities = entities;
             this.converters = converters;
