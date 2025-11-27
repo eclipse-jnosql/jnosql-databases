@@ -23,7 +23,7 @@ import java.util.List;
 @Entity("workflow_step")
 public class WorkflowStep {
 
-    @Id("_key")
+    @Id
     private String id;
 
     @Column

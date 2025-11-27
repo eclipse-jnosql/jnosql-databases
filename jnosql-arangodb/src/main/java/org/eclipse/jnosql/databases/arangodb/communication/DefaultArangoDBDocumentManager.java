@@ -58,6 +58,11 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     }
 
     @Override
+    public Optional<String> defaultIdFieldName() {
+        return Optional.of(KEY);
+    }
+
+    @Override
     public String name() {
         return db.name();
     }

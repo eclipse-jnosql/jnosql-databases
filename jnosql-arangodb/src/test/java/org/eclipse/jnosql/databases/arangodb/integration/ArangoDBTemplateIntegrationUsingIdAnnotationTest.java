@@ -140,7 +140,7 @@ class ArangoDBTemplateIntegrationUsingIdAnnotationTest {
         var article = new Article(randomUUID().toString(), "Effective Java", 1);
         template.insert(article);
         template.update(new Article(article.id(), null, 2));
-        Optional<Article> optional = template.select(Article.class).where("id")
+        Optional<Article> optional = template.select(Article.class).where("_key")
                 .eq(article.id()).singleResult();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(optional).isPresent();

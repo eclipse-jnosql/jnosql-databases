@@ -25,6 +25,7 @@ import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.graph.AbstractGraphTemplate;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
+import org.eclipse.jnosql.mapping.semistructured.EntityConverterFactory;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
 import java.util.Map;
@@ -51,12 +52,12 @@ class DefaultArangoDBTemplate extends AbstractGraphTemplate implements ArangoDBT
 
     @Inject
     DefaultArangoDBTemplate(Instance<ArangoDBDocumentManager> manager,
-                            EntityConverter converter,
+                            EntityConverterFactory converter,
                             EventPersistManager eventManager,
                             EntitiesMetadata entities,
                             Converters converters) {
         this.manager = manager;
-        this.converter = converter;
+        this.converter = converter.create(manager.get());
         this.eventManager = eventManager;
         this.entities = entities;
         this.converters = converters;
