@@ -20,7 +20,6 @@ import org.assertj.core.api.Assertions;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.document.DocumentTemplate;
 import org.eclipse.jnosql.mapping.document.spi.DocumentExtension;
-import org.eclipse.jnosql.mapping.keyvalue.spi.KeyValueExtension;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
 import org.eclipse.jnosql.mapping.reflection.spi.ReflectionEntityMetadataExtension;
@@ -51,8 +50,7 @@ import static org.mockito.Mockito.when;
 @AddPackages(value = {Converters.class, EntityConverter.class, DocumentTemplate.class, AQL.class})
 @AddPackages(MockProducer.class)
 @AddPackages(Reflections.class)
-@AddExtensions({ReflectionEntityMetadataExtension.class, KeyValueExtension.class,
-        DocumentExtension.class, ArangoDBExtension.class})
+@AddExtensions({ReflectionEntityMetadataExtension.class, DocumentExtension.class, ArangoDBExtension.class})
 public class ArangoDBDocumentRepositoryProxyTest {
 
     private ArangoDBTemplate template;

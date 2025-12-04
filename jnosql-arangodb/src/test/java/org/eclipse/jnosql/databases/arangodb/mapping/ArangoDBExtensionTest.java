@@ -17,7 +17,6 @@ package org.eclipse.jnosql.databases.arangodb.mapping;
 import jakarta.inject.Inject;
 import org.eclipse.jnosql.mapping.Database;
 import org.eclipse.jnosql.mapping.document.spi.DocumentExtension;
-import org.eclipse.jnosql.mapping.keyvalue.spi.KeyValueExtension;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
 import org.eclipse.jnosql.mapping.reflection.spi.ReflectionEntityMetadataExtension;
 import org.jboss.weld.junit5.auto.AddExtensions;
@@ -32,8 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @AddPackages(value = {Database.class})
 @AddPackages(MockProducer.class)
 @AddPackages(Reflections.class)
-@AddExtensions({ReflectionEntityMetadataExtension.class, KeyValueExtension.class,
-        DocumentExtension.class, ArangoDBExtension.class})
+@AddExtensions({ReflectionEntityMetadataExtension.class, DocumentExtension.class, ArangoDBExtension.class})
 @ExtendWith(MockitoExtension.class)
 public class ArangoDBExtensionTest {
 
