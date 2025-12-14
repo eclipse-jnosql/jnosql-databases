@@ -48,6 +48,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
@@ -451,7 +452,33 @@ public class CassandraColumnManagerTest {
         assertTrue(contacts > 0);
     }
 
-   @Test
+    @Test
+    void shouldCountBySelectQuery() {
+        entityManager.insert(getColumnFamily());
+        var query = select().from(Constants.COLUMN_FAMILY).where("id").eq(10L).build();
+        assertSoftly(softly -> {
+
+            softly.assertThat(entityManager.count(query))
+                    .as("the implementation is returning an non expected value")
+                    .isEqualTo(1);
+
+            softly.assertThatThrownBy(() -> entityManager.count(query, null))
+                    .as("must throw NPE when call the count method passing null arguments")
+                    .isInstanceOf(NullPointerException.class);
+
+            softly.assertThatThrownBy(() -> entityManager.count(null, null))
+                    .as("must throw NPE when call the count method passing null arguments")
+                    .isInstanceOf(NullPointerException.class);
+
+            softly.assertThatThrownBy(() -> entityManager.count((SelectQuery) null))
+                    .as("must throw NPE when call the count method passing null arguments")
+                    .isInstanceOf(NullPointerException.class);
+
+        });
+
+    }
+
+    @Test
     void shouldPagingState() {
         for (long index = 1; index <= 10; index++) {
             var columnFamily = getColumnFamily();
@@ -501,7 +528,7 @@ public class CassandraColumnManagerTest {
         family.add(Element.of("name", null));
         var columnEntity = entityManager.insert(family);
         var column = columnEntity.find("name");
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(column).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(column).get().extracting(Element::get).isNull();
         });
@@ -514,7 +541,7 @@ public class CassandraColumnManagerTest {
         family.addNull("name");
         var columnEntity = entityManager.update(family);
         var column = columnEntity.find("name");
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(column).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(column).get().extracting(Element::get).isNull();
         });

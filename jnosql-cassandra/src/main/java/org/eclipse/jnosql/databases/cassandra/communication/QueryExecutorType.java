@@ -31,13 +31,8 @@ import java.util.stream.Stream;
 enum QueryExecutorType implements QueryExecutor {
     PAGING_STATE {
         @Override
-        public Stream<CommunicationEntity> execute(String keyspace, SelectQuery query, DefaultCassandraColumnManager manager) {
-            return execute(keyspace, query, null, manager);
-        }
-
-        @Override
         public Stream<CommunicationEntity> execute(String keyspace, SelectQuery q, ConsistencyLevel level,
-                                            DefaultCassandraColumnManager manager) {
+                                                   DefaultCassandraColumnManager manager) {
 
             CassandraQuery query = CassandraQuery.class.cast(q);
 
@@ -74,13 +69,8 @@ enum QueryExecutorType implements QueryExecutor {
     },
     DEFAULT {
         @Override
-        public Stream<CommunicationEntity> execute(String keyspace, SelectQuery query, DefaultCassandraColumnManager manager) {
-            return execute(keyspace, query, null, manager);
-        }
-
-        @Override
         public Stream<CommunicationEntity> execute(String keyspace, SelectQuery query, ConsistencyLevel level,
-                                            DefaultCassandraColumnManager manager) {
+                                                   DefaultCassandraColumnManager manager) {
 
             Select cassandraSelect = QueryUtils.select(query, keyspace);
 
@@ -98,5 +88,17 @@ enum QueryExecutorType implements QueryExecutor {
             }
             return resultSet.all().stream().map(CassandraConverter::toDocumentEntity);
         }
+    };
+
+    @Override
+    public long count(String keyspace, SelectQuery query, ConsistencyLevel level, DefaultCassandraColumnManager manager) {
+
+        Select cassandraSelect = QueryUtils.select(query, keyspace).countAll();
+        SimpleStatement select = cassandraSelect.build();
+        if (Objects.nonNull(level)) {
+            select = select.setConsistencyLevel(level);
+        }
+        ResultSet resultSet = manager.getSession().execute(select);
+        return resultSet.one().getLong(0);
     }
 }

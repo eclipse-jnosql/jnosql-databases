@@ -102,6 +102,17 @@ public interface CassandraColumnManager extends DatabaseManager {
     Stream<CommunicationEntity> select(SelectQuery query, ConsistencyLevel level) throws NullPointerException;
 
     /**
+     * Count based on a query using a consistency level
+     *
+     * @param query the query
+     * @param level the consistency level
+     * @return the query using a consistency level
+     * @throws NullPointerException when either query or level are null
+     */
+    long count(SelectQuery query, ConsistencyLevel level) throws NullPointerException;
+
+
+    /**
      * Executes CQL
      *
      * @param query the Cassandra query language

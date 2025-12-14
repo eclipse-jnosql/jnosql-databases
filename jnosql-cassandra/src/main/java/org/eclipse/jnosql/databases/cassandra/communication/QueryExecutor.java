@@ -29,9 +29,17 @@ interface QueryExecutor {
         return QueryExecutorType.DEFAULT;
     }
 
-    Stream<CommunicationEntity> execute(String keyspace, SelectQuery query, DefaultCassandraColumnManager manager);
+    default Stream<CommunicationEntity> execute(String keyspace, SelectQuery query, DefaultCassandraColumnManager manager) {
+        return execute(keyspace, query, null, manager);
+    }
 
     Stream<CommunicationEntity> execute(String keyspace, SelectQuery query, ConsistencyLevel level,
-                                 DefaultCassandraColumnManager manager);
+                                        DefaultCassandraColumnManager manager);
+
+    default long count(String keyspace, SelectQuery query, DefaultCassandraColumnManager manager) {
+        return count(keyspace, query, null, manager);
+    }
+
+    long count(String keyspace, SelectQuery query, ConsistencyLevel level, DefaultCassandraColumnManager manager);
 
 }

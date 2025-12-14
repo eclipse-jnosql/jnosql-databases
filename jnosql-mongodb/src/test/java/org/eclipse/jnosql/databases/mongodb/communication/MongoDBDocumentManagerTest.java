@@ -554,6 +554,22 @@ class MongoDBDocumentManagerTest {
     }
 
     @Test
+    void shouldCountBySelectQuery() {
+        DeleteQuery deleteQuery = delete().from(COLLECTION_NAME).where("type").eq("V").build();
+        entityManager.delete(deleteQuery);
+        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
+        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
+
+        var query = select().from(COLLECTION_NAME)
+                .where("age").gte(23)
+                .and("type").eq("V")
+                .build();
+
+        assertThat(entityManager.count(query))
+                .isEqualTo(2);
+    }
+
+    @Test
     void shouldCustomTypeWork() {
         var entity = getEntity();
         Currency currency = Currency.getInstance("USD");
