@@ -159,6 +159,17 @@ class DefaultCassandraColumnManager implements CassandraColumnManager {
         return execute.one().getLong(0);
     }
 
+    @Override
+    public long count(SelectQuery query) {
+        return count(query, null);
+    }
+
+    @Override
+    public long count(SelectQuery query, ConsistencyLevel level) {
+        requireNonNull(query, "query is required");
+        QueryExecutor executor = QueryExecutor.of(query);
+        return executor.count(keyspace, query, level, this);
+    }
 
     @Override
     public void close() {

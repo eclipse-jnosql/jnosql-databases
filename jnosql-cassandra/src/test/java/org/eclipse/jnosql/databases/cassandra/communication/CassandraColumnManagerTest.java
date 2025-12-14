@@ -451,6 +451,14 @@ public class CassandraColumnManagerTest {
         assertTrue(contacts > 0);
     }
 
+    @Test
+    void shouldCountBySelectQuery() {
+        entityManager.insert(getColumnFamily());
+        var query = select().from(Constants.COLUMN_FAMILY).where("id").eq(10L).build();
+        assertThat(entityManager.count(query))
+                .isEqualTo(1);
+    }
+
    @Test
     void shouldPagingState() {
         for (long index = 1; index <= 10; index++) {
