@@ -25,6 +25,7 @@ import com.couchbase.client.java.kv.InsertOptions;
 import com.couchbase.client.java.query.QueryOptions;
 import com.couchbase.client.java.query.QueryResult;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
@@ -202,6 +203,26 @@ class DefaultCouchbaseDocumentManager implements CouchbaseDocumentManager {
                     .map(data -> data.getNumber("$1"))
                     .orElse(0L);
             return count.longValue();
+        });
+    }
+
+    @Override
+    public long count(SelectQuery query) {
+        Objects.requireNonNull(query, "query is required");
+        return waitBucketBeReadyAndGet(() -> {
+            N1QLQuery n1QLQuery = N1QLBuilder.countOf(query, database, bucket.defaultScope().name()).get();
+            QueryResult result;
+            if (n1QLQuery.isParameterEmpty()) {
+                result = cluster.query(n1QLQuery.query());
+            } else {
+                result = cluster.query(n1QLQuery.query(), QueryOptions
+                        .queryOptions().parameters(n1QLQuery.params()));
+            }
+            return result.rowsAsObject()
+                    .stream()
+                    .findFirst()
+                    .map(json -> json.getLong("$1"))
+                    .orElse(0L);
         });
     }
 
