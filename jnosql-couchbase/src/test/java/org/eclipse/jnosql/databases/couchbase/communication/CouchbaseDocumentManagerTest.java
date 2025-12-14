@@ -206,8 +206,10 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-    void shouldCount() {
+    void shouldCount() throws InterruptedException {
         CommunicationEntity entity = entityManager.insert(createSubdocumentList());
+        Thread.sleep(1_000L);
+
         Element key = entity.find("_id").get();
         var query = select().from(COLLECTION_APP_NAME).where(key.name()).eq(key.get()).build();
 
