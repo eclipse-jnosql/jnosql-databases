@@ -155,4 +155,18 @@ public class QueryAQLConverterTest {
 
     }
 
+    @Test
+    public void shouldRunEqualsCountQuery() {
+        SelectQuery query = select().from("collection")
+                .where("name").eq("value").build();
+
+        AQLQueryResult convert = QueryAQLConverter.count(query);
+        String aql = convert.query();
+        Map<String, Object> values = convert.values();
+        assertEquals("value", values.get("name"));
+        assertEquals("RETURN LENGTH(FOR c IN collection FILTER  c.name == @name RETURN c)", aql);
+
+    }
+
+
 }
