@@ -148,6 +148,13 @@ class DefaultCassandraTemplate extends AbstractSemiStructuredTemplate implements
     }
 
     @Override
+    public long count(SelectQuery query, ConsistencyLevel level) {
+        Objects.requireNonNull(query, "query is required");
+        Objects.requireNonNull(level, "level is required");
+        return manager.get().count(query, level);
+    }
+
+    @Override
     public <T> Stream<T> find(SelectQuery query, ConsistencyLevel level) {
         Objects.requireNonNull(query, "query is required");
         Objects.requireNonNull(level, "level is required");

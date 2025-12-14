@@ -88,6 +88,17 @@ public interface CassandraTemplate extends ColumnTemplate {
     void delete(DeleteQuery query, ConsistencyLevel level);
 
     /**
+     * Returns the count of records that match the given {@link SelectQuery} using the specified
+     * {@link ConsistencyLevel}.
+     *
+     * @param query the select query defining the criteria for counting; must not be {@code null}
+     * @param level the Cassandra consistency level to use for the operation; must not be {@code null}
+     * @return the number of records matching the query
+     * @throws NullPointerException if {@code query} or {@code level} is {@code null}
+     */
+    long count(SelectQuery query, ConsistencyLevel level);
+
+    /**
      * Executes a {@link SelectQuery} using a specified {@link ConsistencyLevel} and retrieves the matching records.
      *
      * @param <T>   the type of the result
