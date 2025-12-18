@@ -93,6 +93,40 @@ class Neo4JQueryBuilderTest {
     }
 
     @Test
+    void shouldBuildCountQueryWithCondition() {
+        SelectQuery query = mock(SelectQuery.class);
+        when(query.name()).thenReturn("Person");
+
+        CriteriaCondition condition = mock(CriteriaCondition.class);
+        Element element = mock(Element.class);
+        when(condition.element()).thenReturn(element);
+        when(element.name()).thenReturn("age");
+        when(element.get()).thenReturn(30);
+        when(condition.condition()).thenReturn(org.eclipse.jnosql.communication.Condition.EQUALS);
+        when(query.condition()).thenReturn(java.util.Optional.of(condition));
+        when(query.columns()).thenReturn(List.of());
+
+        Map<String, Object> parameters = new HashMap<>();
+        String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
+
+        assertThat(cypher).isEqualTo("MATCH (e:Person) WHERE e.age = $age RETURN COUNT(e)");
+        assertThat(parameters).containsEntry("age", 30);
+    }
+
+    @Test
+    void shouldBuildCountQueryWithoutCondition() {
+        SelectQuery query = mock(SelectQuery.class);
+        when(query.name()).thenReturn("Person");
+        when(query.condition()).thenReturn(java.util.Optional.empty());
+        when(query.columns()).thenReturn(List.of());
+
+        Map<String, Object> parameters = new HashMap<>();
+        String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
+
+        assertThat(cypher).isEqualTo("MATCH (e:Person) RETURN COUNT(e)");
+    }
+
+    @Test
     void shouldTranslateIdToElementId() {
         SelectQuery query = mock(SelectQuery.class);
         when(query.name()).thenReturn("Person");
