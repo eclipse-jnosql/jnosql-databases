@@ -124,37 +124,32 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
     public void delete(DeleteQuery query) {
         Objects.requireNonNull(query, "delete is required");
         GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().hasLabel(query.name());
-        query.condition().ifPresent(c ->{
+        query.condition().ifPresent(c -> {
             GraphTraversal<Vertex, Vertex> predicate = TraversalExecutor.getPredicate(c);
             traversal.filter(predicate);
         });
 
-       traversal.drop().iterate();
+        traversal.drop().iterate();
         GraphTransactionUtil.transaction(graph);
     }
 
     @Override
     public Stream<CommunicationEntity> select(SelectQuery query) {
-        Objects.requireNonNull(query, "query is required");
-        GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().hasLabel(query.name());
-        query.condition().ifPresent(c ->{
-            GraphTraversal<Vertex, Vertex> predicate = TraversalExecutor.getPredicate(c);
-            traversal.filter(predicate);
-        });
+        GraphTraversal<Vertex, Vertex> traversal = buildGraphTraversalOf(query);
 
-        if(query.limit()> 0) {
+        if (query.limit() > 0) {
             traversal.limit(query.limit());
-        } else if(query.skip() > 0) {
+        } else if (query.skip() > 0) {
             traversal.skip(query.skip());
         }
-       query.sorts().forEach(
-               s -> {
-                   if (s.isAscending()) {
-                       traversal.order().by(s.property(), asc);
-                   } else {
-                       traversal.order().by(s.property(), desc);
-                   }
-               });
+        query.sorts().forEach(
+                s -> {
+                    if (s.isAscending()) {
+                        traversal.order().by(s.property(), asc);
+                    } else {
+                        traversal.order().by(s.property(), desc);
+                    }
+                });
         return traversal.toStream().map(CommunicationEntityConverter.INSTANCE);
     }
 
@@ -163,6 +158,22 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
         Objects.requireNonNull(entity, "entity is required");
         GraphTraversal<Vertex, Long> count = graph.traversal().V().hasLabel(entity).count();
         return count.next();
+    }
+
+    @Override
+    public long count(SelectQuery query) {
+        GraphTraversal<Vertex, Vertex> traversal = buildGraphTraversalOf(query);
+        return traversal.count().next();
+    }
+
+    private GraphTraversal<Vertex, Vertex> buildGraphTraversalOf(SelectQuery query) {
+        Objects.requireNonNull(query, "query is required");
+        GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().hasLabel(query.name());
+        query.condition().ifPresent(c -> {
+            GraphTraversal<Vertex, Vertex> predicate = TraversalExecutor.getPredicate(c);
+            traversal.filter(predicate);
+        });
+        return traversal;
     }
 
     @Override
