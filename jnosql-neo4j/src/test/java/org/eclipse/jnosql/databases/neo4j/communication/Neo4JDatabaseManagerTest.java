@@ -22,6 +22,7 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
+import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,6 +82,24 @@ class Neo4JDatabaseManagerTest {
         entityManager.insert(entity);
         long count = entityManager.count(COLLECTION_NAME);
         assertTrue(count > 0);
+    }
+
+    @Test
+    void shouldCountWithSelectQuery() {
+        for (int index = 0; index < 10; index++) {
+            var entity = getEntity();
+            entity.add("index", index);
+            entityManager.insert(entity);
+        }
+        var index = 4;
+        var query = select().from(COLLECTION_NAME).where("index").gt(index).build();
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(entityManager.count(query)).isEqualTo(5);
+
+            softly.assertThatThrownBy(() -> entityManager.count((SelectQuery) null))
+                    .as("Should not accept null SelectQuery")
+                    .isInstanceOf(NullPointerException.class);
+        });
     }
 
     @Test
