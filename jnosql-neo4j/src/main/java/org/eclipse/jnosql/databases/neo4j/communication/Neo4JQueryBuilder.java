@@ -85,7 +85,7 @@ enum Neo4JQueryBuilder {
 
     String buildCountQuery(SelectQuery query, Map<String, Object> parameters) {
         StringBuilder cypher = buildCypher(query.name(), query.condition(), parameters);
-        cypher.append(" RETURN COUNT(e)");
+        cypher.append(" RETURN COUNT(e) as count");
         return cypher.toString();
     }
 
