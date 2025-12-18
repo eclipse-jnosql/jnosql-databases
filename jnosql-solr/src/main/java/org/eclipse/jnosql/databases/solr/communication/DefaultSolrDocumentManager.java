@@ -147,9 +147,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
     public Stream<CommunicationEntity> select(SelectQuery query) {
         Objects.requireNonNull(query, "query is required");
         try {
-            SolrQuery solrQuery = new SolrQuery();
-            final String queryExpression = DocumentQueryConverter.convert(query);
-            solrQuery.set("q", queryExpression);
+            SolrQuery solrQuery = buildSolrQuery(query);
             if (query.skip() > 0) {
                 solrQuery.setStart((int) query.skip());
             }
@@ -172,7 +170,6 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
     @Override
     public long count(String documentCollection) {
         Objects.requireNonNull(documentCollection, "documentCollection is required");
-
         try {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.set("q", "_entity:" + documentCollection);
@@ -182,6 +179,26 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
         } catch (SolrServerException | IOException e) {
             throw new SolrException("Error to execute count at Solr", e);
         }
+    }
+
+    @Override
+    public long count(SelectQuery query) {
+        Objects.requireNonNull(query, "query is required");
+        try {
+            SolrQuery solrQuery = buildSolrQuery(query);
+            solrQuery.setRows(0);
+            final QueryResponse response = solrClient.query(solrQuery);
+            return response.getResults().getNumFound();
+        } catch (SolrServerException | IOException e) {
+            throw new SolrException("Error to execute count at Solr", e);
+        }
+    }
+
+    private static SolrQuery buildSolrQuery(SelectQuery query) {
+        SolrQuery solrQuery = new SolrQuery();
+        final String queryExpression = DocumentQueryConverter.convert(query);
+        solrQuery.set("q", queryExpression);
+        return solrQuery;
     }
 
     /**
