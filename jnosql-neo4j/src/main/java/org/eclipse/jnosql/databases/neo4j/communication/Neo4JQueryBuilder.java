@@ -27,6 +27,7 @@ import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 enum Neo4JQueryBuilder {
@@ -36,13 +37,7 @@ enum Neo4JQueryBuilder {
     private static final String INTERNAL_ID = "_id";
 
     String buildQuery(DeleteQuery query, Map<String, Object> parameters) {
-        StringBuilder cypher = new StringBuilder("MATCH (e:");
-        cypher.append(query.name()).append(")");
-
-        query.condition().ifPresent(c -> {
-            cypher.append(" WHERE ");
-            createWhereClause(cypher, c, parameters);
-        });
+        StringBuilder cypher = buildCypher(query.name(), query.condition(), parameters);
 
         List<String> columns = query.columns();
         if (!columns.isEmpty()) {
@@ -59,13 +54,7 @@ enum Neo4JQueryBuilder {
     }
 
     String buildQuery(SelectQuery query, Map<String, Object> parameters) {
-        StringBuilder cypher = new StringBuilder("MATCH (e:");
-        cypher.append(query.name()).append(")");
-
-        query.condition().ifPresent(c -> {
-            cypher.append(" WHERE ");
-            createWhereClause(cypher, c, parameters);
-        });
+        StringBuilder cypher = buildCypher(query.name(), query.condition(), parameters);
 
         if (!query.sorts().isEmpty()) {
             cypher.append(" ORDER BY ");
@@ -92,6 +81,24 @@ enum Neo4JQueryBuilder {
         }
 
         return cypher.toString();
+    }
+
+    String buildCountQuery(SelectQuery query, Map<String, Object> parameters) {
+        StringBuilder cypher = buildCypher(query.name(), query.condition(), parameters);
+        cypher.append(" RETURN COUNT(e) AS count");
+        return cypher.toString();
+    }
+
+    private StringBuilder buildCypher(String entityName,
+                                      Optional<CriteriaCondition> condition,
+                                      Map<String, Object> parameters) {
+        StringBuilder cypher = new StringBuilder("MATCH (e:");
+        cypher.append(entityName).append(")");
+        condition.ifPresent(c -> {
+            cypher.append(" WHERE ");
+            createWhereClause(cypher, c, parameters);
+        });
+        return cypher;
     }
 
     private void createWhereClause(StringBuilder cypher, CriteriaCondition condition, Map<String, Object> parameters) {
@@ -139,7 +146,7 @@ enum Neo4JQueryBuilder {
     }
 
     private Object value(Object value, Condition condition) {
-        if(Condition.LIKE.equals(condition)) {
+        if (Condition.LIKE.equals(condition)) {
             return LikeToCypherRegex.INSTANCE.toCypherRegex(value.toString());
         }
         return value;
@@ -162,7 +169,7 @@ enum Neo4JQueryBuilder {
             case GREATER_EQUALS_THAN -> ">=";
             case LESSER_THAN -> "<";
             case LESSER_EQUALS_THAN -> "<=";
-            case LIKE  -> "=~";
+            case LIKE -> "=~";
             case IN -> "IN";
             case AND -> "AND";
             case OR -> "OR";
