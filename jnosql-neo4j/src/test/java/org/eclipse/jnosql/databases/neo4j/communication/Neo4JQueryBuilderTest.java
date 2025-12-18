@@ -107,7 +107,7 @@ class Neo4JQueryBuilderTest {
         when(query.columns()).thenReturn(List.of());
 
         Map<String, Object> parameters = new HashMap<>();
-        String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
+        String cypher = Neo4JQueryBuilder.INSTANCE.buildCountQuery(query, parameters);
 
         assertThat(cypher).isEqualTo("MATCH (e:Person) WHERE e.age = $age RETURN COUNT(e)");
         assertThat(parameters).containsEntry("age", 30);
@@ -121,7 +121,7 @@ class Neo4JQueryBuilderTest {
         when(query.columns()).thenReturn(List.of());
 
         Map<String, Object> parameters = new HashMap<>();
-        String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
+        String cypher = Neo4JQueryBuilder.INSTANCE.buildCountQuery(query, parameters);
 
         assertThat(cypher).isEqualTo("MATCH (e:Person) RETURN COUNT(e)");
     }
