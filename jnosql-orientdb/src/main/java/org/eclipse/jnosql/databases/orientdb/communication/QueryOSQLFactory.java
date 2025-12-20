@@ -12,6 +12,7 @@
  *
  *   Otavio Santana
  *   Lucas Furlaneto
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
@@ -38,6 +39,11 @@ final class QueryOSQLFactory {
 
     static QueryResult to(SelectQuery documentQuery) {
         QueryOSQLConverter.Query query = QueryOSQLConverter.select(documentQuery);
+        return new QueryResult(query.query(), query.params(), query.ids());
+    }
+
+    static QueryResult countTo(SelectQuery documentQuery) {
+        QueryOSQLConverter.Query query = QueryOSQLConverter.selectCount(documentQuery);
         return new QueryResult(query.query(), query.params(), query.ids());
     }
 
