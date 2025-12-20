@@ -10,36 +10,66 @@
  *
  *   Contributors:
  *
- *   Otavio Santana
+ *   Otavio Santana,
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
 import com.orientechnologies.orient.core.db.ODatabaseType;
 import org.eclipse.jnosql.communication.Settings;
+import org.eclipse.jnosql.mapping.core.config.MappingConfigurations;
+import org.testcontainers.containers.GenericContainer;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public enum DocumentDatabase implements Supplier<OrientDBDocumentManagerFactory> {
 
     INSTANCE;
 
-    private final OrientDBDocumentConfiguration configuration;
+    private final GenericContainer<?> orientdb =
+            new GenericContainer<>("orientdb:latest")
+                    .withEnv(Map.of(
+                            "ORIENTDB_ROOT_PASSWORD", "rootpwd"
+                    ))
+                    .withExposedPorts(2424, 2480);
 
     {
-        configuration = new OrientDBDocumentConfiguration();
-        configuration.setHost("/tmp/db/");
-        configuration.setUser("root");
-        configuration.setPassword("rootpwd");
-        configuration.setStorageType(ODatabaseType.PLOCAL.toString());
+        orientdb.start();
+    }
+
+    private Settings getSettings() {
+        Map<String, Object> settings = new HashMap<>();
+        settings.put(OrientDBDocumentConfigurations.HOST.get(), "remote:" + hostAndPort());
+        settings.put(OrientDBDocumentConfigurations.USER.get(), "root");
+        settings.put(OrientDBDocumentConfigurations.PASSWORD.get(), "rootpwd");
+        settings.put(OrientDBDocumentConfigurations.STORAGE_TYPE.get(), ODatabaseType.PLOCAL.toString());
+        return Settings.of(settings);
+    }
+
+    private String hostAndPort() {
+        return "%s:%d".formatted(orientdb.getHost(), orientdb.getFirstMappedPort());
     }
 
     @Override
     public OrientDBDocumentManagerFactory get() {
-        return configuration.apply(Settings.builder().build());
+        return new OrientDBDocumentConfiguration().apply(getSettings());
     }
 
-    public OrientDBDocumentManager get(String database){
-        OrientDBDocumentManagerFactory managerFactory = get();
-        return managerFactory.apply(database);
+    public OrientDBDocumentManager get(String database) {
+        Settings settings = getSettings();
+        OrientDBDocumentManagerFactory factory = new OrientDBDocumentConfiguration().apply(getSettings());
+        OrientDBDocumentManager manager = factory.apply(database);
+        System.setProperty(MappingConfigurations.DOCUMENT_DATABASE.get(), database);
+        System.setProperty(OrientDBDocumentConfigurations.HOST.get(),
+                settings.get(OrientDBDocumentConfigurations.HOST.get(),String.class).orElseThrow());
+        System.setProperty(OrientDBDocumentConfigurations.USER.get(),
+                settings.get(OrientDBDocumentConfigurations.USER.get(),String.class).orElseThrow());
+        System.setProperty(OrientDBDocumentConfigurations.PASSWORD.get(),
+                settings.get(OrientDBDocumentConfigurations.PASSWORD.get(),String.class).orElseThrow());
+        System.setProperty(OrientDBDocumentConfigurations.STORAGE_TYPE.get(),
+                settings.get(OrientDBDocumentConfigurations.STORAGE_TYPE.get(),String.class).orElseThrow());
+        return manager;
     }
 }
