@@ -12,6 +12,7 @@
  *
  *   Otavio Santana
  *   Lucas Furlaneto
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
@@ -192,6 +193,27 @@ class DefaultOrientDBDocumentManager implements OrientDBDocumentManager {
             return Number.class.cast(count).longValue();
 
         }
+    }
+
+    @Override
+    public long count(SelectQuery query) {
+        requireNonNull(query, "query is required");
+        QueryOSQLFactory.QueryResult orientQuery = QueryOSQLFactory.countTo(query);
+        try (ODatabaseSession tx = pool.acquire()) {
+            if (orientQuery.isRunQuery()) {
+                try (OResultSet resultSet = tx.command(orientQuery.getQuery(), orientQuery.getParams())) {
+                    if (resultSet.hasNext()) {
+                        OResult next = resultSet.next();
+                        Optional<String> propertyRef = next.getPropertyNames().stream().findFirst();
+                        if (propertyRef.isPresent()) {
+                            Object count = next.getProperty(propertyRef.get());
+                            return Number.class.cast(count).longValue();
+                        }
+                    }
+                }
+            }
+        }
+        return 0l;
     }
 
     @Override
