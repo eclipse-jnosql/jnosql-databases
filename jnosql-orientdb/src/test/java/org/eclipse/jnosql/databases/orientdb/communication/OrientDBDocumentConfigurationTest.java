@@ -11,6 +11,7 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Maximillian Arruda
  */
 
 package org.eclipse.jnosql.databases.orientdb.communication;
@@ -22,17 +23,50 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class OrientDBDocumentConfigurationTest {
 
     @Test
-    public void shouldCreateDocumentManagerFactory() {
+    public void shouldCreateDocumentManagerFactoryForRemoteDB() {
         OrientDBDocumentConfiguration configuration = new OrientDBDocumentConfiguration();
-        configuration.setHost("172.17.0.2");
+        configuration.setHost("remote:172.17.0.2");
         configuration.setUser("root");
         configuration.setPassword("rootpwd");
         var managerFactory = configuration.apply(Settings.builder().build());
         assertNotNull(managerFactory);
+    }
+
+    @Test
+    public void shouldCreateDocumentManagerFactoryForEmbeddedDB() {
+        OrientDBDocumentConfiguration configuration = new OrientDBDocumentConfiguration();
+        configuration.setHost("embedded:/tmp/db/");
+        configuration.setUser("root");
+        configuration.setPassword("rootpwd");
+        var managerFactory = configuration.apply(Settings.builder().build());
+        assertNotNull(managerFactory);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenURLIsNotSupported() {
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            OrientDBDocumentConfiguration configuration = new OrientDBDocumentConfiguration();
+            configuration.setHost("172.17.0.2");
+            configuration.setUser("root");
+            configuration.setPassword("rootpwd");
+            configuration.apply(Settings.builder().build());
+            fail("Should throw exception");
+        });
+
+        assertThrows(IllegalArgumentException.class, ()-> {
+            OrientDBDocumentConfiguration configuration = new OrientDBDocumentConfiguration();
+            configuration.setHost("/tmp/db/");
+            configuration.setUser("root");
+            configuration.setPassword("rootpwd");
+            configuration.apply(Settings.builder().build());
+            fail("Should throw exception");
+        });
     }
 
 
