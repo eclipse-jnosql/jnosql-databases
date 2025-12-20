@@ -12,6 +12,7 @@
  *
  *   Otavio Santana
  *   Lucas Furlaneto
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
@@ -62,7 +63,7 @@ final class QueryOSQLConverter {
 
         if (documentQuery.condition().isPresent()) {
             query.append(WHERE);
-            definesCondition(documentQuery.condition().get(), query, params, 0, ids);
+            definesCondition(documentQuery.condition().get(), query, params, 0, ids, false);
         }
 
         if (!documentQuery.sorts().isEmpty()) {
@@ -73,40 +74,53 @@ final class QueryOSQLConverter {
         return new Query(query.toString(), params, ids);
     }
 
+    static Query selectCount(SelectQuery documentQuery) {
+        StringBuilder query = new StringBuilder();
+        List<Object> params = new java.util.ArrayList<>();
+        List<ORecordId> ids = new ArrayList<>();
+        query.append("SELECT COUNT(*) FROM ");
+        query.append(documentQuery.name());
+        if (documentQuery.condition().isPresent()) {
+            query.append(WHERE);
+            definesCondition(documentQuery.condition().get(), query, params, 0, ids, true);
+        }
+        return new Query(query.toString(), params, ids);
+    }
+
     private static void definesCondition(CriteriaCondition condition, StringBuilder query, List<Object> params,
-                                         int counter, List<ORecordId> ids) {
+                                         int counter, List<ORecordId> ids, boolean countQuery) {
 
         Element document = condition.element();
         switch (condition.condition()) {
             case IN:
-                appendCondition(query, params, document, IN, ids);
+                appendCondition(query, params, document, IN, ids, countQuery);
                 return;
             case EQUALS:
-                appendCondition(query, params, document, EQUALS, ids);
+                appendCondition(query, params, document, EQUALS, ids, countQuery);
                 return;
             case GREATER_EQUALS_THAN:
-                appendCondition(query, params, document, GREATER_EQUALS_THAN, ids);
+                appendCondition(query, params, document, GREATER_EQUALS_THAN, ids, countQuery);
                 return;
             case GREATER_THAN:
-                appendCondition(query, params, document, GREATER_THAN, ids);
+                appendCondition(query, params, document, GREATER_THAN, ids, countQuery);
                 return;
             case LESSER_THAN:
-                appendCondition(query, params, document, LESSER_THAN, ids);
+                appendCondition(query, params, document, LESSER_THAN, ids, countQuery);
                 return;
             case LESSER_EQUALS_THAN:
-                appendCondition(query, params, document, LESSER_EQUALS_THAN, ids);
+                appendCondition(query, params, document, LESSER_EQUALS_THAN, ids, countQuery);
                 return;
             case LIKE:
-                appendCondition(query, params, document, LIKE, ids);
+                appendCondition(query, params, document, LIKE, ids, countQuery);
                 return;
             case STARTS_WITH:
-                appendCondition(query, params, Element.of(document.name(), StringMatch.STARTS_WITH.format(document.get(String.class))), LIKE, ids);
+                appendCondition(query, params, Element.of(document.name(), StringMatch.STARTS_WITH.format(document.get(String.class))), LIKE, ids, countQuery);
                 return;
             case CONTAINS:
-                appendCondition(query, params, Element.of(document.name(), StringMatch.CONTAINS.format(document.get(String.class))), LIKE, ids);
+                appendCondition(query, params, Element.of(document.name(), StringMatch.CONTAINS.format(document.get(String.class))), LIKE, ids, countQuery);
                 return;
             case ENDS_WITH:
-                appendCondition(query, params, Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), LIKE, ids);
+                appendCondition(query, params, Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), LIKE, ids, countQuery);
                 return;
             case AND:
                 for (CriteriaCondition dc : document.get(new TypeReference<List<CriteriaCondition>>() {
@@ -115,7 +129,7 @@ final class QueryOSQLConverter {
                     if (isFirstCondition(query, counter)) {
                         query.append(AND);
                     }
-                    definesCondition(dc, query, params, ++counter, ids);
+                    definesCondition(dc, query, params, ++counter, ids, countQuery);
                 }
                 return;
             case OR:
@@ -124,13 +138,13 @@ final class QueryOSQLConverter {
                     if (isFirstCondition(query, counter)) {
                         query.append(OR);
                     }
-                    definesCondition(dc, query, params, ++counter, ids);
+                    definesCondition(dc, query, params, ++counter, ids, countQuery);
                 }
                 return;
             case NOT:
                 CriteriaCondition documentCondition = document.get(CriteriaCondition.class);
                 query.append("NOT (");
-                definesCondition(documentCondition, query, params, ++counter, ids);
+                definesCondition(documentCondition, query, params, ++counter, ids, countQuery);
                 query.append(")");
                 return;
             default:
@@ -143,15 +157,24 @@ final class QueryOSQLConverter {
     }
 
     private static void appendCondition(StringBuilder query, List<Object> params,
-                                        Element document, String condition, List<ORecordId> ids) {
+                                        Element document, String condition, List<ORecordId> ids, boolean countQuery) {
 
-        if (RID_FIELD.equals(document.name())
-                ||
-                ID_FIELD.equals(document.name())) {
-            ids.add(new ORecordId(document.get(String.class)));
-            return;
+        if(!countQuery) {
+            if (RID_FIELD.equals(document.name())
+                    ||
+                    ID_FIELD.equals(document.name())) {
+                String id = document.get(String.class);
+                ids.add(new ORecordId(id));
+                return;
+            }
         }
-        query.append(document.name())
+        String attributeName = document.name();
+        if(countQuery) {
+            if (ID_FIELD.equals(document.name())) {
+                attributeName = RID_FIELD;
+            }
+        }
+        query.append(attributeName)
                 .append(condition).append(PARAM_APPENDER);
         if (IN.equals(condition)) {
             params.add(ValueUtil.convertToList(document.value()));

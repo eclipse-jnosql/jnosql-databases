@@ -19,8 +19,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class QueryOSQLConverterTest {
 
@@ -29,11 +29,22 @@ public class QueryOSQLConverterTest {
         var query = select().from("collection")
                 .where("name").eq("value").build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        String sql = convert.query();
-        List<Object> values = convert.params();
-        assertEquals("value", values.get(0));
-        assertEquals("SELECT FROM collection WHERE name = ?", sql);
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT FROM collection WHERE name = ?", List.of("value"));
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT COUNT(*) FROM collection WHERE name = ?", List.of("value"));
+
+        });
     }
 
     @Test
@@ -43,12 +54,22 @@ public class QueryOSQLConverterTest {
                 .and("age").lte(10)
                 .build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        String sql = convert.query();
-        List<Object> values = convert.params();
-        assertEquals("value", values.get(0));
-        assertEquals(10, values.get(1));
-        assertEquals("SELECT FROM collection WHERE name = ? AND age <= ?", sql);
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT FROM collection WHERE name = ? AND age <= ?", List.of("value", 10));
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT COUNT(*) FROM collection WHERE name = ? AND age <= ?", List.of("value", 10));
+
+        });
     }
 
     @Test
@@ -58,12 +79,22 @@ public class QueryOSQLConverterTest {
                 .or("age").lte(10)
                 .build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        String sql = convert.query();
-        List<Object> values = convert.params();
-        assertEquals("value", values.get(0));
-        assertEquals(10, values.get(1));
-        assertEquals("SELECT FROM collection WHERE name = ? OR age <= ?", sql);
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT FROM collection WHERE name = ? OR age <= ?", List.of("value", 10));
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT COUNT(*) FROM collection WHERE name = ? OR age <= ?", List.of("value", 10));
+
+        });
     }
 
     @Test
@@ -71,11 +102,23 @@ public class QueryOSQLConverterTest {
         var query = select().from("collection")
                 .where("name").not().eq("value").build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        String sql = convert.query();
-        List<Object> values = convert.params();
-        assertEquals("value", values.get(0));
-        assertEquals("SELECT FROM collection WHERE NOT (name = ?)", sql);
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT FROM collection WHERE NOT (name = ?)", List.of("value"));
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT COUNT(*) FROM collection WHERE NOT (name = ?)", List.of("value"));
+
+        });
+
     }
 
     @Test
@@ -85,14 +128,24 @@ public class QueryOSQLConverterTest {
                 .and("name").eq("Otavio")
                 .or("name").not().eq("Lucas").build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        String sql = convert.query();
-        List<Object> values = convert.params();
-        assertEquals(3, values.size());
-        assertEquals("Assis", values.get(0));
-        assertEquals("Otavio", values.get(1));
-        assertEquals("Lucas", values.get(2));
-        assertEquals("SELECT FROM collection WHERE NOT (city = ?) AND name = ? OR NOT (name = ?)", sql);
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT FROM collection WHERE NOT (city = ?) AND name = ? OR NOT (name = ?)",
+                            List.of("Assis", "Otavio", "Lucas"));
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
+                    .containsExactly("SELECT COUNT(*) FROM collection WHERE NOT (city = ?) AND name = ? OR NOT (name = ?)",
+                            List.of("Assis", "Otavio", "Lucas"));
+
+        });
     }
 
     @Test
@@ -101,8 +154,22 @@ public class QueryOSQLConverterTest {
                 .skip(10)
                 .build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        assertEquals("SELECT FROM collection SKIP 10", convert.query());
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT FROM collection SKIP 10");
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT COUNT(*) FROM collection");
+
+        });
     }
 
     @Test
@@ -111,8 +178,22 @@ public class QueryOSQLConverterTest {
                 .limit(100)
                 .build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        assertEquals("SELECT FROM collection LIMIT 100", convert.query());
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT FROM collection LIMIT 100");
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT COUNT(*) FROM collection");
+
+        });
     }
 
     @Test
@@ -122,8 +203,22 @@ public class QueryOSQLConverterTest {
                 .limit(100)
                 .build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        assertEquals("SELECT FROM collection SKIP 10 LIMIT 100", convert.query());
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT FROM collection SKIP 10 LIMIT 100");
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT COUNT(*) FROM collection");
+
+        });
     }
 
     @Test
@@ -132,8 +227,22 @@ public class QueryOSQLConverterTest {
                 .orderBy("name").asc()
                 .build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        assertEquals("SELECT FROM collection ORDER BY name ASC", convert.query());
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT FROM collection ORDER BY name ASC");
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT COUNT(*) FROM collection");
+
+        });
     }
 
     @Test
@@ -142,8 +251,23 @@ public class QueryOSQLConverterTest {
                 .orderBy("name").desc()
                 .build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        assertEquals("SELECT FROM collection ORDER BY name DESC", convert.query());
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT FROM collection ORDER BY name DESC");
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT COUNT(*) FROM collection");
+
+        });
+
     }
 
     @Test
@@ -153,7 +277,22 @@ public class QueryOSQLConverterTest {
                 .orderBy("age").desc()
                 .build();
 
-        QueryOSQLConverter.Query convert = QueryOSQLConverter.select(query);
-        assertEquals("SELECT FROM collection ORDER BY name ASC, age DESC", convert.query());
+        QueryOSQLConverter.Query selectQuery = QueryOSQLConverter.select(query);
+        QueryOSQLConverter.Query selectCountQuery = QueryOSQLConverter.selectCount(query);
+
+        assertSoftly(softly -> {
+
+            softly.assertThat(selectQuery)
+                    .as("Converted OrientDB SQL query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT FROM collection ORDER BY name ASC, age DESC");
+
+            softly.assertThat(selectCountQuery)
+                    .as("Converted OrientDB SQL count query is different than expected")
+                    .extracting(QueryOSQLConverter.Query::query)
+                    .isEqualTo("SELECT COUNT(*) FROM collection");
+
+        });
+
     }
 }
