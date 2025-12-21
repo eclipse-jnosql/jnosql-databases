@@ -8,6 +8,24 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+=== Changed
+
+- Remove unused import in DefaultCouchbaseDocumentManager
+- Add count method to DefaultCouchbaseDocumentManager
+- Add count functionality to N1QLBuilder
+- Enhance count test with delay
+- Enhance count tests in CouchbaseDocumentManager
+- Add person collection and index to Couchbase
+- Add count method for SelectQuery
+- Add count method to QueryAQLConverter
+- Add count method to CassandraTemplate
+- Enhance count methods in CassandraColumnManager
+- Enhance count query tests for CassandraColumnManager
+- Add count method based on query to CassandraColumnManager
+- Add default execute and count methods
+- Add count method based on a query to MongoDBDocumentManager
+- Add count query test for MongoDBDocumentManager
+
 == [1.1.11] - 2025-11-16
 
 === Changed
