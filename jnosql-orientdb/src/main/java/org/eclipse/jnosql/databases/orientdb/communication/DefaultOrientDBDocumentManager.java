@@ -213,7 +213,7 @@ class DefaultOrientDBDocumentManager implements OrientDBDocumentManager {
                 }
             }
         }
-        return 0l;
+        return 0L;
     }
 
     @Override
