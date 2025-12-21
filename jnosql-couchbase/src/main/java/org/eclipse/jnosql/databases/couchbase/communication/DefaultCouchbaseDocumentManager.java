@@ -206,6 +206,26 @@ class DefaultCouchbaseDocumentManager implements CouchbaseDocumentManager {
     }
 
     @Override
+    public long count(SelectQuery query) {
+        Objects.requireNonNull(query, "query is required");
+        return waitBucketBeReadyAndGet(() -> {
+            N1QLQuery n1QLQuery = N1QLBuilder.countOf(query, database, bucket.defaultScope().name()).get();
+            QueryResult result;
+            if (n1QLQuery.isParameterEmpty()) {
+                result = cluster.query(n1QLQuery.query());
+            } else {
+                result = cluster.query(n1QLQuery.query(), QueryOptions
+                        .queryOptions().parameters(n1QLQuery.params()));
+            }
+            return result.rowsAsObject()
+                    .stream()
+                    .findFirst()
+                    .map(json -> json.getLong("$1"))
+                    .orElse(0L);
+        });
+    }
+
+    @Override
     public Stream<CommunicationEntity> n1qlQuery(final String n1ql, final JsonObject params) throws NullPointerException {
         requireNonNull(n1ql, "n1qlQuery is required");
         requireNonNull(params, "params is required");

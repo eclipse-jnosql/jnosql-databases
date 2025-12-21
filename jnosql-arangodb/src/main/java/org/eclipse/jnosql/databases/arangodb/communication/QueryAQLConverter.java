@@ -77,6 +77,23 @@ final class QueryAQLConverter {
 
     }
 
+    public static AQLQueryResult count(SelectQuery query) throws NullPointerException {
+
+        AQLQueryResult q = convert(query.name(),
+                query.condition().orElse(null),
+                Collections.emptyList(),
+                0L,
+                0L,
+                RETURN, false);
+
+        StringBuilder aql = new StringBuilder();
+
+        aql.append("RETURN LENGTH(")
+                .append(q.query())
+                .append(")");
+        return new AQLQueryResult(aql.toString(), q.values());
+    }
+
 
     private static AQLQueryResult convert(String documentCollection,
                                           CriteriaCondition documentCondition,

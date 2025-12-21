@@ -154,6 +154,14 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
                 .map(Number::longValue).orElse(0L);
     }
 
+    @Override
+    public long count(SelectQuery query) {
+        requireNonNull(query, "query is required");
+        checkCollection(query.name());
+        AQLQueryResult aqlQuery = QueryAQLConverter.count(query);
+        LOGGER.finest("Executing AQL: " + aqlQuery.query());
+        return aql(aqlQuery.query(), aqlQuery.values(), Long.class).findFirst().orElse(0L);
+    }
 
     @Override
     public Stream<CommunicationEntity> aql(String query, Map<String, Object> params) throws NullPointerException {

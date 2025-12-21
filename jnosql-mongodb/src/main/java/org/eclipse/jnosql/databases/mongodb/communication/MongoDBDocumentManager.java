@@ -149,14 +149,12 @@ public class MongoDBDocumentManager implements DatabaseManager {
         collection.deleteMany(mongoDBQuery);
     }
 
-
     @Override
     public Stream<CommunicationEntity> select(SelectQuery query) {
         Objects.requireNonNull(query, "query is required");
         String collectionName = query.name();
         MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
         Bson mongoDBQuery = query.condition().map(DocumentQueryConversor::convert).orElse(EMPTY);
-
         FindIterable<Document> documents = collection.find(mongoDBQuery);
         documents.projection(Projections.include(query.columns()));
 
@@ -175,6 +173,14 @@ public class MongoDBDocumentManager implements DatabaseManager {
         return stream(documents.spliterator(), false).map(MongoDBUtils::of)
                 .map(ds -> CommunicationEntity.of(collectionName, ds));
 
+    }
+
+    @Override
+    public long count(SelectQuery query) {
+        Objects.requireNonNull(query, "query is required");
+        String collectionName = query.name();
+        Bson mongoDBQuery = query.condition().map(DocumentQueryConversor::convert).orElse(EMPTY);
+        return count(collectionName, mongoDBQuery);
     }
 
     @Override
@@ -214,7 +220,7 @@ public class MongoDBDocumentManager implements DatabaseManager {
      * Aggregates documents according to the specified aggregation pipeline.
      *
      * @param collectionName the collection name
-     * @param pipeline the aggregation pipeline
+     * @param pipeline       the aggregation pipeline
      * @return the stream of BSON Documents
      * @throws NullPointerException when filter or collectionName is null
      */
@@ -230,7 +236,7 @@ public class MongoDBDocumentManager implements DatabaseManager {
      * Aggregates documents according to the specified aggregation pipeline.
      *
      * @param collectionName the collection name
-     * @param pipeline the aggregation pipeline
+     * @param pipeline       the aggregation pipeline
      * @return the stream result
      * @throws NullPointerException when pipeline or collectionName is null
      */

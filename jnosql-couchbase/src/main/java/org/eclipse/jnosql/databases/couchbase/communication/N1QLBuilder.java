@@ -36,14 +36,18 @@ final class N1QLBuilder implements Supplier<N1QLQuery> {
 
     private final String scope;
 
-    private N1QLBuilder(SelectQuery query, String database, String scope) {
+    private final boolean shouldCount;
+
+    private N1QLBuilder(SelectQuery query, String database, String scope, boolean shouldCount) {
         this.query = query;
         this.database = database;
         this.scope = scope;
+        this.shouldCount = shouldCount;
     }
 
     @Override
     public N1QLQuery get() {
+
         StringBuilder n1ql = new StringBuilder();
         JsonObject params = JsonObject.create();
         List<String> ids = new ArrayList<>();
@@ -60,6 +64,9 @@ final class N1QLBuilder implements Supplier<N1QLQuery> {
             condition(c, n1ql, params, ids);
         });
 
+        if (shouldCount) {
+            return N1QLQuery.of(n1ql, params, ids);
+        }
 
         if (!query.sorts().isEmpty()) {
             n1ql.append(" ORDER BY ");
@@ -80,19 +87,18 @@ final class N1QLBuilder implements Supplier<N1QLQuery> {
         return N1QLQuery.of(n1ql, params, ids);
     }
 
-
     private void condition(CriteriaCondition condition, StringBuilder n1ql, JsonObject params, List<String> ids) {
         Element document = condition.element();
         switch (condition.condition()) {
             case EQUALS:
-                if (document.name().equals(EntityConverter.ID_FIELD)) {
+                if (document.name().equals(EntityConverter.ID_FIELD) && !shouldCount) {
                     ids.add(document.get(String.class));
                 } else {
                     predicate(n1ql, " = ", document, params);
                 }
                 return;
             case IN:
-                if (document.name().equals(EntityConverter.ID_FIELD)) {
+                if (document.name().equals(EntityConverter.ID_FIELD) && !shouldCount) {
                     ids.addAll(document.get(new TypeReference<List<String>>() {
                     }));
                 } else {
@@ -165,10 +171,10 @@ final class N1QLBuilder implements Supplier<N1QLQuery> {
         for (CriteriaCondition documentCondition : conditions) {
             StringBuilder query = new StringBuilder();
             condition(documentCondition, query, params, ids);
-            if(index == 0){
-                 n1ql.append(" ").append(query);
-            } else if(!query.isEmpty()) {
-                 n1ql.append(condition).append(query);
+            if (index == 0) {
+                n1ql.append(" ").append(query);
+            } else if (!query.isEmpty()) {
+                n1ql.append(condition).append(query);
             }
             index++;
         }
@@ -191,6 +197,9 @@ final class N1QLBuilder implements Supplier<N1QLQuery> {
     }
 
     private String select() {
+        if (shouldCount) {
+            return "COUNT(*)";
+        }
         String documents = String.join(", ", query.columns());
         if (documents.isBlank()) {
             return "*";
@@ -199,6 +208,10 @@ final class N1QLBuilder implements Supplier<N1QLQuery> {
     }
 
     public static N1QLBuilder of(SelectQuery query, String database, String scope) {
-        return new N1QLBuilder(query, database, scope);
+        return new N1QLBuilder(query, database, scope, false);
+    }
+
+    public static N1QLBuilder countOf(SelectQuery query, String database, String scope) {
+        return new N1QLBuilder(query, database, scope, true);
     }
 }
