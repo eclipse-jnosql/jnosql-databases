@@ -178,13 +178,11 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
         return entities.stream();
     }
 
-
-
     @Override
     public long count(String documentCollection) {
         Objects.requireNonNull(documentCollection, "documentCollection is required");
 
-        var prepReq = new PrepareRequest().setStatement("select count(*)  as count from " + name() + " where " +
+        var prepReq = new PrepareRequest().setStatement("select count(*) as count from " + name() + " where " +
                 ENTITY +" = ?");
         var prepRes = serviceHandle.prepare(prepReq);
         var preparedStatement = prepRes.getPreparedStatement();
@@ -194,6 +192,26 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
         List<MapValue> results = queryResult.getResults();
         if(results.size() == 1) {
             return results.get(0).get("count").asLong().getValue();
+        }
+        return 0;
+    }
+
+    @Override
+    public long count(SelectQuery query) {
+        Objects.requireNonNull(query, "query is required");
+        var countBuilder = new SelectCountBuilder(query, table);
+        var oracleQuery = countBuilder.get();
+
+        var prepReq = new PrepareRequest().setStatement(oracleQuery.query());
+        var prepRes = serviceHandle.prepare(prepReq);
+        var preparedStatement = prepRes.getPreparedStatement();
+        for (int index = 0; index < oracleQuery.params().size(); index++) {
+            preparedStatement.setVariable((index + 1), oracleQuery.params().get(index));
+        }
+        QueryResult queryResult = serviceHandle.query(new QueryRequest().setPreparedStatement(prepRes));
+        List<MapValue> results = queryResult.getResults();
+        if(results.size() == 1) {
+            return results.get(0).get(SelectCountBuilder.COUNT).asLong().getValue();
         }
         return 0;
     }
