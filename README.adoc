@@ -1345,7 +1345,7 @@ Please note that you can establish properties using the https://microprofile.io/
 |Configuration property |Description
 
 |`jnosql.orientdb.host`
-|The database host
+|The database host. It can be pointing to remote database (e.g: `remote:<HOST or IP>:<PORT>`) or an embedded database (e.g: `embedded:<DIRETORY>`). Please, follow the link:https://github.com/orientechnologies/orientdb/blob/develop/core/src/main/java/com/orientechnologies/orient/core/db/OrientDB.java[OrientDB Javadoc, target=window] for more details.
 
 |`jnosql.orientdb.user`
 |The user's userID.
@@ -1364,7 +1364,7 @@ This is an example using OrientDB's Document API with MicroProfile Config.
 ----
 jnosql.document.provider=org.eclipse.jnosql.databases.orientdb.communication.OrientDBDocumentConfiguration
 jnosql.document.database=heroes
-jnosql.orientdb.host=localhost:27017
+jnosql.orientdb.host=remote:localhost:2424
 jnosql.orientdb.user=root
 jnosql.orientdb.password=rootpwd
 jnosql.orientdb.storageType=plocal
