@@ -14,7 +14,6 @@
  */
 package org.eclipse.jnosql.databases.oracle.communication;
 
-import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
@@ -209,12 +208,12 @@ class OracleNoSQLDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
 
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(entitiesFound).hasSize(1);
 
             List<String> namesFound = entitiesFound.stream()
                     .flatMap(d -> d.find("name").stream())
-                    .map(d-> d.get(String.class))
+                    .map(d -> d.get(String.class))
                     .toList();
             soft.assertThat(namesFound).contains("Lucas");
         });
@@ -252,11 +251,11 @@ class OracleNoSQLDocumentManagerTest {
             soft.assertThat(entitiesFound).hasSize(entities.size());
             List<String> namesFound = entitiesFound.stream()
                     .flatMap(d -> d.find("name").stream())
-                    .map(d-> d.get(String.class))
+                    .map(d -> d.get(String.class))
                     .toList();
             List<String> names = entities.stream()
                     .flatMap(d -> d.find("name").stream())
-                    .map(d-> d.get(String.class))
+                    .map(d -> d.get(String.class))
                     .toList();
             soft.assertThat(namesFound).containsAll(names);
         });
@@ -463,7 +462,7 @@ class OracleNoSQLDocumentManagerTest {
 
         assertEquals(1, entities.size());
         var documentEntity = entities.get(0);
-        assertSoftly(soft ->{
+        assertSoftly(soft -> {
             soft.assertThat(id).isEqualTo(documentEntity.find("_id").orElseThrow().get(Long.class));
             soft.assertThat(now).isEqualTo(documentEntity.find("now").orElseThrow().get(LocalDate.class));
         });
@@ -498,7 +497,27 @@ class OracleNoSQLDocumentManagerTest {
         assertTrue(entityManager.count(COLLECTION_NAME) > 0);
     }
 
+    @Test
+    void shouldCountWithSelectQuery() {
+        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
+        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
 
+        assertSoftly(softly -> {
+            softly.assertThat(entityManager.count(
+                    select().from(COLLECTION_NAME)
+                            .where("age").gt(22)
+                            .and("type").eq("V")
+                            .build()
+            )).isEqualTo(2);
+
+            softly.assertThat(entityManager.count(
+                    select().from(COLLECTION_NAME)
+                            .where("name").eq("Otavio")
+                            .build()
+            )).isEqualTo(1);
+        });
+
+    }
 
     @Test
     void shouldSaveMap() {
@@ -532,7 +551,7 @@ class OracleNoSQLDocumentManagerTest {
     }
 
     @Test
-    void shouldUpdateNull(){
+    void shouldUpdateNull() {
         var entity = entityManager.insert(getEntity());
         entity.add(Element.of("name", null));
         var documentEntity = entityManager.update(entity);
@@ -545,7 +564,7 @@ class OracleNoSQLDocumentManagerTest {
     }
 
     @Test
-    void shouldQuery(){
+    void shouldQuery() {
         entityManager.insert(getEntity());
 
         var query = "select * from database where database.content.name = 'Poliana'";
@@ -556,7 +575,7 @@ class OracleNoSQLDocumentManagerTest {
     }
 
     @Test
-    void shouldQueryParams(){
+    void shouldQueryParams() {
         entityManager.insert(getEntity());
 
         var query = "select * from database where database.content.name = ?";
@@ -598,7 +617,7 @@ class OracleNoSQLDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
 
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(entitiesFound).hasSize(2);
             var names = entitiesFound.stream()
                     .flatMap(d -> d.find("name").stream())
@@ -618,7 +637,7 @@ class OracleNoSQLDocumentManagerTest {
                 "lia")), COLLECTION_NAME, Collections.emptyList());
 
         var result = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
+        assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
             softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
@@ -633,7 +652,7 @@ class OracleNoSQLDocumentManagerTest {
                 "Pol")), COLLECTION_NAME, Collections.emptyList());
 
         var result = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
+        assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
             softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
@@ -648,7 +667,7 @@ class OracleNoSQLDocumentManagerTest {
                 "ana")), COLLECTION_NAME, Collections.emptyList());
 
         var result = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
+        assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
             softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
