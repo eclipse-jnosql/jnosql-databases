@@ -25,6 +25,26 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Add default execute and count methods
 - Add count method based on a query to MongoDBDocumentManager
 - Add count query test for MongoDBDocumentManager
+- Add count query support with SelectQuery for Neo4J
+- Add count query builder for SelectQuery in Neo4J
+- Add count method to DefaultNeo4JDatabaseManager
+- Add count query tests for Neo4JQueryBuilder
+- Update Neo4J query builder to use count queries
+- Add count method to DefaultTinkerpopGraphDatabaseManager
+- Add count tests for entity manager in Tinkerpop
+- Add count method for SelectQuery in Solr Document Manager
+- Add count tests for SelectQuery to Solr Document Manager
+- Add count query support in QueryOSQLConverter for OrientDB
+- Add count query support in QueryOSQLFactory for OrientDB
+- Add count method with conditions to DefaultOrientDBDocumentManager
+- Improve URL handling in OrientDB factory
+- Update integration test configuration for OrientDB
+- Update README with database host details config for OrientDB
+- Add count method for SelectQuery support in OracleNoSQL
+- Enhance condition handling for count queries in OracleNoSQL
+- Add SelectCountBuilder for OracleNoSQL count queries support
+- Update condition handling in query builders
+- Improve assertions and add count query tests
 
 == [1.1.11] - 2025-11-16
 
