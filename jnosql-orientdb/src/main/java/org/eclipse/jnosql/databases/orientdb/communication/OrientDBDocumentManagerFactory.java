@@ -11,6 +11,7 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
@@ -20,6 +21,9 @@ import com.orientechnologies.orient.core.db.ODatabaseType;
 import com.orientechnologies.orient.core.db.OrientDB;
 import com.orientechnologies.orient.core.db.OrientDBConfig;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
@@ -36,23 +40,67 @@ public class OrientDBDocumentManagerFactory implements DatabaseManagerFactory {
     private final OrientDB orient;
 
     OrientDBDocumentManagerFactory(String host, String user, String password, String storageType) {
-        this.host = host;
+        this.host = URLPrefix.formatURL(host);
         this.user = user;
         this.password = password;
         this.storageType = ofNullable(storageType)
                 .map(String::toUpperCase)
                 .map(ODatabaseType::valueOf)
                 .orElse(ODatabaseType.PLOCAL);
+        this.orient = new OrientDB(this.host, this.user, this.password, getOrientDBConfig());
+    }
 
-        String prefix = this.storageType == ODatabaseType.MEMORY ? "embedded:" : "remote:";
-        this.orient = new OrientDB(prefix + host, user, password, OrientDBConfig.defaultConfig());
+    enum URLPrefix {
 
+        EMBEDDED("embedded"),
+        REMOTE("remote");
+
+        private final String prefix;
+
+        URLPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
+        static String formatURL(String host) {
+            URLPrefix prefix= of(host)
+                    .orElseThrow(() ->
+                    new IllegalArgumentException("The host url is invalid. " +
+                            "Prefix is needed: possible kind of URLs are 'embedded' or 'remote', " +
+                            "also for the case of remote and distributed can be specified multiple nodes using comma"));
+            if(!host.toLowerCase().startsWith(prefix.prefix)){
+                return prefix.prefix + ":" + host;
+            }
+            return host;
+        }
+
+        static Optional<URLPrefix> of(String url) {
+            if (url == null || url.isBlank()) {
+                return Optional.empty();
+            }
+            String[] parts = url.split(":", 2);
+            if (parts.length == 2) {
+                String prefix = parts[0];
+                return Arrays.stream(URLPrefix.values())
+                        .filter(urlPrefix -> urlPrefix.prefix.equalsIgnoreCase(prefix))
+                        .findFirst();
+            }
+            return Optional.empty();
+        }
+    }
+
+    private OrientDBConfig getOrientDBConfig() {
+        return URLPrefix.of(this.host)
+                .filter(URLPrefix.EMBEDDED::equals)
+                .map(urlPrefix -> OrientDBConfig
+                        .builder()
+                        .addGlobalUser(user, password, "*")
+                        .build())
+                .orElseGet(OrientDBConfig::defaultConfig);
     }
 
     @Override
     public OrientDBDocumentManager apply(String database) {
         requireNonNull(database, "database is required");
-
         orient.createIfNotExists(database, storageType);
         ODatabasePool pool = new ODatabasePool(orient, database, user, password);
         return new DefaultOrientDBDocumentManager(pool, database);

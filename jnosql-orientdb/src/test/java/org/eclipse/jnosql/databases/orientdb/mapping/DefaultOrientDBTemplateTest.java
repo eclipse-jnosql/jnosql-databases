@@ -11,6 +11,7 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.orientdb.mapping;
 
@@ -23,6 +24,8 @@ import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.databases.orientdb.communication.OrientDBDocumentManager;
 import org.eclipse.jnosql.databases.orientdb.communication.OrientDBLiveCallback;
 import org.eclipse.jnosql.databases.orientdb.communication.OrientDBLiveCreateCallback;
+import org.eclipse.jnosql.databases.orientdb.integration.Magazine;
+import org.eclipse.jnosql.mapping.Database;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.document.DocumentTemplate;
 import org.eclipse.jnosql.mapping.document.spi.DocumentExtension;
@@ -48,12 +51,12 @@ import static org.mockito.Mockito.when;
 
 
 @EnableAutoWeld
-@AddPackages(value = {Converters.class,
-        EntityConverter.class, DocumentTemplate.class, SQL.class})
-@AddPackages(MockProducer.class)
+@AddPackages(value = {Database.class, EntityConverter.class, DocumentTemplate.class, OrientDBTemplate.class})
+@AddPackages(Magazine.class)
 @AddPackages(Reflections.class)
+@AddPackages(Converters.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class,
-        DocumentExtension.class, OrientDBExtension.class})
+        DocumentExtension.class})
 public class DefaultOrientDBTemplateTest {
 
     @Inject

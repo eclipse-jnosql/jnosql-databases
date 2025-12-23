@@ -22,6 +22,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.assertj.core.api.SoftAssertions;
+import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Creature;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Human;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Magazine;
@@ -498,6 +499,13 @@ public abstract class AbstractTinkerpopTemplateTest {
         getGraphTemplate().insert(Human.builder().withAge().withName("Otavio").build());
         getGraphTemplate().insert(Human.builder().withAge().withName("Poliana").build());
         assertEquals(2L, getGraphTemplate().count(Human.class));
+    }
+
+    @Test
+    void shouldCountFromSelectQuery() {
+        getGraphTemplate().insert(Human.builder().withAge().withName("Otavio").build());
+        getGraphTemplate().insert(Human.builder().withAge().withName("Poliana").build());
+        assertEquals(2L, getGraphTemplate().count(SelectQuery.builder().select().from("Human").build()));
     }
 
 

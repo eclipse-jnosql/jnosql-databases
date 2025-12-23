@@ -432,6 +432,52 @@ class DefaultTinkerpopGraphDatabaseManagerTest {
     }
 
     @Test
+    void shouldCountByCollectionName() {
+
+        List<CommunicationEntity> entitiesWithValues = getEntitiesWithValues();
+
+        entityManager.insert(entitiesWithValues);
+
+        SelectQuery query = select().from(COLLECTION_NAME)
+                .where("age").gt(22)
+                .and("type").eq("V")
+                .orderBy("age").asc()
+                .build();
+
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(entityManager.count(COLLECTION_NAME))
+                    .isEqualTo(entitiesWithValues.size());
+            softly.assertThatThrownBy(()-> entityManager.count((String)null))
+                    .as("should throw exception when collection name is null")
+                    .isInstanceOf(NullPointerException.class);
+        });
+    }
+
+    @Test
+    void shouldCountBySelectQuery() {
+
+        List<CommunicationEntity> entitiesWithValues = getEntitiesWithValues();
+
+        entityManager.insert(entitiesWithValues);
+
+        var query = select().from(COLLECTION_NAME)
+                .where("age").gt(22)
+                .and("type").eq("V")
+                .orderBy("age").asc()
+                .build();
+
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(entityManager.count(query))
+                    .isEqualTo(2);
+            softly.assertThatThrownBy(()-> entityManager.count((SelectQuery) null))
+                    .as("should throw exception when select query is null")
+                    .isInstanceOf(NullPointerException.class);
+        });
+    }
+
+    @Test
     void shouldCreateEdge() {
         var person1 = entityManager.insert(getEntity());
         var person2 = entityManager.insert(getEntity());

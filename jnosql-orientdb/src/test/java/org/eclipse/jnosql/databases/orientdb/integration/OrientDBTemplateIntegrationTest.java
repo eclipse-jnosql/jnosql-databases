@@ -11,16 +11,16 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.orientdb.integration;
 
 
 import jakarta.inject.Inject;
 import org.eclipse.jnosql.databases.orientdb.communication.DocumentDatabase;
-import org.eclipse.jnosql.databases.orientdb.communication.OrientDBDocumentConfigurations;
 import org.eclipse.jnosql.databases.orientdb.mapping.OrientDBTemplate;
 import org.eclipse.jnosql.mapping.Database;
-import org.eclipse.jnosql.mapping.core.config.MappingConfigurations;
+import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.document.DocumentTemplate;
 import org.eclipse.jnosql.mapping.document.spi.DocumentExtension;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
@@ -34,17 +34,16 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.Optional;
 
-import static com.orientechnologies.orient.core.db.ODatabaseType.PLOCAL;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 
 @EnableAutoWeld
-@AddPackages(value = {Database.class, EntityConverter.class, DocumentTemplate.class})
+@AddPackages(value = {Database.class, EntityConverter.class, DocumentTemplate.class, OrientDBTemplate.class})
 @AddPackages(Magazine.class)
-@AddPackages(OrientDBTemplate.class)
 @AddPackages(Reflections.class)
+@AddPackages(Converters.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class,
         DocumentExtension.class})
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
@@ -55,11 +54,6 @@ class OrientDBTemplateIntegrationTest {
 
     static {
         DocumentDatabase.INSTANCE.get("library");
-        System.setProperty(MappingConfigurations.DOCUMENT_DATABASE.get(), "jnosql");
-        System.setProperty(OrientDBDocumentConfigurations.HOST.get(), "/tmp/db/");
-        System.setProperty(OrientDBDocumentConfigurations.USER.get(), "root");
-        System.setProperty(OrientDBDocumentConfigurations.PASSWORD.get(), "rootpwd");
-        System.setProperty(OrientDBDocumentConfigurations.STORAGE_TYPE.get(), PLOCAL.toString());
     }
     @Test
     public void shouldInsert() {

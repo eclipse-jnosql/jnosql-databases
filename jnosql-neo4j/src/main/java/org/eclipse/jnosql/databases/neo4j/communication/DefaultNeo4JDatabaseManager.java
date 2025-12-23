@@ -149,6 +149,25 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
         }
     }
 
+    public long count(SelectQuery query) {
+        Objects.requireNonNull(query, "query is required");
+        Map<String, Object> parameters = new HashMap<>();
+        String cypher = Neo4JQueryBuilder.INSTANCE.buildCountQuery(query, parameters);
+
+        LOGGER.fine("Executing Cypher Query for counting entities: " + cypher);
+        try (Transaction tx = session.beginTransaction()) {
+            long count = tx.run(cypher, Values.parameters(flattenMap(parameters)))
+                    .single()
+                    .get("count")
+                    .asLong();
+            tx.commit();
+            return count;
+        } catch (Exception e) {
+            LOGGER.severe("Error executing count query: " + e.getMessage());
+            throw new CommunicationException("Error executing count query", e);
+        }
+    }
+
     @Override
     public long count(String entity) {
         Objects.requireNonNull(entity, "entity is required");

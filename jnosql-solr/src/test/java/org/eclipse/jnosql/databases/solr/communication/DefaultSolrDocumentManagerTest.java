@@ -19,6 +19,7 @@ import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
+import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,7 @@ import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
@@ -69,7 +71,8 @@ public class DefaultSolrDocumentManagerTest {
 
     @Test
     void shouldThrowExceptionWhenInsertWithTTL() {
-        assertThrows(UnsupportedOperationException.class, () -> entityManager.insert(getEntity(), Duration.ofSeconds(10)));
+        assertThrows(UnsupportedOperationException.class,
+                () -> entityManager.insert(getEntity(), Duration.ofSeconds(10)));
     }
 
     @Test
@@ -115,7 +118,6 @@ public class DefaultSolrDocumentManagerTest {
         assertEquals(entity.find("city").get(), result.find("city").get());
 
     }
-
 
     @Test
     void shouldFindDocument2() {
@@ -368,8 +370,8 @@ public class DefaultSolrDocumentManagerTest {
         params.put("type", "V");
         params.put("entity", "person");
 
-        List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND type:@type AND _entity:@entity"
-                , params);
+        List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND type:@type AND _entity:@entity",
+                params);
         assertEquals(1, entitiesFound.size());
     }
 
@@ -383,11 +385,9 @@ public class DefaultSolrDocumentManagerTest {
         Map<String, Object> params = new HashMap<>();
         params.put("age", 22);
 
-        List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND age:@age"
-                , params);
+        List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND age:@age", params);
         assertEquals(1, entitiesFound.size());
     }
-
 
     @Test
     void shouldFindAll() {
@@ -396,7 +396,6 @@ public class DefaultSolrDocumentManagerTest {
         List<CommunicationEntity> entities = entityManager.select(query).toList();
         assertFalse(entities.isEmpty());
     }
-
 
     @Test
     void shouldReturnErrorWhenSaveSubDocument() {
@@ -442,8 +441,36 @@ public class DefaultSolrDocumentManagerTest {
 
     @Test
     void shouldCount() {
-        var entity = entityManager.insert(getEntity());
-        assertTrue(entityManager.count(COLLECTION_NAME) > 0);
+        entityManager.insert(getEntity());
+        assertSoftly(softly -> {
+            softly.assertThat(entityManager.count(COLLECTION_NAME))
+                    .as("should count collection")
+                    .isGreaterThan(0);
+            softly.assertThat(entityManager.count("unknown_collection"))
+                    .as("should count unknown collection")
+                    .isEqualTo(0);
+            softly.assertThatCode(() -> entityManager.count((String) null))
+                    .as("should throw exception when count with null collection name")
+                    .isInstanceOf(NullPointerException.class);
+        });
+    }
+
+    @Test
+    void shouldCountWithSelectQuery() {
+        entityManager.insert(getEntity());
+        var query = SelectQuery.select()
+                .from(COLLECTION_NAME)
+                .where("name").eq("Poliana")
+                .build();
+
+        assertSoftly(softly -> {
+            softly.assertThat(entityManager.count(query))
+                    .as("should count with select query")
+                    .isEqualTo(1);
+            softly.assertThatCode(() -> entityManager.count((SelectQuery) null))
+                    .as("should throw exception when count with null select query")
+                    .isInstanceOf(NullPointerException.class);
+        });
     }
 
     @Test
@@ -460,7 +487,7 @@ public class DefaultSolrDocumentManagerTest {
     }
 
     @Test
-    void shouldUpdateNull(){
+    void shouldUpdateNull() {
         var entity = entityManager.insert(getEntity());
         entity.add(Element.of("name", null));
         var documentEntity = entityManager.update(entity);
@@ -489,7 +516,6 @@ public class DefaultSolrDocumentManagerTest {
         entity.add(Element.of("contacts", documents));
         return entity;
     }
-
 
     private CommunicationEntity getEntity() {
         CommunicationEntity entity = CommunicationEntity.of(COLLECTION_NAME);

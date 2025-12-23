@@ -34,18 +34,18 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
         this.table = table;
     }
 
-    protected void condition(CriteriaCondition condition, StringBuilder query, List<FieldValue> params, List<String> ids) {
+    protected void condition(CriteriaCondition condition, StringBuilder query, List<FieldValue> params, List<String> ids, boolean forCount) {
         var document = condition.element();
         switch (condition.condition()) {
             case EQUALS:
-                if (document.name().equals(DefaultOracleNoSQLDocumentManager.ID)) {
+                if (!forCount && document.name().equals(DefaultOracleNoSQLDocumentManager.ID)) {
                     ids.add(document.get(String.class));
                 } else {
                     predicate(query, " = ", document, params);
                 }
                 return;
             case IN:
-                if (document.name().equals(DefaultOracleNoSQLDocumentManager.ID)) {
+                if (!forCount && document.name().equals(DefaultOracleNoSQLDocumentManager.ID)) {
                     ids.addAll(document.get(new TypeReference<List<String>>() {
                     }));
                 } else {
@@ -78,15 +78,15 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
                 return;
             case NOT:
                 query.append(" NOT ");
-                condition(document.get(CriteriaCondition.class), query, params, ids);
+                condition(document.get(CriteriaCondition.class), query, params, ids, forCount);
                 return;
             case OR:
                 appendCondition(query, params, document.get(new TypeReference<>() {
-                }), " OR ", ids);
+                }), " OR ", ids, forCount);
                 return;
             case AND:
                 appendCondition(query, params, document.get(new TypeReference<>() {
-                }), " AND ", ids);
+                }), " AND ", ids, forCount);
                 return;
             case BETWEEN:
                 predicateBetween(query, params, document);
@@ -111,11 +111,11 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
 
     protected void appendCondition(StringBuilder query, List<FieldValue> params,
                                  List<CriteriaCondition> conditions,
-                                 String condition, List<String> ids) {
+                                 String condition, List<String> ids, boolean forCount) {
         int index = ORIGIN;
         for (CriteriaCondition documentCondition : conditions) {
             StringBuilder appendQuery = new StringBuilder();
-            condition(documentCondition, appendQuery, params, ids);
+            condition(documentCondition, appendQuery, params, ids, forCount);
             if(index == ORIGIN && !appendQuery.isEmpty()){
                 query.append(appendQuery);
             } else if(!appendQuery.isEmpty()) {

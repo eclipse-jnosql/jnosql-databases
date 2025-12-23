@@ -12,10 +12,10 @@
  *
  *   Otavio Santana
  *   Lucas Furlaneto
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
-import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +43,7 @@ import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
@@ -64,7 +66,7 @@ public class OrientDBDocumentManagerTest {
 
     @BeforeEach
     void setUp() {
-        entityManager = DocumentDatabase.INSTANCE.get().apply(Database.DATABASE);
+        entityManager = DocumentDatabase.INSTANCE.get(Database.DATABASE);
     }
 
     @Test
@@ -496,12 +498,38 @@ public class OrientDBDocumentManagerTest {
     }
 
     @Test
+    void shouldCountWithSelectQuery() {
+
+        Iterable<CommunicationEntity> entities = entityManager.insert(getEntities());
+
+        Iterator<CommunicationEntity> iterator = entities.iterator();
+
+        CommunicationEntity entity = iterator.next();
+        CommunicationEntity entity2 = iterator.next();
+
+        Element key = entity.find(OrientDBConverter.RID_FIELD).get();
+        Element key2 = entity2.find(OrientDBConverter.RID_FIELD).get();
+
+        SelectQuery query = select().from(COLLECTION_NAME)
+                .where(key.name()).eq(key.get())
+                .or(key2.name()).eq(key2.get())
+                .build();
+
+        assertSoftly(softly -> {
+            softly.assertThat(entityManager.count(query))
+                    .as("Count with query should be equal to 2")
+                    .isEqualTo(2L);
+
+        });
+    }
+
+    @Test
     void shouldInsertNull() {
         CommunicationEntity entity = getEntity();
         entity.add(Element.of("name", null));
         CommunicationEntity documentEntity = entityManager.insert(entity);
         Optional<Element> name = documentEntity.find("name");
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(name).isPresent();
             soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(name).get().extracting(Element::get).isNull();
@@ -509,12 +537,12 @@ public class OrientDBDocumentManagerTest {
     }
 
     @Test
-    void shouldUpdateNull(){
+    void shouldUpdateNull() {
         var entity = entityManager.insert(getEntity());
         entity.add(Element.of("name", null));
         var documentEntity = entityManager.update(entity);
         Optional<Element> name = documentEntity.find("name");
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(name).isPresent();
             soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(name).get().extracting(Element::get).isNull();
