@@ -28,6 +28,7 @@ import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
@@ -45,6 +46,7 @@ import java.util.stream.StreamSupport;
 import static java.util.stream.StreamSupport.stream;
 import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBUtils.ID_FIELD;
 import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBUtils.getDocument;
+import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBUtils.updateDocument;
 
 /**
  * The mongodb implementation to {@link DatabaseManager} that does not support TTL methods
@@ -118,15 +120,16 @@ public class MongoDBDocumentManager implements DatabaseManager {
     public CommunicationEntity update(CommunicationEntity entity) {
         Objects.requireNonNull(entity, "entity is required");
 
-        CommunicationEntity copy = entity.copy();
+        var idFilter = entity.find(ID_FIELD)
+                .map(CriteriaCondition::eq)
+                .map(DocumentQueryConversor::convert)
+                .orElseThrow(() -> new UnsupportedOperationException("To update this DocumentEntity the field `id` is required"));
+
         String collectionName = entity.name();
         MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
-        Document id = copy.find(ID_FIELD)
-                .map(d -> new Document(d.name(), d.value().get()))
-                .orElseThrow(() -> new UnsupportedOperationException("To update this DocumentEntity " +
-                        "the field `id` is required"));
-        copy.remove(ID_FIELD);
-        collection.findOneAndReplace(id, getDocument(entity));
+
+        collection.updateOne(idFilter, updateDocument(entity));
+
         return entity;
     }
 

@@ -14,7 +14,9 @@
  */
 package org.eclipse.jnosql.databases.mongodb.communication;
 
+import com.mongodb.client.model.Updates;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 import org.eclipse.jnosql.communication.Value;
 import org.eclipse.jnosql.communication.ValueUtil;
@@ -42,6 +44,12 @@ final class MongoDBUtils {
         Document document = new Document();
         entity.elements().forEach(d -> document.append(d.name(), convert(d.value())));
         return document;
+    }
+
+    static Bson updateDocument(CommunicationEntity entity) {
+        List<Bson> fields = new ArrayList<>();
+        entity.elements().forEach(d -> fields.add(Updates.set(d.name(), convert(d.value()))));
+        return Updates.combine(fields);
     }
 
     private static Object convert(Value value) {
