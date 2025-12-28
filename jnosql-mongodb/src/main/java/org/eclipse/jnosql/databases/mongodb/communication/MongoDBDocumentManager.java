@@ -34,6 +34,7 @@ import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -141,6 +142,18 @@ public class MongoDBDocumentManager implements DatabaseManager {
                 .toList();
     }
 
+    @Override
+    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+        Objects.requireNonNull(query, "update query is required");
+        String columnName = query.name();
+        Objects.requireNonNull(query, "entity name is required");
+        var filter = query.condition()
+                .map(DocumentQueryConversor::convert)
+                .orElseGet(BsonDocument::new);
+        MongoCollection<Document> collection = mongoDatabase.getCollection(columnName);
+        collection.updateMany(filter, updateDocument(query::set));
+        return select(query.toSelectQuery()).toList();
+    }
 
     @Override
     public void delete(DeleteQuery query) {
