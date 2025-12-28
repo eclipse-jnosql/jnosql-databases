@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.StreamSupport.stream;
@@ -47,8 +48,12 @@ final class MongoDBUtils {
     }
 
     static Bson updateDocument(CommunicationEntity entity) {
+        return updateDocument(entity::elements);
+    }
+
+    static Bson updateDocument(Supplier<List<Element>> elementsSupplier) {
         List<Bson> fields = new ArrayList<>();
-        entity.elements().forEach(d -> fields.add(Updates.set(d.name(), convert(d.value()))));
+        elementsSupplier.get().forEach(d -> fields.add(Updates.set(d.name(), convert(d.value()))));
         return Updates.combine(fields);
     }
 
