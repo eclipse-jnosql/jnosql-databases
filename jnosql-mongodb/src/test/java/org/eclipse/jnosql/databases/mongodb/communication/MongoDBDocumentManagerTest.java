@@ -19,10 +19,12 @@ import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
+import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.eclipse.jnosql.databases.mongodb.communication.type.Money;
 import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.Assertions;
@@ -39,6 +41,7 @@ import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +52,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
@@ -135,8 +139,8 @@ class MongoDBDocumentManagerTest {
         Iterable<CommunicationEntity> insertedEntities = entityManager.insert(entitiesWithValues);
 
         var entitiesToUpdate =
-                StreamSupport.stream(insertedEntities.spliterator(),false)
-                        .map(entity->{
+                StreamSupport.stream(insertedEntities.spliterator(), false)
+                        .map(entity -> {
                             var _id = entity.find(MongoDBUtils.ID_FIELD).orElseThrow();
                             entity.add(Elements.of("newField", _id.get()));
                             return entity;
@@ -694,6 +698,45 @@ class MongoDBDocumentManagerTest {
             soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(name).get().extracting(Element::get).isNull();
         });
+    }
+
+    @Test
+    void shouldUpdateWithUpdateQuery() {
+        var entities = StreamSupport
+                .stream(entityManager.insert(getEntitiesWithValues()).spliterator(), false)
+                .toList();
+
+        record UpdateCommand(String name, List<Element> set, CriteriaCondition criteriaCondition )implements UpdateQuery {
+
+            @Override
+            public Optional<CriteriaCondition> condition() {
+                return Optional.ofNullable(criteriaCondition());
+            }
+
+            @Override
+            public SelectQuery toSelectQuery() {
+               return new DefaultSelectQuery(0, 0, name, emptyList(), emptyList(), criteriaCondition(), false);
+            }
+        }
+
+        var entityToUpdate = entities.get(0);
+        var idField = entityToUpdate.find(MongoDBUtils.ID_FIELD).orElseThrow();
+
+        Iterable<CommunicationEntity> updatedEntity = entityManager.update(
+                new UpdateCommand(entityToUpdate.name(),
+                        List.of(Element.of("update", true)),
+                        CriteriaCondition.eq(idField.name(), idField.get()))
+        );
+
+        StreamSupport.stream(updatedEntity.spliterator(), false)
+                .forEach(e -> {
+                    Optional<Element> updateField = e.find("update");
+                    assertSoftly(soft -> {
+                        soft.assertThat(updateField).isPresent();
+                        soft.assertThat(updateField).get().extracting(Element::name).isEqualTo("update");
+                        soft.assertThat(updateField).get().extracting(Element::get).isEqualTo(true);
+                    });
+                });
     }
 
     @Test
