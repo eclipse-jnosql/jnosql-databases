@@ -24,14 +24,23 @@ import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) implements N1QLBuilder {
-    @Override
-    public N1QLQuery get() {
+
+    N1QLUpdateQueryBuilder{
+        Objects.requireNonNull(query.name(), "documentCollection is required");
+        Objects.requireNonNull(query.set(), "set operations are required");
         if (query.set().isEmpty())
             throw new IllegalArgumentException("UpdateQuery must have at least one set operation");
+        Objects.requireNonNull(database, "database is required");
+        Objects.requireNonNull(scope, "scope is required");
+    }
+
+    @Override
+    public N1QLQuery get() {
         var alias = "d";
         var n1ql = new StringBuilder();
         var params = JsonObject.create();
