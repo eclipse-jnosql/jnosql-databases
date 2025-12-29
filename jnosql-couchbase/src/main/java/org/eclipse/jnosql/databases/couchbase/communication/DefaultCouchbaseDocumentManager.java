@@ -28,6 +28,7 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -129,6 +130,17 @@ class DefaultCouchbaseDocumentManager implements CouchbaseDocumentManager {
         Objects.requireNonNull(entities, "entities is required");
         return StreamSupport.stream(entities.spliterator(), false)
                 .map(this::update).collect(Collectors.toList());
+    }
+
+    @Override
+    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+        return waitBucketBeReadyAndGet(() -> {
+            N1QLQuery n1QLQuery = N1QLBuilder.of(query, database, bucket.defaultScope().name()).get();
+            QueryResult result = cluster.query(n1QLQuery.query(), QueryOptions
+                    .queryOptions().parameters(n1QLQuery.params()));
+            List<JsonObject> jsons = result.rowsAsObject();
+            return EntityConverter.convert(jsons, database).toList();
+        });
     }
 
     @Override
