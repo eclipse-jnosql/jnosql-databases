@@ -22,6 +22,7 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
@@ -120,6 +121,20 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
         Objects.requireNonNull(entities, "entities is required");
         entities.forEach(this::update);
         return entities;
+    }
+
+    @Override
+    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+        Objects.requireNonNull(query, "query is required");
+        Map<String, Object> parameters = new HashMap<>();
+        String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
+
+        LOGGER.fine("Executing Cypher Query for select entities: " + cypher);
+        try (Transaction tx = session.beginTransaction()) {
+            return tx.run(cypher, Values.parameters(flattenMap(parameters)))
+                    .list(record -> extractEntity(query.name(), record, true))
+                    .stream().toList();
+        }
     }
 
     @Override
