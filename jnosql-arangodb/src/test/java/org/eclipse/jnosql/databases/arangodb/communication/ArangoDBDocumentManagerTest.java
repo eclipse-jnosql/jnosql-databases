@@ -24,6 +24,7 @@ import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,6 +55,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class ArangoDBDocumentManagerTest {
@@ -305,6 +309,40 @@ public class ArangoDBDocumentManagerTest {
             soft.assertThat(name).isPresent();
             soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(name).get().extracting(Element::get).isNull();
+        });
+    }
+
+    @Test
+    void shouldUpdateByQuery(){
+        var attributesNames = new LinkedHashSet<String>();
+
+        for (int index = 0; index < 10; index++) {
+            var entity = getEntity();
+            entity.add("index", index);
+            entityManager.insert(entity);
+            entity.elements().forEach(e -> attributesNames.add(e.name()));
+        }
+        var index = 4;
+
+        final var updateQuery = mock(UpdateQuery.class);
+        when(updateQuery.name()).thenReturn(COLLECTION_NAME);
+        when(updateQuery.condition()).thenReturn(Optional.of(CriteriaCondition.gt(Element.of("index", index))));
+        when(updateQuery.set()).then(inv -> List.of(Element.of("country", "Brazil")));
+        when(updateQuery.toSelectQuery()).then(inv -> select().from(COLLECTION_NAME).where("index").gt(index).build());
+
+        var entities = entityManager.update(updateQuery);
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(entities).hasSize(5);
+            softly.assertThat(entities)
+                    .allMatch(e -> e.find("country").orElseThrow().get().equals("Brazil"))
+                    .allSatisfy( e-> {
+                        for (String attributeName : attributesNames) {
+                            softly.assertThat(e.find(attributeName))
+                                    .as("Attribute " + attributeName + " should be present")
+                                    .isPresent();
+                        }
+                    });
+
         });
     }
 
