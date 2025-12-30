@@ -24,6 +24,7 @@ import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,29 @@ enum Neo4JQueryBuilder {
     String buildCountQuery(SelectQuery query, Map<String, Object> parameters) {
         StringBuilder cypher = buildCypher(query.name(), query.condition(), parameters);
         cypher.append(" RETURN COUNT(e) as count");
+        return cypher.toString();
+    }
+
+    String buildQuery(UpdateQuery query, Map<String, Object> parameters) {
+        StringBuilder cypher = buildCypher(query.name(), query.condition(), parameters);
+
+        List<Element> elements = query.set();
+        if (elements.isEmpty()) {
+            throw new CommunicationException("At least one element is required to update");
+        }
+
+        cypher.append(" SET ");
+        cypher.append(elements.stream()
+                .map(element -> {
+                    String field = translateField(element.name());
+                    String paramName = element.name().replace(".", "_");
+                    parameters.put(paramName, element.get());
+                    return field + " = $" + paramName;
+                })
+                .collect(Collectors.joining(", ")));
+
+        cypher.append(" RETURN e");
+
         return cypher.toString();
     }
 
