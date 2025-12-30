@@ -14,7 +14,9 @@
  */
 package org.eclipse.jnosql.databases.mongodb.communication;
 
+import com.mongodb.client.model.Updates;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 import org.eclipse.jnosql.communication.Value;
 import org.eclipse.jnosql.communication.ValueUtil;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.StreamSupport.stream;
@@ -42,6 +45,16 @@ final class MongoDBUtils {
         Document document = new Document();
         entity.elements().forEach(d -> document.append(d.name(), convert(d.value())));
         return document;
+    }
+
+    static Bson updateDocument(CommunicationEntity entity) {
+        return updateDocument(entity::elements);
+    }
+
+    static Bson updateDocument(Supplier<List<Element>> elementsSupplier) {
+        List<Bson> fields = new ArrayList<>();
+        elementsSupplier.get().forEach(d -> fields.add(Updates.set(d.name(), convert(d.value()))));
+        return Updates.combine(fields);
     }
 
     private static Object convert(Value value) {
