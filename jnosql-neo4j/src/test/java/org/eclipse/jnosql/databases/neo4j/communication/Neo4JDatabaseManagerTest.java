@@ -23,6 +23,7 @@ import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,8 +32,10 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -41,6 +44,8 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class Neo4JDatabaseManagerTest {
@@ -132,6 +137,40 @@ class Neo4JDatabaseManagerTest {
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
             softly.assertThat(result).allMatch(e -> e.find("name").orElseThrow().get().equals("Lucas"));
+        });
+    }
+
+    @Test
+    void shouldUpdateEntitiesByUpdateQuery() {
+        var attributesNames = new LinkedHashSet<String>();
+
+        for (int index = 0; index < 10; index++) {
+            var entity = getEntity();
+            entity.add("index", index);
+            entityManager.insert(entity);
+            entity.elements().forEach(e -> attributesNames.add(e.name()));
+        }
+        var index = 4;
+
+        final var updateQuery = mock(UpdateQuery.class);
+        when(updateQuery.name()).thenReturn(COLLECTION_NAME);
+        when(updateQuery.condition()).thenReturn(Optional.of(CriteriaCondition.gt(Element.of("index", index))));
+        when(updateQuery.set()).then(inv -> List.of(Element.of("city", "Sao Paulo")));
+        when(updateQuery.toSelectQuery()).then(inv -> select().from(COLLECTION_NAME).where("index").gt(index).build());
+
+        var entities = entityManager.update(updateQuery);
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(entities).hasSize(5);
+            softly.assertThat(entities)
+                    .allMatch(e -> e.find("city").orElseThrow().get().equals("Sao Paulo"))
+                    .allSatisfy( e-> {
+                        for (String attributeName : attributesNames) {
+                            softly.assertThat(e.find(attributeName))
+                                    .as("Attribute " + attributeName + " should be present")
+                                    .isPresent();
+                        }
+                    });
+
         });
     }
 
