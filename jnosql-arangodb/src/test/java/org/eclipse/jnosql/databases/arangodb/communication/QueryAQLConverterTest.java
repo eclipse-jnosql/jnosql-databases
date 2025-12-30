@@ -12,16 +12,25 @@
  *
  *   Otavio Santana
  *   Michele Rastelli
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.arangodb.communication;
 
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
+import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class QueryAQLConverterTest {
 
@@ -165,6 +174,38 @@ public class QueryAQLConverterTest {
         Map<String, Object> values = convert.values();
         assertEquals("value", values.get("name"));
         assertEquals("RETURN LENGTH(FOR c IN collection FILTER  c.name == @name RETURN c)", aql);
+
+    }
+
+    @Test
+    public void shouldRunUpdateQuery() {
+
+        UpdateQuery query = mock(UpdateQuery.class);
+        when(query.name()).thenReturn("collection");
+        when(query.set()).then( i->
+                List.of(
+                        Element.of("name", "John"),
+                        Element.of("surname", "Doe")
+                )
+        );
+        when(query.condition()).thenReturn(Optional.of(
+                        CriteriaCondition.eq(Element.of("id", 1))));
+
+
+        AQLQueryResult convert = QueryAQLConverter.update(query);
+        String aql = convert.query();
+        Map<String, Object> values = convert.values();
+
+        assertSoftly(softly->{
+            softly.assertThat(values.get("id")).isEqualTo(1);
+            softly.assertThat(values.get("name")).isEqualTo("John");
+            softly.assertThat(values.get("surname")).isEqualTo("Doe");
+            softly.assertThat(aql.replaceAll("  "," "))
+                    .isEqualTo(
+                            "FOR c IN collection FILTER c.id == @id " +
+                                    "UPDATE c WITH { name: @name, surname: @surname } IN collection " +
+                                    "RETURN NEW");
+        });
 
     }
 
