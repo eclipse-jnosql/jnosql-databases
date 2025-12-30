@@ -24,6 +24,7 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 
 import java.time.Duration;
 import java.util.Map;
@@ -105,6 +106,20 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
         return StreamSupport.stream(entities.spliterator(), false)
                 .map(this::update)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+        requireNonNull(query, "query is required");
+        checkCollection(query.name());
+        AQLQueryResult aql = QueryAQLConverter.update(query);
+        LOGGER.finest("Executing AQL: " + aql.query());
+        ArangoCursor<JsonObject> documents = db.query(aql.query(),
+                JsonObject.class,
+                aql.values(), null);
+
+        return StreamSupport.stream(documents.spliterator(), false)
+                .map(ArangoDBUtil::toEntity).toList();
     }
 
     @Override
