@@ -21,6 +21,7 @@ import jakarta.enterprise.util.AnnotationLiteral;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.AbstractBean;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
+import org.eclipse.jnosql.mapping.semistructured.repository.SemistructuredRepositoryProducer;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
@@ -49,19 +50,11 @@ class DynamoDBRepositoryBean<T, K> extends AbstractBean<DynamoDBRepository<T, K>
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public DynamoDBRepository<T, K> create(CreationalContext<DynamoDBRepository<T, K>> creationalContext) {
 
-        DynamoDBTemplate template = getInstance(DynamoDBTemplate.class);
-        Converters converters = getInstance(Converters.class);
-        EntitiesMetadata entitiesMetadata = getInstance(EntitiesMetadata.class);
-
-        DynamoDBRepositoryProxy<T, K> handler = new DynamoDBRepositoryProxy<>(
-                template, type, converters, entitiesMetadata);
-
-        return (DynamoDBRepository<T, K>) Proxy.newProxyInstance(type.getClassLoader(),
-                new Class[]{type},
-                handler);
+        var template = getInstance(DynamoDBTemplate.class);
+        var semiStructuredConverter = getInstance(SemistructuredRepositoryProducer.class);
+        return semiStructuredConverter.get(type, template);
     }
 
     @Override
