@@ -22,7 +22,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-arangodb</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -202,7 +202,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-cassandra</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -353,7 +353,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-couchbase</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -478,7 +478,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-couchdb</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -554,7 +554,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-dynamodb</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -704,7 +704,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-elasticsearch</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -788,7 +788,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-hazelcast</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -896,7 +896,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-hbase</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -939,7 +939,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-infinispan</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -989,7 +989,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-memcached</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -1073,7 +1073,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-mongodb</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -1183,7 +1183,7 @@ You can include Oracle NoSQL as a dependency using either Maven or Gradle:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-oracle-nosql</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -1331,7 +1331,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-orientdb</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -1442,7 +1442,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-ravendb</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -1487,7 +1487,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-redis</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -1700,7 +1700,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-redis</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -1746,7 +1746,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-solr</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -1846,7 +1846,7 @@ You can use either the Maven or Gradle dependencies:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-neo4j</artifactId>
-    <version>1.1.11</version>
+    <version>1.1.12</version>
 </dependency>
 ----
 
@@ -1916,7 +1916,7 @@ Eclipse JNoSQL offers a mapping implementation for Graph NoSQL types:
 <dependency>
     <groupId>org.eclipse.jnosql.databases</groupId>
     <artifactId>jnosql-tinkerpop</artifactId>
-      <version>1.1.11</version>
+      <version>1.1.12</version>
 </dependency>
 ----
 

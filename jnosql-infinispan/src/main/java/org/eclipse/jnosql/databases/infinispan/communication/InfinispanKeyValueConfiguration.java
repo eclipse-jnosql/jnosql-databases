@@ -53,17 +53,6 @@ public class InfinispanKeyValueConfiguration implements KeyValueConfiguration {
         return apply(builder.build());
     }
 
-    /**
-     * Creates a {@link InfinispanBucketManagerFactory} from infinispan config
-     * @param config the {@link org.infinispan.configuration.cache.Configuration}
-     * @return the InfinispanBucketManagerFactory instance
-     * @throws NullPointerException when config is null
-     */
-    public InfinispanBucketManagerFactory get(org.infinispan.configuration.cache.Configuration config)throws NullPointerException {
-        requireNonNull(config, "config is required");
-
-        return new InfinispanBucketManagerFactory(new DefaultCacheManager(config));
-    }
 
 
     @Override
