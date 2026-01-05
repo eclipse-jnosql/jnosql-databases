@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.eclipse.jnosql.databases</groupId>
         <artifactId>jnosql-databases-parent</artifactId>
-        <version>1.1.12-SNAPSHOT</version>
+        <version>1.1.12</version>
     </parent>
 
     <artifactId>jnosql-cassandra</artifactId>
@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to Cassandra</description>
 
     <properties>
-        <casandra.driver.version>4.19.1</casandra.driver.version>
+        <casandra.driver.version>4.19.2</casandra.driver.version>
     </properties>
     <dependencies>
         <dependency>

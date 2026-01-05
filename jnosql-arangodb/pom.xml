@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.eclipse.jnosql.databases</groupId>
         <artifactId>jnosql-databases-parent</artifactId>
-        <version>1.1.12-SNAPSHOT</version>
+        <version>1.1.12</version>
     </parent>
 
     <artifactId>jnosql-arangodb</artifactId>
@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to ArangoDB</description>
 
     <properties>
-        <arango.driver>7.23.0</arango.driver>
+        <arango.driver>7.24.0</arango.driver>
     </properties>
 
     <dependencies>
