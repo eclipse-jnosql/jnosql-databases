@@ -52,6 +52,7 @@ class DynamoDBTemplateIntegrationTest {
 
     static {
         DynamoDBTestUtils.CONFIG.setupSystemProperties(Settings.builder()
+                .put(DynamoDBConfigurations.ENTITY_PARTITION_KEY.get().formatted(Magazine.class.getSimpleName()), "id")
                 .put(DynamoDBConfigurations.CREATE_TABLES, "true"));
     }
 
