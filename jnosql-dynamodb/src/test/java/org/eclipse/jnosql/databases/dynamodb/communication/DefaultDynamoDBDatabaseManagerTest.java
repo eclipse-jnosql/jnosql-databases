@@ -244,7 +244,6 @@ class DefaultDynamoDBDatabaseManagerTest {
                 .getItem(GetItemRequest.builder()
                         .tableName(_entityType)
                         .key(Map.of(
-                                entityNameResolver.apply(_entityType), AttributeValue.builder().s(_entityType).build(),
                                 DynamoDBConverter.ID, AttributeValue.builder().s(id).build()
                         ))
                         .build())
