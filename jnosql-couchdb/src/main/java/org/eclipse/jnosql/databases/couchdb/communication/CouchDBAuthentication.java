@@ -14,15 +14,29 @@
  */
 package org.eclipse.jnosql.databases.couchdb.communication;
 
-public class CouchDBAuthentication {
+import java.util.Base64;
+
+
+/**
+ * This DTO is used to encapsulate the username, password, and authentication token.
+ */
+class CouchDBAuthentication {
 
     private final String username;
     private final String password;
     private final String token;
+    private final String basicHashPassword;
 
-    public CouchDBAuthentication(String username, String password, String token) {
+    private CouchDBAuthentication(String username, String password, String token, String basicHashPassword) {
         this.username = username;
         this.password = password;
         this.token = token;
+        this.basicHashPassword = basicHashPassword;
+    }
+
+    public static CouchDBAuthentication ofBasic(String username, String password, String token) {
+        String toEncode = username + ":" + password;
+        String basicHashPassword = "Basic " + Base64.getEncoder().encodeToString(toEncode.getBytes());
+        return new CouchDBAuthentication(username, password, token, basicHashPassword);
     }
 }
