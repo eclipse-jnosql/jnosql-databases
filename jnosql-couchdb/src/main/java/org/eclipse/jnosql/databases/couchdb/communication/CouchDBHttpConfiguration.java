@@ -35,6 +35,7 @@ class CouchDBHttpConfiguration {
 
     private final String username;
     private final String password;
+    private final String jwt;
 
 
     private final boolean compression;
@@ -46,7 +47,9 @@ class CouchDBHttpConfiguration {
 
     CouchDBHttpConfiguration(String host, int port, int maxConnections,
                              int connectionTimeout, int socketTimeout,
-                             boolean enableSSL, String username, String password,
+                             boolean enableSSL, String username,
+                             String password,
+                             String jwt,
                              boolean compression, int maxObjectSizeBytes,
                              int maxCacheEntries) {
         this.host = host;
