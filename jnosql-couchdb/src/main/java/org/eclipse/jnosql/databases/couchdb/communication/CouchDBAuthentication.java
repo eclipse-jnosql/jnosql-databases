@@ -14,9 +14,11 @@
  */
 package org.eclipse.jnosql.databases.couchdb.communication;
 
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.HttpUriRequest;
 
 import java.util.Base64;
+import java.util.Objects;
 
 
 /**
@@ -24,46 +26,55 @@ import java.util.Base64;
  */
 class CouchDBAuthentication {
 
-    private final String username;
-    private final String password;
-    private final String token;
-    private final String basicHashPassword;
-    private final CouchDBAuthenticationStrategy authenticationStrategy;
 
-    private CouchDBAuthentication(String username, String password, String token, String basicHashPassword) {
-        this.username = username;
-        this.password = password;
-        this.token = token;
-        this.basicHashPassword = basicHashPassword;
+    public static CouchDBAuthenticationStrategy of(String username, String password, String token) {
+        if (username != null && password != null) {
+            String toEncode = username + ":" + password;
+            String basicHashPassword =
+                    "Basic " + Base64.getEncoder().encodeToString(toEncode.getBytes());
+            return new Basic(basicHashPassword);
+        }
+
+        if (token != null) {
+            return new Bearer(token);
+        }
+        return new None();
     }
 
-    public static CouchDBAuthentication of(String username, String password, String token) {
-        String toEncode = username + ":" + password;
-        String basicHashPassword = "Basic " + Base64.getEncoder().encodeToString(toEncode.getBytes());
-        return new CouchDBAuthentication(username, password, token, basicHashPassword);
+    static class Basic implements CouchDBAuthenticationStrategy {
+
+        private final String authorizationHeader;
+
+        Basic(String authorizationHeader) {
+            this.authorizationHeader = Objects.requireNonNull(
+                    authorizationHeader, "authorizationHeader must not be null");
+        }
+
+        @Override
+        public void apply(HttpUriRequest request) {
+            request.setHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
+        }
     }
 
-     static class Basic implements CouchDBAuthenticationStrategy {
+    static class Bearer implements CouchDBAuthenticationStrategy {
 
-         @Override
-         public void apply(HttpUriRequest request) {
+        private final String token;
 
-         }
-     }
+        Bearer(String token) {
+            this.token = Objects.requireNonNull(token, "token must not be null");
+        }
 
-     static class Bearer implements CouchDBAuthenticationStrategy {
+        @Override
+        public void apply(HttpUriRequest request) {
+            request.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+        }
+    }
 
-         @Override
-         public void apply(HttpUriRequest request) {
+    static class None implements CouchDBAuthenticationStrategy {
 
-         }
-     }
-
-     static class None implements CouchDBAuthenticationStrategy {
-
-         @Override
-         public void apply(HttpUriRequest request) {
-
-         }
-     }
+        @Override
+        public void apply(HttpUriRequest request) {
+            // intentionally no-op
+        }
+    }
 }
