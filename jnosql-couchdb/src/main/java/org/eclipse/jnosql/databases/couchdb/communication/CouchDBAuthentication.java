@@ -14,6 +14,8 @@
  */
 package org.eclipse.jnosql.databases.couchdb.communication;
 
+import org.apache.http.client.methods.HttpUriRequest;
+
 import java.util.Base64;
 
 
@@ -34,9 +36,33 @@ class CouchDBAuthentication {
         this.basicHashPassword = basicHashPassword;
     }
 
-    public static CouchDBAuthentication ofBasic(String username, String password, String token) {
+    public static CouchDBAuthentication of(String username, String password, String token) {
         String toEncode = username + ":" + password;
         String basicHashPassword = "Basic " + Base64.getEncoder().encodeToString(toEncode.getBytes());
         return new CouchDBAuthentication(username, password, token, basicHashPassword);
     }
+
+     static class Basic implements CouchDBAuthenticationStrategy {
+
+         @Override
+         public void apply(HttpUriRequest request) {
+
+         }
+     }
+
+     static class Bearer implements CouchDBAuthenticationStrategy {
+
+         @Override
+         public void apply(HttpUriRequest request) {
+
+         }
+     }
+
+     static class None implements CouchDBAuthenticationStrategy {
+
+         @Override
+         public void apply(HttpUriRequest request) {
+
+         }
+     }
 }
