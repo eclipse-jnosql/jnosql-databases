@@ -30,6 +30,8 @@ import java.util.Objects;
 final class CouchDBAuthenticationStrategyFactory {
 
     private static final None NONE = new None();
+    private static final String BASIC = "Basic ";
+    private static final String BEARER = "Bearer ";
 
     private CouchDBAuthenticationStrategyFactory() {
     }
@@ -38,7 +40,7 @@ final class CouchDBAuthenticationStrategyFactory {
         if (username != null && password != null) {
             String toEncode = username + ":" + password;
             String basicHashPassword =
-                    "Basic " + Base64.getEncoder().encodeToString(toEncode.getBytes());
+                    BASIC + Base64.getEncoder().encodeToString(toEncode.getBytes());
             return new Basic(basicHashPassword);
         }
 
@@ -65,6 +67,7 @@ final class CouchDBAuthenticationStrategyFactory {
 
     static class Bearer implements CouchDBAuthenticationStrategy {
 
+
         private final String token;
 
         Bearer(String token) {
@@ -73,7 +76,7 @@ final class CouchDBAuthenticationStrategyFactory {
 
         @Override
         public void apply(HttpUriRequest request) {
-            request.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+            request.setHeader(HttpHeaders.AUTHORIZATION, BEARER + token);
         }
     }
 
