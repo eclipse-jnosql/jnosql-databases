@@ -71,6 +71,10 @@ public enum  CouchDBConfigurations implements Supplier<String> {
      */
     PASSWORD("jnosql.couchdb.password"),
     /**
+     * The JWT token to authenticate in CouchDB server.
+     */
+    JWT("jnosql.couchdb.jwt"),
+    /**
      *If the request use a https or a http.
      */
     ENABLE_SSL("jnosql.couchdb.enable.ssl"),
