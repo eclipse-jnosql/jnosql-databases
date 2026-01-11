@@ -62,12 +62,11 @@ public enum  CouchDBConfigurations implements Supplier<String> {
      */
     HOST("jnosql.couchdb.host"),
     /**
-     * The user's credential.
+     * The username used for HTTP Basic authentication with CouchDB.
      */
     USER("jnosql.couchdb.username"),
-
     /**
-     * The password's credential
+     * The password used for HTTP Basic authentication with CouchDB.
      */
     PASSWORD("jnosql.couchdb.password"),
     /**
