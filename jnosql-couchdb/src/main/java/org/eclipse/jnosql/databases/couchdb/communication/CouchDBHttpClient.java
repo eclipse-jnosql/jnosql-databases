@@ -14,7 +14,7 @@
  */
 package org.eclipse.jnosql.databases.couchdb.communication;
 
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.eclipse.jnosql.communication.CommunicationException;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;

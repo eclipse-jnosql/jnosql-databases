@@ -8,6 +8,15 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+=== Added
+
+- Include Auth Token support for CouchDB
+
+=== Changed
+
+- Update CouchDB to use Httpclient 5
+
+
 == [1.1.12] - 2026-01-05
 
 === Changed

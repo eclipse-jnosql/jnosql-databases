@@ -21,7 +21,6 @@ import org.eclipse.jnosql.communication.SettingsBuilder;
 import org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations;
 import org.eclipse.jnosql.databases.couchdb.communication.CouchDBDocumentConfiguration;
 import org.eclipse.jnosql.databases.couchdb.communication.CouchDBDocumentManagerFactory;
-import org.jetbrains.annotations.NotNull;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.function.Supplier;

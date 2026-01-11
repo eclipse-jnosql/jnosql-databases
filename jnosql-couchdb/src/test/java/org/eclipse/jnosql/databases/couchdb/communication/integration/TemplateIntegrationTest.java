@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 import static java.util.UUID.randomUUID;
