@@ -28,6 +28,7 @@ class CouchDBAuthentication {
     private final String password;
     private final String token;
     private final String basicHashPassword;
+    private final CouchDBAuthenticationStrategy authenticationStrategy;
 
     private CouchDBAuthentication(String username, String password, String token, String basicHashPassword) {
         this.username = username;
