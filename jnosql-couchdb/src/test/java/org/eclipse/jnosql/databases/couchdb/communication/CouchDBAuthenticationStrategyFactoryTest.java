@@ -1,6 +1,5 @@
 package org.eclipse.jnosql.databases.couchdb.communication;
 
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
@@ -8,12 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-
-import java.util.function.Function;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 @DisplayName("CouchDBAuthenticationStrategyFactory")
 class CouchDBAuthenticationStrategyFactoryTest {
@@ -71,7 +65,7 @@ class CouchDBAuthenticationStrategyFactoryTest {
             assertThat(request.getFirstHeader(HttpHeaders.AUTHORIZATION))
                     .isNotNull()
                     .extracting(NameValuePair::getValue)
-                    .isEqualTo("Basic jwt-token");
+                    .isEqualTo("Basic YWRtaW46c2VjcmV0");
         }
 
         @Test
