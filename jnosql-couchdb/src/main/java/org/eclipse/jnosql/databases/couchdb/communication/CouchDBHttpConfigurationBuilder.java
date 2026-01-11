@@ -25,6 +25,7 @@ class CouchDBHttpConfigurationBuilder {
 
     private String username;
     private String password;
+    private String token;
 
     private boolean compression = false;
     private int maxObjectSizeBytes = 8192;
@@ -86,9 +87,14 @@ class CouchDBHttpConfigurationBuilder {
         return this;
     }
 
+    public CouchDBHttpConfigurationBuilder withToken(String token) {
+        this.token = token;
+        return this;
+    }
+
     public CouchDBHttpConfiguration build() {
         return new CouchDBHttpConfiguration(host, port, maxConnections, connectionTimeout,
-                socketTimeout, enableSSL, username, password,
+                socketTimeout, enableSSL, username, password, token,
                 compression,
                 maxObjectSizeBytes, maxCacheEntries);
     }
