@@ -187,12 +187,13 @@ class HttpExecute {
 
     private <T> T execute(HttpUriRequest request, Type type, int expectedStatus, boolean ignoreStatus) {
 
-        configuration.getHashPassword().ifPresent(s -> request.setHeader(HttpHeaders.AUTHORIZATION, s));
+        var strategy = configuration.strategy();
+        strategy.apply(request);
         try (CloseableHttpResponse result = client.execute(request)) {
             if (!ignoreStatus && result.getStatusLine().getStatusCode() != expectedStatus) {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 result.getEntity().writeTo(stream);
-                String response = new String(stream.toByteArray(), UTF_8);
+                String response = stream.toString(UTF_8);
                 throw new CouchDBHttpClientException("There is an error when load the database status: " +
                         result.getStatusLine().getStatusCode()
                         + " error: " + response);
