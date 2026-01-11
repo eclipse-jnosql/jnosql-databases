@@ -22,10 +22,17 @@ import java.util.Objects;
 
 
 /**
- * This DTO is used to encapsulate the username, password, and authentication token.
+ * Factory class for creating instances of {@link CouchDBAuthenticationStrategy}.
+ * Provides different strategies for authenticating requests against CouchDB,
+ * depending on the provided credentials or tokens.
+ * This is a utility class and cannot be instantiated.
  */
-class CouchDBAuthentication {
+final class CouchDBAuthenticationStrategyFactory {
 
+    private static final None NONE = new None();
+
+    private CouchDBAuthenticationStrategyFactory() {
+    }
 
     public static CouchDBAuthenticationStrategy of(String username, String password, String token) {
         if (username != null && password != null) {
@@ -38,7 +45,7 @@ class CouchDBAuthentication {
         if (token != null) {
             return new Bearer(token);
         }
-        return new None();
+        return NONE;
     }
 
     static class Basic implements CouchDBAuthenticationStrategy {
