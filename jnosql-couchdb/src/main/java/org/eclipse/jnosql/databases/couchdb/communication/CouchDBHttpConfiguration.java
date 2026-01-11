@@ -14,15 +14,13 @@
  */
 package org.eclipse.jnosql.databases.couchdb.communication;
 
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-
-import java.util.Base64;
-import java.util.Optional;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.util.Timeout;
 
 class CouchDBHttpConfiguration {
 
@@ -93,21 +91,20 @@ class CouchDBHttpConfiguration {
                 .setMaxCacheEntries(maxCacheEntries)
                 .setMaxObjectSize(maxObjectSizeBytes)
                 .build();
+
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(connectionTimeout)
-                .setSocketTimeout(socketTimeout)
+                .setConnectTimeout(Timeout.ofMilliseconds(connectionTimeout))
+                .setResponseTimeout(Timeout.ofMilliseconds(socketTimeout))
                 .setContentCompressionEnabled(compression)
                 .build();
 
-        PoolingHttpClientConnectionManager pool = new PoolingHttpClientConnectionManager();
-        pool.setMaxTotal(maxConnections);
+        var connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(maxConnections);
 
-        HttpClientBuilder builder = CachingHttpClients.custom()
+        return CachingHttpClients.custom()
                 .setCacheConfig(cacheConfig)
-                .setConnectionManager(pool)
-                .setDefaultRequestConfig(requestConfig);
-
-        return builder.build();
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig).build();
     }
 
     public CouchDBAuthenticationStrategy strategy() {
