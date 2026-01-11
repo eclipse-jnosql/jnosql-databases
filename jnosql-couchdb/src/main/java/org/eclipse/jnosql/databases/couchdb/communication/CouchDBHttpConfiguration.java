@@ -111,6 +111,7 @@ class CouchDBHttpConfiguration {
         }
         return builder.build();
     }
+
     public Optional<String> getHashPassword() {
         return Optional.ofNullable(hashPassword);
     }
