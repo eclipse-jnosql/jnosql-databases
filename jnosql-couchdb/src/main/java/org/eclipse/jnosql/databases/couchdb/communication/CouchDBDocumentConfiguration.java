@@ -31,6 +31,7 @@ import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigur
 import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations.MAX_OBJECT_SIZE_BYTES;
 import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations.PORT;
 import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations.SOCKET_TIMEOUT;
+import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations.TOKEN;
 
 /**
  * The CouchDB implementation of {@link DatabaseConfiguration}  that returns
@@ -56,6 +57,7 @@ public class CouchDBDocumentConfiguration implements DatabaseConfiguration {
                 .map(Object::toString)
                 .ifPresent(configuration::withPassword);
 
+        settings.get(TOKEN, String.class).ifPresent(configuration::withToken);
         settings.get(PORT, Integer.class).ifPresent(configuration::withPort);
         settings.get(MAX_CONNECTIONS, Integer.class).ifPresent(configuration::withMaxConnections);
         settings.get(CONNECTION_TIMEOUT, Integer.class).ifPresent(configuration::withConnectionTimeout);
