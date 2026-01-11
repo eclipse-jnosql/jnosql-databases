@@ -516,7 +516,10 @@ Please note that you can establish properties using the https://microprofile.io/
 |The username used for HTTP Basic authentication when connecting to CouchDB.
 
 |`jnosql.couchdb.password`
-|The user's password
+|The password used for HTTP Basic authentication when connecting to CouchDB.
+
+|`jnosql.couchdb.token`
+|The token used for Bearer authentication (for example, a JWT). When set, the client sends `Authorization: Bearer <token>` on each request.
 
 |`jnosql.couchdb.enable.ssl`
 |If the request use a https or a http.
