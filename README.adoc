@@ -513,7 +513,7 @@ Please note that you can establish properties using the https://microprofile.io/
 |The host at the database.
 
 |`jnosql.couchdb.username`
-|The user's userID.
+|The username used for HTTP Basic authentication when connecting to CouchDB.
 
 |`jnosql.couchdb.password`
 |The user's password
