@@ -14,8 +14,8 @@
  */
 package org.eclipse.jnosql.databases.couchdb.communication;
 
-import org.apache.http.HttpHeaders;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
 
 import java.util.Base64;
 import java.util.Objects;
@@ -60,13 +60,12 @@ final class CouchDBAuthenticationStrategyFactory {
         }
 
         @Override
-        public void apply(HttpUriRequest request) {
+        public void apply(HttpRequest request) {
             request.setHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
         }
     }
 
     static class Bearer implements CouchDBAuthenticationStrategy {
-
 
         private final String token;
 
@@ -75,7 +74,7 @@ final class CouchDBAuthenticationStrategyFactory {
         }
 
         @Override
-        public void apply(HttpUriRequest request) {
+        public void apply(HttpRequest request) {
             request.setHeader(HttpHeaders.AUTHORIZATION, BEARER + token);
         }
     }
@@ -83,7 +82,7 @@ final class CouchDBAuthenticationStrategyFactory {
     static class None implements CouchDBAuthenticationStrategy {
 
         @Override
-        public void apply(HttpUriRequest request) {
+        public void apply(HttpRequest request) {
             // intentionally no-op
         }
     }

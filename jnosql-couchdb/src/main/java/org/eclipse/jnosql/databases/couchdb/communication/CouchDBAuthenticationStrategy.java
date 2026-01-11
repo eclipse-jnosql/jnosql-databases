@@ -14,9 +14,9 @@
  */
 package org.eclipse.jnosql.databases.couchdb.communication;
 
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.hc.core5.http.HttpRequest;
 
 interface CouchDBAuthenticationStrategy {
 
-    void apply(HttpUriRequest request);
+    void apply(HttpRequest request);
 }
