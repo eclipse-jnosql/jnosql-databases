@@ -36,13 +36,13 @@ class CouchDBHttpConfiguration {
     private final String username;
     private final String password;
     private final String token;
+    private final CouchDBAuthenticationStrategy authenticationStrategy;
 
 
     private final boolean compression;
     private final int maxObjectSizeBytes;
     private final int maxCacheEntries;
     private final String url;
-    private String hashPassword;
 
 
     CouchDBHttpConfiguration(String host, int port, int maxConnections,
@@ -65,6 +65,7 @@ class CouchDBHttpConfiguration {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.maxCacheEntries = maxCacheEntries;
         this.url = createUrl();
+        this.authenticationStrategy = CouchDBAuthenticationStrategyFactory.of(username, password, token);
     }
 
     private String createUrl() {
@@ -106,13 +107,10 @@ class CouchDBHttpConfiguration {
                 .setConnectionManager(pool)
                 .setDefaultRequestConfig(requestConfig);
 
-        if (username != null) {
-            this.hashPassword = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
-        }
         return builder.build();
     }
 
-    public Optional<String> getHashPassword() {
-        return Optional.ofNullable(hashPassword);
+    public CouchDBAuthenticationStrategy strategy() {
+        return authenticationStrategy;
     }
 }
