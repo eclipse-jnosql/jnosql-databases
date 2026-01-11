@@ -78,7 +78,6 @@ public enum  CouchDBConfigurations implements Supplier<String> {
      *If the request use a https or a http.
      */
     ENABLE_SSL("jnosql.couchdb.enable.ssl"),
-
     /**
      * Determines whether compressed entities should be decompressed automatically.
      */
