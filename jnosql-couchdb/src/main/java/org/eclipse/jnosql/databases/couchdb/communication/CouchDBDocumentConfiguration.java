@@ -31,6 +31,7 @@ import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigur
 import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations.MAX_OBJECT_SIZE_BYTES;
 import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations.PORT;
 import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations.SOCKET_TIMEOUT;
+import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations.TOKEN;
 
 /**
  * The CouchDB implementation of {@link DatabaseConfiguration}  that returns
@@ -48,24 +49,25 @@ public class CouchDBDocumentConfiguration implements DatabaseConfiguration {
 
         settings.getSupplier(Arrays.asList(CouchDBConfigurations.HOST, Configurations.HOST))
                 .map(Object::toString)
-                .ifPresent(configuration::withHost);
+                .ifPresent(configuration::host);
         settings.getSupplier(Arrays.asList(CouchDBConfigurations.USER, Configurations.USER))
                 .map(Object::toString)
-                .ifPresent(configuration::withUsername);
+                .ifPresent(configuration::username);
         settings.getSupplier(Arrays.asList(CouchDBConfigurations.PASSWORD, Configurations.PASSWORD))
                 .map(Object::toString)
-                .ifPresent(configuration::withPassword);
+                .ifPresent(configuration::password);
 
-        settings.get(PORT, Integer.class).ifPresent(configuration::withPort);
-        settings.get(MAX_CONNECTIONS, Integer.class).ifPresent(configuration::withMaxConnections);
-        settings.get(CONNECTION_TIMEOUT, Integer.class).ifPresent(configuration::withConnectionTimeout);
+        settings.get(TOKEN, String.class).ifPresent(configuration::token);
+        settings.get(PORT, Integer.class).ifPresent(configuration::port);
+        settings.get(MAX_CONNECTIONS, Integer.class).ifPresent(configuration::maxConnections);
+        settings.get(CONNECTION_TIMEOUT, Integer.class).ifPresent(configuration::connectionTimeout);
 
-        settings.get(SOCKET_TIMEOUT, Integer.class).ifPresent(configuration::withSocketTimeout);
-        settings.get(MAX_OBJECT_SIZE_BYTES, Integer.class).ifPresent(configuration::withMaxObjectSizeBytes);
-        settings.get(MAX_CACHE_ENTRIES, Integer.class).ifPresent(configuration::withMaxCacheEntries);
+        settings.get(SOCKET_TIMEOUT, Integer.class).ifPresent(configuration::socketTimeout);
+        settings.get(MAX_OBJECT_SIZE_BYTES, Integer.class).ifPresent(configuration::maxObjectSizeBytes);
+        settings.get(MAX_CACHE_ENTRIES, Integer.class).ifPresent(configuration::maxCacheEntries);
 
-        settings.get(ENABLE_SSL, Boolean.class).ifPresent(configuration::withEnableSSL);
-        settings.get(COMPRESSION, Boolean.class).ifPresent(configuration::withCompression);
+        settings.get(ENABLE_SSL, Boolean.class).ifPresent(configuration::enableSSL);
+        settings.get(COMPRESSION, Boolean.class).ifPresent(configuration::compression);
 
         return new CouchDBDocumentManagerFactory(configuration.build());
     }
