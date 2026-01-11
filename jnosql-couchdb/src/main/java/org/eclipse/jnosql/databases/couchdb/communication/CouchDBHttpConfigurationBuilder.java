@@ -25,70 +25,76 @@ class CouchDBHttpConfigurationBuilder {
 
     private String username;
     private String password;
+    private String token;
 
     private boolean compression = false;
     private int maxObjectSizeBytes = 8192;
     private int maxCacheEntries = 1000;
 
-    public CouchDBHttpConfigurationBuilder withPort(int port) {
+    public CouchDBHttpConfigurationBuilder port(int port) {
         this.port = port;
         return this;
     }
 
-    public CouchDBHttpConfigurationBuilder withMaxConnections(int maxConnections) {
+    public CouchDBHttpConfigurationBuilder maxConnections(int maxConnections) {
         this.maxConnections = maxConnections;
         return this;
     }
 
-    public CouchDBHttpConfigurationBuilder withConnectionTimeout(int connectionTimeout) {
+    public CouchDBHttpConfigurationBuilder connectionTimeout(int connectionTimeout) {
         this.connectionTimeout = connectionTimeout;
         return this;
     }
 
-    public CouchDBHttpConfigurationBuilder withSocketTimeout(int socketTimeout) {
+    public CouchDBHttpConfigurationBuilder socketTimeout(int socketTimeout) {
         this.socketTimeout = socketTimeout;
         return this;
     }
 
-    public CouchDBHttpConfigurationBuilder withMaxObjectSizeBytes(int maxObjectSizeBytes) {
+    public CouchDBHttpConfigurationBuilder maxObjectSizeBytes(int maxObjectSizeBytes) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         return this;
     }
 
-    public CouchDBHttpConfigurationBuilder withMaxCacheEntries(int maxCacheEntries) {
+    public CouchDBHttpConfigurationBuilder maxCacheEntries(int maxCacheEntries) {
         this.maxCacheEntries = maxCacheEntries;
         return this;
     }
 
 
-    public CouchDBHttpConfigurationBuilder withCompression(boolean compression) {
+    public CouchDBHttpConfigurationBuilder compression(boolean compression) {
         this.compression = compression;
         return this;
     }
 
-    public CouchDBHttpConfigurationBuilder withHost(String host) {
+    public CouchDBHttpConfigurationBuilder host(String host) {
         this.host = host;
         return this;
     }
 
-    public CouchDBHttpConfigurationBuilder withUsername(String username) {
+    public CouchDBHttpConfigurationBuilder username(String username) {
         this.username = username;
         return this;
     }
 
-    public CouchDBHttpConfigurationBuilder withPassword(String password) {
+    public CouchDBHttpConfigurationBuilder password(String password) {
         this.password = password;
         return this;
     }
 
-    public CouchDBHttpConfigurationBuilder withEnableSSL(boolean enableSSL) {
+    public CouchDBHttpConfigurationBuilder enableSSL(boolean enableSSL) {
         this.enableSSL = enableSSL;
+        return this;
+    }
+
+    public CouchDBHttpConfigurationBuilder token(String token) {
+        this.token = token;
         return this;
     }
 
     public CouchDBHttpConfiguration build() {
         return new CouchDBHttpConfiguration(host, port, maxConnections, connectionTimeout,
-                socketTimeout, enableSSL, username, password,
+                socketTimeout, enableSSL, username, password, token,
                 compression,
                 maxObjectSizeBytes, maxCacheEntries);
     }

@@ -14,15 +14,12 @@
  */
 package org.eclipse.jnosql.databases.couchdb.communication;
 
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-
-import java.util.Base64;
-import java.util.Optional;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.util.Timeout;
 
 class CouchDBHttpConfiguration {
 
@@ -35,18 +32,21 @@ class CouchDBHttpConfiguration {
 
     private final String username;
     private final String password;
+    private final String token;
+    private final CouchDBAuthenticationStrategy authenticationStrategy;
 
 
     private final boolean compression;
     private final int maxObjectSizeBytes;
     private final int maxCacheEntries;
     private final String url;
-    private String hashPassword;
 
 
     CouchDBHttpConfiguration(String host, int port, int maxConnections,
                              int connectionTimeout, int socketTimeout,
-                             boolean enableSSL, String username, String password,
+                             boolean enableSSL, String username,
+                             String password,
+                             String token,
                              boolean compression, int maxObjectSizeBytes,
                              int maxCacheEntries) {
         this.host = host;
@@ -57,10 +57,12 @@ class CouchDBHttpConfiguration {
         this.enableSSL = enableSSL;
         this.username = username;
         this.password = password;
+        this.token = token;
         this.compression = compression;
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.maxCacheEntries = maxCacheEntries;
         this.url = createUrl();
+        this.authenticationStrategy = CouchDBAuthenticationStrategyFactory.of(username, password, token);
     }
 
     private String createUrl() {
@@ -88,26 +90,23 @@ class CouchDBHttpConfiguration {
                 .setMaxCacheEntries(maxCacheEntries)
                 .setMaxObjectSize(maxObjectSizeBytes)
                 .build();
+
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(connectionTimeout)
-                .setSocketTimeout(socketTimeout)
+                .setConnectTimeout(Timeout.ofMilliseconds(connectionTimeout))
+                .setResponseTimeout(Timeout.ofMilliseconds(socketTimeout))
                 .setContentCompressionEnabled(compression)
                 .build();
 
-        PoolingHttpClientConnectionManager pool = new PoolingHttpClientConnectionManager();
-        pool.setMaxTotal(maxConnections);
+        var connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(maxConnections);
 
-        HttpClientBuilder builder = CachingHttpClients.custom()
+        return CachingHttpClients.custom()
                 .setCacheConfig(cacheConfig)
-                .setConnectionManager(pool)
-                .setDefaultRequestConfig(requestConfig);
-
-        if (username != null) {
-            this.hashPassword = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
-        }
-        return builder.build();
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig).build();
     }
-    public Optional<String> getHashPassword() {
-        return Optional.ofNullable(hashPassword);
+
+    public CouchDBAuthenticationStrategy strategy() {
+        return authenticationStrategy;
     }
 }

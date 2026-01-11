@@ -330,7 +330,7 @@ class DefaultCouchDBDocumentManagerTest {
         Map<String, Object> map = new HashMap<>();
         map.put("name", "Poliana");
         map.put("city", "Salvador");
-        map.put(CouchDBConstant.ID, "id");
+        map.put(CouchDBConstant.ID, UUID.randomUUID().toString());
 
         List<Element> documents = Elements.of(map);
         documents.forEach(entity::add);

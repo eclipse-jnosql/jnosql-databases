@@ -19,6 +19,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Add count method to DefaultArangoDBDatabaseManager
 - Add count method to DefaultNeo4JDatabaseManager
 - Add count method to DefaultTinkerpopGraphDatabaseManager
+- Include Auth Token support for CouchDB
 
 === Changed
 
@@ -69,6 +70,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Update Redis driver to version 7.2.0
 - Update infinispan to version 16.0.5
 - Update OrientDB to version 3.2.48
+- Update CouchDB to use Httpclient 5
 
 == [1.1.10] - 2025-08-19
 
