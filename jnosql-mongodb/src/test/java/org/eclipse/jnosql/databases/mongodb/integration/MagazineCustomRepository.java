@@ -45,7 +45,6 @@ public interface MagazineCustomRepository {
     @Find
     Optional<Magazine> getById(@By("id") String id);
 
-    @Find
     Stream<Magazine> findByIdIn(Iterable<String> ids);
 
     @Find
