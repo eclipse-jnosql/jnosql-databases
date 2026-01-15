@@ -78,7 +78,7 @@ final class DocumentQueryConversor {
 
             }
             default -> throw new UnsupportedOperationException("The condition " + condition.condition()
-                    + " is not supported from mongoDB diana driver");
+                    + " is not supported from mongoDB Driver");
         };
     }
 
