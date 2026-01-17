@@ -116,7 +116,7 @@ class CouchbaseTemplateIntegrationTest {
                 .isNotNull()
                 .isEqualTo(magazine);
 
-        var data = template.n1qlQuery("select * from " + CouchbaseUtil.BUCKET_NAME + "._default.Book where title = $title",
+        var data = template.n1qlQuery("select * from " + CouchbaseUtil.BUCKET_NAME + "._default." + Magazine.class.getSimpleName() + " where title = $title",
                 JsonObject.from(Map.of("title", magazine.title()))).toList();
 
         assertSoftly(softly -> {
@@ -133,7 +133,7 @@ class CouchbaseTemplateIntegrationTest {
                 .isNotNull()
                 .isEqualTo(magazine);
 
-        var data = template.n1qlQuery("select * from " + CouchbaseUtil.BUCKET_NAME + "._default.Book").toList();
+        var data = template.n1qlQuery("select * from " + CouchbaseUtil.BUCKET_NAME + "._default." + Magazine.class.getSimpleName()).toList();
         assertSoftly(softly -> {
             softly.assertThat(data).as("query result is a non-null instance").isNotNull();
             softly.assertThat(data.size()).as("query result size is correct").isEqualTo(1);

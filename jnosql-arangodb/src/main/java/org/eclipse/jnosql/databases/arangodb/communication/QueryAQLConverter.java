@@ -12,6 +12,7 @@
  *
  *   Otavio Santana
  *   Michele Rastelli
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.arangodb.communication;
 
@@ -24,6 +25,7 @@ import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,7 +65,7 @@ final class QueryAQLConverter {
                 Collections.emptyList(),
                 0L,
                 0L,
-                REMOVE, true);
+                QueryAQLConverter::onDelete);
     }
 
     public static AQLQueryResult select(SelectQuery query) throws NullPointerException {
@@ -73,7 +75,7 @@ final class QueryAQLConverter {
                 query.sorts(),
                 query.skip(),
                 query.limit(),
-                RETURN, false);
+                QueryAQLConverter::onSelect);
 
     }
 
@@ -84,7 +86,7 @@ final class QueryAQLConverter {
                 Collections.emptyList(),
                 0L,
                 0L,
-                RETURN, false);
+                QueryAQLConverter::onSelect);
 
         StringBuilder aql = new StringBuilder();
 
@@ -94,13 +96,64 @@ final class QueryAQLConverter {
         return new AQLQueryResult(aql.toString(), q.values());
     }
 
+    public static AQLQueryResult update(UpdateQuery query) throws NullPointerException {
+        return convert(query.name(),
+                query.condition().orElse(null),
+                Collections.emptyList(),
+                0L,
+                0L,
+                onUpdate(query));
+
+    }
+
+    private static ConclusionFunction onUpdate(UpdateQuery query) {
+        return (alias, aql, params, documentCollection) -> {
+            StringBuilder updatePart = new StringBuilder();
+            updatePart.append(" UPDATE ").append(alias)
+                    .append(" WITH { ");
+            if (query.set() == null || query.set().isEmpty()) {
+                throw new IllegalArgumentException("At least one element is required to update");
+            }
+            String separator = "";
+            for (Element element : query.set()) {
+                String nameParam = getNameParam(element.name(), params);
+                updatePart.append(separator)
+                        .append(element.name())
+                        .append(": ")
+                        .append(PARAM_APPENDER)
+                        .append(nameParam);
+                params.put(nameParam, ValueUtil.convert(element.value(), ArangoDBValueWriteDecorator.ARANGO_DB_VALUE_WRITER));
+                separator = ", ";
+            }
+            updatePart.append(" } IN ")
+                    .append(documentCollection);
+            aql.append(updatePart)
+                    .append(RETURN).append(" NEW");
+        };
+    }
+
+    private static void onDelete(char alias, StringBuilder aql, Map<String, Object> params, String documentCollection) {
+        aql.append(REMOVE)
+                .append(alias)
+                .append(IN)
+                .append(documentCollection);
+    }
+
+    private static void onSelect(char alias, StringBuilder aql, Map<String, Object> params, String documentCollection) {
+        aql.append(RETURN)
+                .append(alias);
+    }
+
+    interface ConclusionFunction {
+        void apply(char alias, StringBuilder aql, Map<String, Object> params, String documentCollection);
+    }
 
     private static AQLQueryResult convert(String documentCollection,
                                           CriteriaCondition documentCondition,
                                           List<Sort<?>> sorts,
                                           long firstResult,
                                           long maxResult,
-                                          String conclusion, boolean delete) {
+                                          ConclusionFunction conclusion) {
         StringBuilder aql = new StringBuilder();
         Map<String, Object> params = new HashMap<>();
         char entity = Character.toLowerCase(documentCollection.charAt(0));
@@ -122,11 +175,7 @@ final class QueryAQLConverter {
         } else if (firstResult > 0) {
             aql.append(LIMIT).append(firstResult).append(", null");
         }
-
-        aql.append(conclusion).append(entity);
-        if (delete) {
-            aql.append(IN).append(documentCollection);
-        }
+        conclusion.apply(entity, aql, params, documentCollection);
         return new AQLQueryResult(aql.toString(), params);
     }
 

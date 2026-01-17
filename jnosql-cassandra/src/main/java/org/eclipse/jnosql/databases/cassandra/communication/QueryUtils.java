@@ -35,6 +35,9 @@ import com.datastax.oss.driver.api.querybuilder.insert.InsertInto;
 import com.datastax.oss.driver.api.querybuilder.insert.RegularInsert;
 import com.datastax.oss.driver.api.querybuilder.select.Select;
 import com.datastax.oss.driver.api.querybuilder.term.Term;
+import com.datastax.oss.driver.api.querybuilder.update.Assignment;
+import com.datastax.oss.driver.api.querybuilder.update.Update;
+import com.datastax.oss.driver.api.querybuilder.update.UpdateStart;
 import com.datastax.oss.protocol.internal.ProtocolConstants;
 import jakarta.data.Sort;
 import org.eclipse.jnosql.communication.CommunicationException;
@@ -43,15 +46,18 @@ import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -69,9 +75,9 @@ final class QueryUtils {
         entity.elements()
                 .forEach(c -> {
                     if (UDT.class.isInstance(c)) {
-                        insertUDT(UDT.class.cast(c), keyspace, entity.name(), session, values);
+                        insertUDT(UDT.class.cast(c), keyspace, entity.name(), session, values::put);
                     } else {
-                        insertSingleField(c, values);
+                        insertSingleField(c, values::put);
                     }
                 });
 
@@ -80,6 +86,36 @@ final class QueryUtils {
             return regularInsert.usingTtl((int) duration.getSeconds());
         }
         return regularInsert;
+    }
+
+    static Update update(UpdateQuery updateQuery, String keyspace, CqlSession session) {
+        return update(updateQuery, keyspace, session, null);
+    }
+
+    static Update update(UpdateQuery updateQuery, String keyspace, CqlSession session, Duration duration) {
+
+        List<Assignment> assignments = new LinkedList<>();
+
+        final BiConsumer<String, Term> valueConsumer = (name, value) ->
+                assignments.add(Assignment.setColumn("\"%s\"".formatted(name), value));
+
+        UpdateStart updateStart = QueryBuilder.update(keyspace, updateQuery.name());
+
+        if (duration != null) {
+            updateStart = updateStart.usingTtl((int) duration.getSeconds());
+        }
+
+        updateQuery.set()
+                .forEach(c -> {
+                    if (UDT.class.isInstance(c)) {
+                        insertUDT(UDT.class.cast(c), keyspace, updateQuery.name(), session, valueConsumer);
+                    } else {
+                        insertSingleField(c, valueConsumer);
+                    }
+                });
+
+        return updateStart.set(assignments)
+                .where(Relations.createClause(updateQuery.condition().orElse(null)));
     }
 
     public static Select select(SelectQuery query, String keyspace) {
@@ -105,7 +141,7 @@ final class QueryUtils {
     }
 
     private static void insertUDT(UDT udt, String keyspace, String columnFamily, CqlSession session,
-                                  Map<String, Term> values) {
+                                  BiConsumer<String, Term> values) {
 
         final Optional<KeyspaceMetadata> keyspaceMetadata = session.getMetadata().getKeyspace(keyspace);
         UserDefinedType userType = keyspaceMetadata
@@ -122,7 +158,7 @@ final class QueryUtils {
         final DataType type = columnMetadata.getType();
         Iterable elements = Iterable.class.cast(udt.get());
         Object udtValue = getUdtValue(userType, elements, type);
-        values.put(getName(udt), QueryBuilder.literal(udtValue));
+        values.accept(getName(udt), QueryBuilder.literal(udtValue));
     }
 
     private static Object getUdtValue(UserDefinedType userType, Iterable elements, DataType type) {
@@ -170,17 +206,17 @@ final class QueryUtils {
         }
     }
 
-    private static void insertSingleField(Element column, Map<String, Term> values) {
+    private static void insertSingleField(Element column, BiConsumer<String, Term> values) {
         Object value = column.get();
-        if(value == null) {
-            values.put(getName(column), QueryBuilder.literal(null));
+        if (value == null) {
+            values.accept(getName(column), QueryBuilder.literal(null));
             return;
         }
         try {
             CodecRegistry.DEFAULT.codecFor(value);
-            values.put(getName(column), QueryBuilder.literal(value));
+            values.accept(getName(column), QueryBuilder.literal(value));
         } catch (CodecNotFoundException exp) {
-            values.put(getName(column), QueryBuilder.literal(ValueUtil.convert(column.value())));
+            values.accept(getName(column), QueryBuilder.literal(ValueUtil.convert(column.value())));
         }
     }
 

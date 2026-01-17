@@ -15,15 +15,16 @@
 
 package org.eclipse.jnosql.databases.mongodb.communication;
 
-import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
+import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.eclipse.jnosql.databases.mongodb.communication.type.Money;
 import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.Assertions;
@@ -40,6 +41,7 @@ import java.util.Collections;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,7 +52,9 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
@@ -103,13 +107,68 @@ class MongoDBDocumentManagerTest {
     }
 
     @Test
-    void shouldUpdate() {
-        var entity = getEntity();
-        var documentEntity = entityManager.insert(entity);
+    void shouldUpdateSingleEntity() {
+        var documentEntity = entityManager.insert(getEntity());
         var newField = Elements.of("newField", "10");
-        entity.add(newField);
-        var updated = entityManager.update(entity);
-        assertEquals(newField, updated.find("newField").get());
+        documentEntity.add(newField);
+        documentEntity = entityManager.update(documentEntity);
+        var id = documentEntity.find(MongoDBUtils.ID_FIELD).orElseThrow();
+        var entityRef = entityManager.singleResult(SelectQuery.select().from(documentEntity.name()).where(id.name()).eq(id.get()).build());
+
+        assertSoftly(softly -> {
+            softly.assertThat(entityRef).isPresent();
+            softly.assertThat(entityRef)
+                    .get()
+                    .satisfies(updatedEntity -> {
+                        softly.assertThat(updatedEntity.find("newField"))
+                                .as("newField must be present")
+                                .isPresent()
+                                .get()
+                                .extracting(Element::get)
+                                .as("newField value is not correct")
+                                .isEqualTo("10");
+
+                    });
+        });
+    }
+
+    @Test
+    void shouldUpdateMultipleEntities() {
+
+        List<CommunicationEntity> entitiesWithValues = getEntitiesWithValues();
+        Iterable<CommunicationEntity> insertedEntities = entityManager.insert(entitiesWithValues);
+
+        var entitiesToUpdate =
+                StreamSupport.stream(insertedEntities.spliterator(), false)
+                        .map(entity -> {
+                            var _id = entity.find(MongoDBUtils.ID_FIELD).orElseThrow();
+                            entity.add(Elements.of("newField", _id.get()));
+                            return entity;
+                        }).toList();
+
+
+        var updatedEntities = entityManager.update(entitiesToUpdate);
+
+        for (CommunicationEntity updatedEntity : updatedEntities) {
+            var _id = updatedEntity.find(MongoDBUtils.ID_FIELD).orElseThrow();
+            var entityRef2 = entityManager.singleResult(SelectQuery.select().from(updatedEntity.name())
+                    .where(_id.name()).eq(_id.get()).build());
+            assertSoftly(softly -> {
+                softly.assertThat(entityRef2).isPresent();
+                softly.assertThat(entityRef2)
+                        .get()
+                        .satisfies(e -> {
+                            softly.assertThat(e.find("newField"))
+                                    .as("newField must be present")
+                                    .isPresent()
+                                    .get()
+                                    .extracting(Element::get)
+                                    .as("newField value is not correct")
+                                    .isEqualTo(_id.get());
+                        });
+            });
+        }
+
     }
 
     @Test
@@ -285,7 +344,7 @@ class MongoDBDocumentManagerTest {
 
         var result = entityManager.select(query).toList();
 
-        SoftAssertions.assertSoftly(softly -> {
+        assertSoftly(softly -> {
             softly.assertThat(result).hasSize(2);
             softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).contains(22, 23);
             softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).doesNotContain(25);
@@ -305,13 +364,12 @@ class MongoDBDocumentManagerTest {
 
         var result = entityManager.select(query).toList();
 
-        SoftAssertions.assertSoftly(softly -> {
+        assertSoftly(softly -> {
             softly.assertThat(result).hasSize(2);
             softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).contains(22, 23);
             softly.assertThat(result).map(e -> e.find("age").orElseThrow().get(Integer.class)).doesNotContain(25);
         });
     }
-
 
 
     @Test
@@ -456,6 +514,18 @@ class MongoDBDocumentManagerTest {
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
         assertThat(documents).contains(Element.of("mobile", "1231231"));
+    }
+
+    @Test
+    void shouldNotSupportTTLOnSaveAndUpdate() {
+        assertSoftly(softly -> {
+            softly.assertThatThrownBy(() ->
+                            entityManager.insert(getEntity(), Duration.ofSeconds(10)))
+                    .isInstanceOf(UnsupportedOperationException.class);
+            softly.assertThatThrownBy(() ->
+                            entityManager.insert(getEntitiesWithValues(), Duration.ofSeconds(10)))
+                    .isInstanceOf(UnsupportedOperationException.class);
+        });
     }
 
     @Test
@@ -610,7 +680,7 @@ class MongoDBDocumentManagerTest {
         entity.add(Element.of("name", null));
         CommunicationEntity documentEntity = entityManager.insert(entity);
         Optional<Element> name = documentEntity.find("name");
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(name).isPresent();
             soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(name).get().extracting(Element::get).isNull();
@@ -618,16 +688,55 @@ class MongoDBDocumentManagerTest {
     }
 
     @Test
-    void shouldUpdateNull(){
+    void shouldUpdateNull() {
         var entity = entityManager.insert(getEntity());
         entity.add(Element.of("name", null));
         var documentEntity = entityManager.update(entity);
         Optional<Element> name = documentEntity.find("name");
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(name).isPresent();
             soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
             soft.assertThat(name).get().extracting(Element::get).isNull();
         });
+    }
+
+    @Test
+    void shouldUpdateWithUpdateQuery() {
+        var entities = StreamSupport
+                .stream(entityManager.insert(getEntitiesWithValues()).spliterator(), false)
+                .toList();
+
+        record UpdateCommand(String name, List<Element> set, CriteriaCondition criteriaCondition )implements UpdateQuery {
+
+            @Override
+            public Optional<CriteriaCondition> condition() {
+                return Optional.ofNullable(criteriaCondition());
+            }
+
+            @Override
+            public SelectQuery toSelectQuery() {
+               return new DefaultSelectQuery(0, 0, name, emptyList(), emptyList(), criteriaCondition(), false);
+            }
+        }
+
+        var entityToUpdate = entities.get(0);
+        var idField = entityToUpdate.find(MongoDBUtils.ID_FIELD).orElseThrow();
+
+        Iterable<CommunicationEntity> updatedEntity = entityManager.update(
+                new UpdateCommand(entityToUpdate.name(),
+                        List.of(Element.of("update", true)),
+                        CriteriaCondition.eq(idField.name(), idField.get()))
+        );
+
+        StreamSupport.stream(updatedEntity.spliterator(), false)
+                .forEach(e -> {
+                    Optional<Element> updateField = e.find("update");
+                    assertSoftly(soft -> {
+                        soft.assertThat(updateField).isPresent();
+                        soft.assertThat(updateField).get().extracting(Element::name).isEqualTo("update");
+                        soft.assertThat(updateField).get().extracting(Element::get).isEqualTo(true);
+                    });
+                });
     }
 
     @Test
@@ -636,7 +745,7 @@ class MongoDBDocumentManagerTest {
         entity.add("uuid", UUID.randomUUID());
         var documentEntity = entityManager.insert(entity);
         Optional<Element> uuid = documentEntity.find("uuid");
-        SoftAssertions.assertSoftly(soft -> {
+        assertSoftly(soft -> {
             soft.assertThat(uuid).isPresent();
             Element element = uuid.orElseThrow();
             soft.assertThat(element.name()).isEqualTo("uuid");
@@ -654,7 +763,7 @@ class MongoDBDocumentManagerTest {
                 "lia")), COLLECTION_NAME, Collections.emptyList());
 
         var result = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
+        assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
             softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
@@ -669,7 +778,7 @@ class MongoDBDocumentManagerTest {
                 "Pol")), COLLECTION_NAME, Collections.emptyList());
 
         var result = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
+        assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
             softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
@@ -684,7 +793,7 @@ class MongoDBDocumentManagerTest {
                 "ana")), COLLECTION_NAME, Collections.emptyList());
 
         var result = entityManager.select(query).toList();
-        SoftAssertions.assertSoftly(softly -> {
+        assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
             softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
