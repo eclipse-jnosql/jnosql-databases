@@ -18,12 +18,14 @@ package org.eclipse.jnosql.databases.cassandra.communication;
 import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import com.datastax.oss.driver.api.core.CqlSession;
 import jakarta.data.exceptions.NonUniqueResultException;
-import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.Value;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
+import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -41,9 +43,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 import static java.lang.Thread.sleep;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
@@ -176,6 +180,45 @@ public class CassandraColumnManagerTest {
     @Test
     void shouldUpdateColumns() {
         entityManager.update(getEntities());
+    }
+
+    @Test
+    void shouldUpdateWithUpdateQuery() {
+        var entities = StreamSupport
+                .stream(entityManager.insert(getEntities()).spliterator(), false)
+                .toList();
+
+        record UpdateCommand(String name, List<Element> set, CriteriaCondition criteriaCondition )implements UpdateQuery {
+
+            @Override
+            public Optional<CriteriaCondition> condition() {
+                return Optional.ofNullable(criteriaCondition());
+            }
+
+            @Override
+            public SelectQuery toSelectQuery() {
+                return new DefaultSelectQuery(0, 0, name, emptyList(), emptyList(), criteriaCondition(), false);
+            }
+        }
+
+        var entityToUpdate = entities.get(0);
+        var idField = entityToUpdate.find("id").orElseThrow();
+
+        Iterable<CommunicationEntity> updatedEntity = entityManager.update(
+                new UpdateCommand(entityToUpdate.name(),
+                        List.of(Element.of("options", asList(4, 5, 6))),
+                        CriteriaCondition.eq(idField.name(), idField.get()))
+        );
+
+        StreamSupport.stream(updatedEntity.spliterator(), false)
+                .forEach(e -> {
+                    Optional<Element> updateField = e.find("options");
+                    assertSoftly(soft -> {
+                        soft.assertThat(updateField).isPresent();
+                        soft.assertThat(updateField).get().extracting(Element::name).isEqualTo("options");
+                        soft.assertThat(updateField).get().extracting(Element::get).isEqualTo( asList(4, 5, 6));
+                    });
+                });
     }
 
     @Test

@@ -28,11 +28,13 @@ import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -45,6 +47,7 @@ import java.util.stream.StreamSupport;
 import static java.util.stream.StreamSupport.stream;
 import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBUtils.ID_FIELD;
 import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBUtils.getDocument;
+import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBUtils.updateDocument;
 
 /**
  * The mongodb implementation to {@link DatabaseManager} that does not support TTL methods
@@ -118,15 +121,16 @@ public class MongoDBDocumentManager implements DatabaseManager {
     public CommunicationEntity update(CommunicationEntity entity) {
         Objects.requireNonNull(entity, "entity is required");
 
-        CommunicationEntity copy = entity.copy();
+        var idFilter = entity.find(ID_FIELD)
+                .map(CriteriaCondition::eq)
+                .map(DocumentQueryConversor::convert)
+                .orElseThrow(() -> new UnsupportedOperationException("To update this DocumentEntity the field `id` is required"));
+
         String collectionName = entity.name();
         MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
-        Document id = copy.find(ID_FIELD)
-                .map(d -> new Document(d.name(), d.value().get()))
-                .orElseThrow(() -> new UnsupportedOperationException("To update this DocumentEntity " +
-                        "the field `id` is required"));
-        copy.remove(ID_FIELD);
-        collection.findOneAndReplace(id, getDocument(entity));
+
+        collection.updateOne(idFilter, updateDocument(entity));
+
         return entity;
     }
 
@@ -138,6 +142,18 @@ public class MongoDBDocumentManager implements DatabaseManager {
                 .toList();
     }
 
+    @Override
+    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+        Objects.requireNonNull(query, "update query is required");
+        String columnName = query.name();
+        Objects.requireNonNull(query, "entity name is required");
+        var filter = query.condition()
+                .map(DocumentQueryConversor::convert)
+                .orElseGet(BsonDocument::new);
+        MongoCollection<Document> collection = mongoDatabase.getCollection(columnName);
+        collection.updateMany(filter, updateDocument(query::set));
+        return select(query.toSelectQuery()).toList();
+    }
 
     @Override
     public void delete(DeleteQuery query) {

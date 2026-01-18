@@ -20,6 +20,7 @@ import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -90,6 +91,32 @@ class Neo4JQueryBuilderTest {
         String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
 
         assertThat(cypher).isEqualTo("MATCH (e:Person) RETURN e.name, e.age");
+    }
+
+    @Test
+    void shouldBuildUpdateQueryWithCondition() {
+        UpdateQuery query = mock(UpdateQuery.class);
+        when(query.name()).thenReturn("Person");
+
+        CriteriaCondition condition = mock(CriteriaCondition.class);
+        Element element = mock(Element.class);
+        when(condition.element()).thenReturn(element);
+        when(element.name()).thenReturn("age");
+        when(element.get()).thenReturn(30);
+        when(condition.condition()).thenReturn(org.eclipse.jnosql.communication.Condition.EQUALS);
+        when(query.condition()).thenReturn(java.util.Optional.of(condition));
+        when(query.set()).then(inv->List.of(
+                Element.of("name", "John"),
+                Element.of("surname", "Doe")
+        ));
+
+        Map<String, Object> parameters = new HashMap<>();
+        String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
+
+        assertThat(cypher).isEqualTo("MATCH (e:Person) WHERE e.age = $age SET e.name = $name, e.surname = $surname RETURN e");
+        assertThat(parameters).containsAllEntriesOf(Map.of("age", 30,
+                "name", "John",
+                "surname", "Doe"));
     }
 
     @Test
