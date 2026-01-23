@@ -85,11 +85,10 @@ class DefaultCassandraColumnManager implements CassandraColumnManager {
     }
 
     @Override
-    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+    public void update(UpdateQuery query) {
         requireNonNull(query, "query is required");
         final Update update = QueryUtils.update(query, keyspace, session);
         session.execute(update.build());
-        return select(query.toSelectQuery()).toList();
     }
 
     @Override
