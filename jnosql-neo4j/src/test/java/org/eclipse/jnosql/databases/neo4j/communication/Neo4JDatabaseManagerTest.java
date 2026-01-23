@@ -159,7 +159,7 @@ class Neo4JDatabaseManagerTest {
         when(updateQuery.toSelectQuery()).then(inv -> select().from(COLLECTION_NAME).where("index").gt(index).build());
 
         entityManager.update(updateQuery);
-        var entities = entityManager.select(updateQuery.toSelectQuery());
+        var entities = entityManager.select(updateQuery.toSelectQuery()).toList();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(entities).hasSize(5);
             softly.assertThat(entities)
