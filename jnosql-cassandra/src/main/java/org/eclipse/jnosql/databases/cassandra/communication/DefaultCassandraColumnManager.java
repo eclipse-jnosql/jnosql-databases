@@ -26,9 +26,11 @@ import com.datastax.oss.driver.api.core.type.codec.registry.CodecRegistry;
 import com.datastax.oss.driver.api.querybuilder.QueryBuilder;
 import com.datastax.oss.driver.api.querybuilder.delete.Delete;
 import com.datastax.oss.driver.api.querybuilder.insert.Insert;
+import com.datastax.oss.driver.api.querybuilder.update.Update;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 
 import java.time.Duration;
 import java.util.Map;
@@ -82,6 +84,13 @@ class DefaultCassandraColumnManager implements CassandraColumnManager {
         return insert(entities);
     }
 
+    @Override
+    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+        requireNonNull(query, "query is required");
+        final Update update = QueryUtils.update(query, keyspace, session);
+        session.execute(update.build());
+        return select(query.toSelectQuery()).toList();
+    }
 
     @Override
     public Iterable<CommunicationEntity> insert(Iterable<CommunicationEntity> entities) {
