@@ -706,7 +706,8 @@ class MongoDBDocumentManagerTest {
                 .stream(entityManager.insert(getEntitiesWithValues()).spliterator(), false)
                 .toList();
 
-        record UpdateCommand(String name, List<Element> set, CriteriaCondition criteriaCondition )implements UpdateQuery {
+        record UpdateCommand(String name, List<Element> set,
+                             CriteriaCondition criteriaCondition) implements UpdateQuery {
 
             @Override
             public Optional<CriteriaCondition> condition() {
@@ -715,18 +716,18 @@ class MongoDBDocumentManagerTest {
 
             @Override
             public SelectQuery toSelectQuery() {
-               return new DefaultSelectQuery(0, 0, name, emptyList(), emptyList(), criteriaCondition(), false);
+                return new DefaultSelectQuery(0, 0, name, emptyList(), emptyList(), criteriaCondition(), false);
             }
         }
 
         var entityToUpdate = entities.get(0);
         var idField = entityToUpdate.find(MongoDBUtils.ID_FIELD).orElseThrow();
 
-        Iterable<CommunicationEntity> updatedEntity = entityManager.update(
-                new UpdateCommand(entityToUpdate.name(),
-                        List.of(Element.of("update", true)),
-                        CriteriaCondition.eq(idField.name(), idField.get()))
-        );
+        UpdateCommand updateCommand = new UpdateCommand(entityToUpdate.name(),
+                List.of(Element.of("update", true)),
+                CriteriaCondition.eq(idField.name(), idField.get()));
+        entityManager.update(updateCommand);
+        List<CommunicationEntity> updatedEntity = entityManager.select(updateCommand.toSelectQuery()).toList();
 
         StreamSupport.stream(updatedEntity.spliterator(), false)
                 .forEach(e -> {
