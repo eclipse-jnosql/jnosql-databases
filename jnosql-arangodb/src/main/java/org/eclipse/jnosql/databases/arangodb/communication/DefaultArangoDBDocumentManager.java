@@ -104,7 +104,7 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     }
 
     @Override
-    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+    public void update(UpdateQuery query) {
         requireNonNull(query, "query is required");
         checkCollection(query.name());
         AQLQueryResult aql = QueryAQLConverter.update(query);
@@ -113,8 +113,7 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
                 JsonObject.class,
                 aql.values(), null);
 
-        return StreamSupport.stream(documents.spliterator(), false)
-                .map(ArangoDBUtil::toEntity).toList();
+        LOGGER.finest("the number of updated documents is: " + documents.getCount());
     }
 
     @Override
