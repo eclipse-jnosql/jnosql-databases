@@ -133,14 +133,18 @@ class DefaultCouchbaseDocumentManager implements CouchbaseDocumentManager {
     }
 
     @Override
-    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+    public void update(UpdateQuery query) {
         Objects.requireNonNull(query, "query is required");
-        return waitBucketBeReadyAndGet(() -> {
-            N1QLQuery n1QLQuery = N1QLBuilder.of(query, database, bucket.defaultScope().name()).get();
-            QueryResult result = cluster.query(n1QLQuery.query(), QueryOptions
-                    .queryOptions().parameters(n1QLQuery.params()));
-            List<JsonObject> jsons = result.rowsAsObject();
-            return EntityConverter.convert(jsons, database).toList();
+        waitBucketBeReadyAndGet(() -> {
+            N1QLQuery n1ql = N1QLBuilder
+                    .of(query, database, bucket.defaultScope().name())
+                    .get();
+
+            cluster.query(
+                    n1ql.query(),
+                    QueryOptions.queryOptions().parameters(n1ql.params())
+            );
+            return Void.class;
         });
     }
 
