@@ -107,13 +107,10 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     public void update(UpdateQuery query) {
         requireNonNull(query, "query is required");
         checkCollection(query.name());
-        AQLQueryResult aql = QueryAQLConverter.update(query);
+        var aql = QueryAQLConverter.update(query);
         LOGGER.finest("Executing AQL: " + aql.query());
-        ArangoCursor<JsonObject> documents = db.query(aql.query(),
-                JsonObject.class,
-                aql.values(), null);
 
-        LOGGER.finest("the number of updated documents is: " + documents.getCount());
+        db.query(aql.query(), Void.class, aql.values(), null);
     }
 
     @Override
