@@ -108,8 +108,6 @@ enum Neo4JQueryBuilder {
                 })
                 .collect(Collectors.joining(", ")));
 
-        cypher.append(" RETURN e");
-
         return cypher.toString();
     }
 
