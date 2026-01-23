@@ -204,13 +204,18 @@ public class CassandraColumnManagerTest {
         var entityToUpdate = entities.get(0);
         var idField = entityToUpdate.find("id").orElseThrow();
 
-        Iterable<CommunicationEntity> updatedEntity = entityManager.update(
+        entityManager.update(
                 new UpdateCommand(entityToUpdate.name(),
                         List.of(Element.of("options", asList(4, 5, 6))),
                         CriteriaCondition.eq(idField.name(), idField.get()))
         );
 
-        StreamSupport.stream(updatedEntity.spliterator(), false)
+        var updatedEntity = entityManager.select(select().from(entityToUpdate.name())
+                .where(idField.name())
+                .eq(idField.get()).build())
+                .toList();
+
+                StreamSupport.stream(updatedEntity.spliterator(), false)
                 .forEach(e -> {
                     Optional<Element> updateField = e.find("options");
                     assertSoftly(soft -> {

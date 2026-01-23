@@ -104,17 +104,13 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     }
 
     @Override
-    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+    public void update(UpdateQuery query) {
         requireNonNull(query, "query is required");
         checkCollection(query.name());
-        AQLQueryResult aql = QueryAQLConverter.update(query);
+        var aql = QueryAQLConverter.update(query);
         LOGGER.finest("Executing AQL: " + aql.query());
-        ArangoCursor<JsonObject> documents = db.query(aql.query(),
-                JsonObject.class,
-                aql.values(), null);
 
-        return StreamSupport.stream(documents.spliterator(), false)
-                .map(ArangoDBUtil::toEntity).toList();
+        db.query(aql.query(), Void.class, aql.values(), null);
     }
 
     @Override

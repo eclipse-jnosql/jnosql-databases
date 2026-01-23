@@ -139,29 +139,30 @@ public class CouchbaseDocumentManagerTest {
 
         Element id = entity.find("_id").get();
 
-        Iterable<CommunicationEntity> updatedEntities = entityManager.update(
-                new UpdateQuery() {
-                    @Override
-                    public String name() {
-                        return COLLECTION_PERSON_NAME;
-                    }
+        UpdateQuery updateQuery = new UpdateQuery() {
+            @Override
+            public String name() {
+                return COLLECTION_PERSON_NAME;
+            }
 
-                    @Override
-                    public List<Element> set() {
-                        return List.of(Elements.of("newField", "10"));
-                    }
+            @Override
+            public List<Element> set() {
+                return List.of(Elements.of("newField", "10"));
+            }
 
-                    @Override
-                    public Optional<CriteriaCondition> condition() {
-                        return Optional.of(CriteriaCondition.eq(id));
-                    }
+            @Override
+            public Optional<CriteriaCondition> condition() {
+                return Optional.of(CriteriaCondition.eq(id));
+            }
 
-                    @Override
-                    public SelectQuery toSelectQuery() {
-                        return new DefaultSelectQuery(0, 0, COLLECTION_PERSON_NAME, List.of(), List.of(), condition().orElseThrow(), false);
-                    }
-                }
-        );
+            @Override
+            public SelectQuery toSelectQuery() {
+                return new DefaultSelectQuery(0, 0, COLLECTION_PERSON_NAME, List.of(), List.of(), condition().orElseThrow(), false);
+            }
+        };
+        entityManager.update(updateQuery);
+        Iterable<CommunicationEntity> updatedEntities = entityManager.select(updateQuery.toSelectQuery()).toList();
+
         StreamSupport.stream(updatedEntities.spliterator(), false)
                 .forEach(e -> {
                     Optional<Element> updateField = e.find("newField");

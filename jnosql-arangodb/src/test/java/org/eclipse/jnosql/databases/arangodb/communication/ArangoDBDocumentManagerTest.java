@@ -332,7 +332,9 @@ public class ArangoDBDocumentManagerTest {
         when(updateQuery.set()).then(inv -> List.of(Element.of("country", "Brazil")));
         when(updateQuery.toSelectQuery()).then(inv -> select().from(COLLECTION_NAME).where("index").gt(index).build());
 
-        var entities = entityManager.update(updateQuery);
+        entityManager.update(updateQuery);
+        var entities = entityManager.select(select().from(COLLECTION_NAME).where("index").gt(index).build()).toList();
+
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(entities).hasSize(5);
             softly.assertThat(entities)

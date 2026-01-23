@@ -18,7 +18,6 @@ package org.eclipse.jnosql.databases.mongodb.communication;
 
 import com.mongodb.client.model.Filters;
 import org.bson.conversions.Bson;
-import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
@@ -36,7 +35,13 @@ final class DocumentQueryConversor {
         Element document = condition.element();
         Object value = ValueUtil.convert(document.value(), MongoDBValueWriteDecorator.MONGO_DB_VALUE_WRITER);
         return switch (condition.condition()) {
-            case EQUALS -> Filters.eq(document.name(), value);
+            case EQUALS -> {
+                if (value == null) {
+                    yield Filters.or(Filters.exists(document.name(), false),
+                            Filters.eq(document.name(), null));
+                }
+                yield Filters.eq(document.name(), value);
+            }
             case GREATER_THAN -> Filters.gt(document.name(), value);
             case GREATER_EQUALS_THAN -> Filters.gte(document.name(), value);
             case LESSER_THAN -> Filters.lt(document.name(), value);
@@ -47,12 +52,6 @@ final class DocumentQueryConversor {
             }
             case NOT -> {
                 var criteriaCondition = document.get(CriteriaCondition.class);
-                if (Condition.EQUALS.equals(criteriaCondition.condition())) {
-                    Element element = criteriaCondition.element();
-                    if (element.get() == null) {
-                        yield Filters.exists(element.name(), true);
-                    }
-                }
                 yield Filters.nor(convert(criteriaCondition));
             }
             case LIKE -> Filters.regex(document.name(), Pattern.compile(prepareRegexValue(value.toString())));

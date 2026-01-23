@@ -143,7 +143,7 @@ public class MongoDBDocumentManager implements DatabaseManager {
     }
 
     @Override
-    public Iterable<CommunicationEntity> update(UpdateQuery query) {
+    public void update(UpdateQuery query) {
         Objects.requireNonNull(query, "update query is required");
         String columnName = query.name();
         Objects.requireNonNull(query, "entity name is required");
@@ -152,7 +152,6 @@ public class MongoDBDocumentManager implements DatabaseManager {
                 .orElseGet(BsonDocument::new);
         MongoCollection<Document> collection = mongoDatabase.getCollection(columnName);
         collection.updateMany(filter, updateDocument(query::set));
-        return select(query.toSelectQuery()).toList();
     }
 
     @Override

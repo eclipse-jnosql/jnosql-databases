@@ -158,12 +158,13 @@ class Neo4JDatabaseManagerTest {
         when(updateQuery.set()).then(inv -> List.of(Element.of("city", "Sao Paulo")));
         when(updateQuery.toSelectQuery()).then(inv -> select().from(COLLECTION_NAME).where("index").gt(index).build());
 
-        var entities = entityManager.update(updateQuery);
+        entityManager.update(updateQuery);
+        var entities = entityManager.select(updateQuery.toSelectQuery()).toList();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(entities).hasSize(5);
             softly.assertThat(entities)
                     .allMatch(e -> e.find("city").orElseThrow().get().equals("Sao Paulo"))
-                    .allSatisfy( e-> {
+                    .allSatisfy(e -> {
                         for (String attributeName : attributesNames) {
                             softly.assertThat(e.find(attributeName))
                                     .as("Attribute " + attributeName + " should be present")

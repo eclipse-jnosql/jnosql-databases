@@ -113,7 +113,7 @@ class Neo4JQueryBuilderTest {
         Map<String, Object> parameters = new HashMap<>();
         String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
 
-        assertThat(cypher).isEqualTo("MATCH (e:Person) WHERE e.age = $age SET e.name = $name, e.surname = $surname RETURN e");
+        assertThat(cypher).isEqualTo("MATCH (e:Person) WHERE e.age = $age SET e.name = $name, e.surname = $surname");
         assertThat(parameters).containsAllEntriesOf(Map.of("age", 30,
                 "name", "John",
                 "surname", "Doe"));
