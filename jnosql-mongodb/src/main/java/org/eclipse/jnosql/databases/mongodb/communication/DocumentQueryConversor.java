@@ -37,7 +37,8 @@ final class DocumentQueryConversor {
         return switch (condition.condition()) {
             case EQUALS -> {
                 if (value == null) {
-                    yield Filters.exists(document.name(), false);
+                    yield Filters.or(Filters.exists(document.name(), false),
+                            Filters.eq(document.name(), null));
                 }
                 yield Filters.eq(document.name(), value);
             }
