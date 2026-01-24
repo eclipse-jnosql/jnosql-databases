@@ -272,6 +272,7 @@ class DefaultCouchDBDocumentManagerTest {
     @Test
     void shouldInsertNull() {
         var entity = getEntity();
+        entity.remove(CouchDBConstant.ID);
         entity.add(Element.of("name", null));
         var documentEntity = entityManager.insert(entity);
         Optional<Element> name = documentEntity.find("name");
@@ -283,7 +284,7 @@ class DefaultCouchDBDocumentManagerTest {
     }
 
     @Test
-    void shouldUpdateNull(){
+    void shouldUpdateNull() {
         var entity = entityManager.insert(getEntity());
         entity.add(Element.of("name", null));
         var documentEntity = entityManager.update(entity);
@@ -299,12 +300,12 @@ class DefaultCouchDBDocumentManagerTest {
     void shouldInsertByteArray() {
         CommunicationEntity entity = CommunicationEntity.of("Failure");
         entity.add(CouchDBConstant.ID, "id");
-        entity.add("data", new byte[]{'a','b','c','d'});
+        entity.add("data", new byte[]{'a', 'b', 'c', 'd'});
         var communication = entityManager.insert(entity);
 
         SoftAssertions.assertSoftly(soft -> {
-           soft.assertThat(communication).isNotNull();
-              soft.assertThat(communication.find("data").get().get()).isInstanceOf(byte[].class);
+            soft.assertThat(communication).isNotNull();
+            soft.assertThat(communication.find("data").get().get()).isInstanceOf(byte[].class);
         });
     }
 

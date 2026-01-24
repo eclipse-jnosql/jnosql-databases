@@ -174,7 +174,7 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
 
     private String partitionKeyName(String table, String defaultName) {
         return this.settings
-                .get(DynamoDBConfigurations.ENTITY_PARTITION_KEY.name().formatted(table), String.class)
+                .get(DynamoDBConfigurations.ENTITY_PARTITION_KEY.get().formatted(table), String.class)
                 .orElse(defaultName);
     }
 
@@ -294,8 +294,12 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
 
         if (!dynamoDBQuery.expressionAttributeNames().isEmpty()) {
             selectRequest = selectRequest
-                    .expressionAttributeNames(dynamoDBQuery.expressionAttributeNames())
-                    .expressionAttributeValues(dynamoDBQuery.expressionAttributeValues());
+                    .expressionAttributeNames(dynamoDBQuery.expressionAttributeNames());
+
+            if(!dynamoDBQuery.expressionAttributeValues().isEmpty()) {
+                selectRequest = selectRequest
+                        .expressionAttributeValues(dynamoDBQuery.expressionAttributeValues());
+            }
         }
 
         return StreamSupport
