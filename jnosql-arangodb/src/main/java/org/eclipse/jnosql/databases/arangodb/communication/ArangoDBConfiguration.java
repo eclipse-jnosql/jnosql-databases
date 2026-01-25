@@ -118,10 +118,10 @@ public abstract class ArangoDBConfiguration {
         this.builder = builder;
     }
 
-    protected ArangoDB getArangoDB(Settings settings) {
-        ArangoDBBuilderSync aragonDB = new ArangoDBBuilderSync(builder);
+    protected ArangoDBBuilder getArangoDBBuilder(Settings settings) {
+        ArangoDBBuilder aragonDB = new ArangoDBBuilder(builder);
         ArangoDBBuilders.load(settings, aragonDB);
-        return aragonDB.build();
+        return aragonDB;
     }
 
 }
