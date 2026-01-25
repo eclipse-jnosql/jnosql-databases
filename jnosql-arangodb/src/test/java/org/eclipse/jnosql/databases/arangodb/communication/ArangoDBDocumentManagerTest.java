@@ -18,7 +18,6 @@ package org.eclipse.jnosql.databases.arangodb.communication;
 import com.arangodb.ArangoDB;
 import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.TypeReference;
-import org.eclipse.jnosql.communication.graph.CommunicationEdge;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
@@ -43,7 +42,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
@@ -451,114 +449,6 @@ public class ArangoDBDocumentManagerTest {
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
             softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
-        });
-    }
-
-    @Test
-    void shouldCreateEdge() {
-        var person1 = entityManager.insert(getEntity());
-        var person2 = entityManager.insert(getEntity());
-
-        String person1Id = entityManager.select(select().from(COLLECTION_NAME)
-                        .where("_key").eq(person1.find("_key").orElseThrow().get()).build())
-                .findFirst().orElseThrow().find("_id").orElseThrow().get(String.class);
-
-        String person2Id = entityManager.select(select().from(COLLECTION_NAME)
-                        .where("_key").eq(person2.find("_key").orElseThrow().get()).build())
-                .findFirst().orElseThrow().find("_id").orElseThrow().get(String.class);
-
-        entityManager.edge(person1, "FRIEND", person2, emptyMap());
-
-        String aql = """
-                FOR e IN FRIEND
-                FILTER e._from == @id1 && e._to == @id2
-                RETURN e
-                """;
-
-        Map<String, Object> parameters = Map.of(
-                "id1", person1Id,
-                "id2", person2Id
-        );
-
-        var result = entityManager.aql(aql, parameters).toList();
-        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).isNotEmpty());
-
-        entityManager.remove(person1, "FRIEND", person2);
-    }
-
-    @Test
-    void shouldRemoveEdge() {
-        var person1 = getEntity();
-        var person2 = getEntity();
-
-        entityManager.insert(person1);
-        entityManager.insert(person2);
-
-        CommunicationEdge edge = entityManager.edge(person1, "FRIEND", person2, emptyMap());
-        entityManager.remove(person1, "FRIEND", person2);
-
-        String aql = """
-                     FOR e IN FRIEND
-                     FILTER e._key == @edgeId
-                     RETURN e
-                     """;
-        Map<String, Object> parameters = Map.of("edgeId", edge.id());
-        var result = entityManager.aql(aql, parameters).toList();
-        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).isEmpty());
-    }
-
-    @Test
-    void shouldDeleteEdgeById() {
-        var person1 = entityManager.insert(getEntity());
-        var person2 = entityManager.insert(getEntity());
-        var edge = entityManager.edge(person1, "FRIEND", person2, Map.of("since", 2020));
-        entityManager.deleteEdge(edge.id());
-        String aql = """
-                FOR e IN FRIEND
-                FILTER e._id == @id
-                RETURN e
-                """;
-        Map<String, Object> parameters = Map.of("id", edge.id());
-        var result = entityManager.aql(aql, parameters).toList();
-        SoftAssertions.assertSoftly(softly -> softly.assertThat(result).isEmpty());
-    }
-
-    @Test
-    void shouldFindEdgeById() {
-        var person1 = entityManager.insert(getEntity());
-        var person2 = entityManager.insert(getEntity());
-
-        var edge = entityManager.edge(person1, "FRIEND", person2, Map.of("since", 2020));
-        var edgeId = edge.id();
-        var retrievedEdge = entityManager.findEdgeById(edgeId);
-
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(retrievedEdge).isPresent();
-            softly.assertThat(retrievedEdge.get().label()).isEqualTo("FRIEND");
-            softly.assertThat(retrievedEdge.get().properties()).containsEntry("since", 2020);
-        });
-    }
-
-    @Test
-    void shouldCreateEdgeWithProperties() {
-        var person1 = entityManager.insert(getEntity());
-        var person2 = entityManager.insert(getEntity());
-
-        Map<String, Object> properties = Map.of("since", 2019, "strength", "strong");
-        var edge = entityManager.edge(person1, "FRIEND", person2, properties);
-
-        String aql = """
-                FOR e IN FRIEND
-                FILTER e._id == @edgeId
-                RETURN e
-                """;
-        Map<String, Object> parameters = Map.of("edgeId", edge.id());
-
-        var result = entityManager.aql(aql, parameters).toList();
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(result).isNotEmpty();
-            softly.assertThat(edge.properties()).containsEntry("since", 2019);
-            softly.assertThat(edge.properties()).containsEntry("strength", "strong");
         });
     }
 

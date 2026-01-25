@@ -32,10 +32,16 @@ import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
@@ -104,17 +110,6 @@ public final class ArangoDBUtil {
         }
         String collection = id.split("/")[0];
         return CommunicationEntity.of(collection, documents);
-    }
-
-    static ArangoDBCommunicationEdge toEdge(JsonObject edge, JsonObject from, JsonObject to) {
-        String id = edge.getString(ID);
-        String label = id.split("/")[0];
-        Map<String, Object> properties = edge.entrySet().stream()
-                .filter(e -> !META_FIELDS.contains(e.getKey()))
-                .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), toDocuments(e.getValue())))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        return new ArangoDBCommunicationEdge(id, toEntity(edge), toEntity(from), label, properties);
     }
 
     static JsonObject toJsonObject(CommunicationEntity entity) {

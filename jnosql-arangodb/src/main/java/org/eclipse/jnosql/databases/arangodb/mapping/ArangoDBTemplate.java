@@ -17,7 +17,6 @@ package org.eclipse.jnosql.databases.arangodb.mapping;
 
 
 import org.eclipse.jnosql.mapping.document.DocumentTemplate;
-import org.eclipse.jnosql.mapping.graph.GraphTemplate;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -28,7 +27,7 @@ import java.util.stream.Stream;
  *  This template allows executing AQL queries with named parameters and supports
  * result serialization either through Eclipse JNoSQL or directly via ArangoDB.
  */
-public interface ArangoDBTemplate extends DocumentTemplate, GraphTemplate {
+public interface ArangoDBTemplate extends DocumentTemplate {
 
     /**
      * Executes an ArangoDB query using the ArangoDB Query Language (AQL).

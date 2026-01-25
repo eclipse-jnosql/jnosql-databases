@@ -19,13 +19,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Typed;
 import jakarta.inject.Inject;
-import org.eclipse.jnosql.communication.graph.GraphDatabaseManager;
+import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 import org.eclipse.jnosql.databases.arangodb.communication.ArangoDBDocumentManager;
 import org.eclipse.jnosql.mapping.core.Converters;
-import org.eclipse.jnosql.mapping.graph.AbstractGraphTemplate;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
+import org.eclipse.jnosql.mapping.semistructured.AbstractSemiStructuredTemplate;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
-import org.eclipse.jnosql.mapping.semistructured.EntityConverterFactory;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
 import java.util.Map;
@@ -38,7 +37,7 @@ import static java.util.Objects.requireNonNull;
  */
 @Typed(ArangoDBTemplate.class)
 @ApplicationScoped
-class DefaultArangoDBTemplate extends AbstractGraphTemplate implements ArangoDBTemplate {
+class DefaultArangoDBTemplate extends AbstractSemiStructuredTemplate implements ArangoDBTemplate {
 
     private final Instance<ArangoDBDocumentManager> manager;
 
@@ -52,12 +51,12 @@ class DefaultArangoDBTemplate extends AbstractGraphTemplate implements ArangoDBT
 
     @Inject
     DefaultArangoDBTemplate(Instance<ArangoDBDocumentManager> manager,
-                            EntityConverterFactory converter,
+                            EntityConverter converter,
                             EventPersistManager eventManager,
                             EntitiesMetadata entities,
                             Converters converters) {
         this.manager = manager;
-        this.converter = converter.create(manager.get());
+        this.converter = converter;
         this.eventManager = eventManager;
         this.entities = entities;
         this.converters = converters;
@@ -73,7 +72,7 @@ class DefaultArangoDBTemplate extends AbstractGraphTemplate implements ArangoDBT
     }
 
     @Override
-    protected GraphDatabaseManager manager() {
+    protected DatabaseManager manager() {
         return manager.get();
     }
 
@@ -91,7 +90,6 @@ class DefaultArangoDBTemplate extends AbstractGraphTemplate implements ArangoDBT
     protected Converters converters() {
         return converters;
     }
-
 
     @Override
     public <T> Stream<T> aql(String query, Map<String, Object> params) {

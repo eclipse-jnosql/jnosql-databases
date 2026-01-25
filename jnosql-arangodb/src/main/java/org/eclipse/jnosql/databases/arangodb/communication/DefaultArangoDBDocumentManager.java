@@ -21,7 +21,6 @@ import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.DocumentCreateEntity;
 import com.arangodb.entity.DocumentUpdateEntity;
 import jakarta.json.JsonObject;
-import org.eclipse.jnosql.communication.graph.CommunicationEdge;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
@@ -29,7 +28,6 @@ import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,11 +53,6 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
 
     DefaultArangoDBDocumentManager(String database, ArangoDB arangoDB) {
         db = arangoDB.db(database);
-    }
-
-    @Override
-    public Optional<String> defaultIdFieldName() {
-        return Optional.of(KEY);
     }
 
     @Override
@@ -219,120 +212,6 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
         entity.add(Element.of(KEY, key));
         entity.add(Element.of(ID, id));
         entity.add(Element.of(REV, rev));
-    }
-
-    @Override
-    public CommunicationEdge edge(CommunicationEntity source, String label, CommunicationEntity target, Map<String, Object> properties) {
-        requireNonNull(source, "Source entity is required");
-        requireNonNull(target, "Target entity is required");
-        requireNonNull(label, "Relationship type is required");
-        requireNonNull(properties, "Properties map is required");
-
-        checkCollection(source.name());
-        checkCollection(target.name());
-        checkEdgeCollection(label);
-
-        source = ensureEntityExists(source);
-        target = ensureEntityExists(target);
-
-        CommunicationEntity entity = CommunicationEntity.of(label);
-        entity.add(FROM, extractId(source).orElseThrow());
-        entity.add(TO, extractId(target).orElseThrow());
-        properties.forEach(entity::add);
-
-        JsonObject jsonObject = ArangoDBUtil.toJsonObject(entity);
-        String id = db.collection(label).insertDocument(jsonObject).getId();
-        return new ArangoDBCommunicationEdge(id, source, target, label, properties);
-    }
-
-    private CommunicationEntity ensureEntityExists(CommunicationEntity entity) {
-        return extractKey(entity)
-                .filter(key -> db.collection(entity.name()).documentExists(key))
-                .map(id -> entity)
-                .orElseGet(() -> insert(entity));
-    }
-
-    @Override
-    public void remove(CommunicationEntity source, String label, CommunicationEntity target) {
-        Objects.requireNonNull(source, "Source entity is required");
-        Objects.requireNonNull(target, "Target entity is required");
-        Objects.requireNonNull(label, "Relationship type is required");
-
-        String sourceId = extractId(source).orElseThrow();
-        String targetId = extractId(target).orElseThrow();
-
-        db.query("""
-                FOR e IN @@collection
-                FILTER e._from == @source AND e._to == @target
-                REMOVE e IN @@collection
-                """, Void.class, Map.of(
-                "@collection", label,
-                "source", sourceId,
-                "target", targetId
-        ));
-    }
-
-    @Override
-    public <K> void deleteEdge(K id) {
-        if (!(id instanceof String idString)) {
-            throw new IllegalArgumentException("The id must be a String");
-        }
-        var elements = idString.split("/");
-        if (elements.length != 2) {
-            throw new IllegalArgumentException("The id must be in the format collection/key");
-        }
-        String collection = elements[0];
-        String key = elements[1];
-        String query = """
-                FOR e IN @@collection
-                FILTER e._key == @key
-                REMOVE e IN @@collection
-                """;
-        var bindVars = Map.of(
-                "@collection", collection,
-                "key", key);
-        db.query(query, Void.class, bindVars);
-    }
-
-    @Override
-    public <K> Optional<CommunicationEdge> findEdgeById(K id) {
-        if (!(id instanceof String idString)) {
-            throw new IllegalArgumentException("The id must be a String");
-        }
-        var elements = idString.split("/");
-        if (elements.length != 2) {
-            throw new IllegalArgumentException("The id must be in the format collection/key");
-        }
-        String collection = elements[0];
-        String key = elements[1];
-        String query = """
-                FOR e IN @@collection
-                FILTER e._key == @key
-                RETURN {
-                  edge: e,
-                  source: DOCUMENT(e._from),
-                  target: DOCUMENT(e._to)
-                }
-                """;
-        var bindVars = Map.of(
-                "@collection", collection,
-                "key", key);
-        return db.query(query, JsonObject.class, bindVars)
-                .stream()
-                .findFirst()
-                .map(it-> ArangoDBUtil.toEdge(
-                        it.getJsonObject("edge"),
-                        it.getJsonObject("source"),
-                        it.getJsonObject("target")));
-    }
-
-    private Optional<String> extractId(CommunicationEntity entity) {
-        Objects.requireNonNull(entity, "entity is required");
-        Objects.requireNonNull(entity.name(), "entity name is required");
-        if (entity.name().isEmpty()) {
-            throw new IllegalArgumentException("entity name cannot be empty");
-        }
-        return extractKey(entity).map(key -> entity.name() + "/" + key);
     }
 
     private Optional<String> extractKey(CommunicationEntity entity) {
