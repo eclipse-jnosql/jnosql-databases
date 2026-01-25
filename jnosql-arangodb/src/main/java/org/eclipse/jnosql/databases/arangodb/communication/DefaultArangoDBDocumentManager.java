@@ -227,7 +227,8 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
         entity.add(Element.of(REV, rev));
     }
 
-    ArangoDB getArangoDB() {
+    @Override
+    public ArangoDB getArangoDB() {
         return arangoDB;
     }
 
