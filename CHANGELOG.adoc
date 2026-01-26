@@ -11,6 +11,15 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 === Added
 
 - Include Auth Token support for CouchDB
+- Add update method to MongoDB Document Manager accepting UpdateQuery argument for document updates
+- Add updateDocument method to MongoDB Document Manager for optimized update operations
+- Add update method to Cassandra Column Manager accepting UpdateQuery argument for entity updates
+- Add update method to Couchbase Document Manager accepting UpdateQuery argument using N1QL UPDATE queries
+- Add N1QL update query builder (N1QLUpdateQueryBuilder) for Couchbase
+- Add update query builder for Neo4J database operations
+- Add update method to Neo4J Database Manager accepting UpdateQuery argument
+- Add update method to QueryAQLConverter accepting UpdateQuery argument for ArangoDB
+- Add update method to ArangoDB Document Manager accepting UpdateQuery argument
 
 === Changed
 

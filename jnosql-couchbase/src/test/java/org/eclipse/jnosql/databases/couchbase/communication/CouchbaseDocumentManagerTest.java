@@ -22,10 +22,12 @@ import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.keyvalue.BucketManager;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
+import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,6 +87,7 @@ public class CouchbaseDocumentManagerTest {
         try {
             keyValueEntityManagerForPerson.delete("id");
             keyValueEntityManagerForPerson.delete("id2");
+            keyValueEntityManagerForPerson.delete("id3");
         } catch (DocumentNotFoundException exp) {
             //IGNORE
         }
@@ -96,23 +100,22 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-   void shouldInsert() {
+    void shouldInsert() {
         CommunicationEntity entity = getEntity();
         CommunicationEntity documentEntity = entityManager.insert(entity);
         assertEquals(entity, documentEntity);
     }
 
     @Test
-   void shouldInsertWithKey() {
+    void shouldInsertWithKey() {
         CommunicationEntity entity = getEntity();
         entity.add("_key", "anyvalue");
         CommunicationEntity documentEntity = entityManager.insert(entity);
         assertEquals(entity, documentEntity);
     }
 
-
     @Test
-   void shouldUpdate() {
+    void shouldUpdate() {
         CommunicationEntity entity = getEntity();
         CommunicationEntity documentEntity = entityManager.insert(entity);
         Element newField = Elements.of("newField", "10");
@@ -122,7 +125,57 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-   void shouldRemoveEntityByName() throws InterruptedException {
+    void shouldUpdateQuery() {
+        List<CommunicationEntity> persistedEntities =
+                StreamSupport.stream(entityManager.insert(getEntities()).spliterator(), false)
+                        .toList();
+
+        await().until(() ->
+                entityManager
+                        .count(COLLECTION_PERSON_NAME) >=3
+        );
+
+        CommunicationEntity entity = persistedEntities.stream().findFirst().orElseThrow();
+
+        Element id = entity.find("_id").get();
+
+        Iterable<CommunicationEntity> updatedEntities = entityManager.update(
+                new UpdateQuery() {
+                    @Override
+                    public String name() {
+                        return COLLECTION_PERSON_NAME;
+                    }
+
+                    @Override
+                    public List<Element> set() {
+                        return List.of(Elements.of("newField", "10"));
+                    }
+
+                    @Override
+                    public Optional<CriteriaCondition> condition() {
+                        return Optional.of(CriteriaCondition.eq(id));
+                    }
+
+                    @Override
+                    public SelectQuery toSelectQuery() {
+                        return new DefaultSelectQuery(0, 0, COLLECTION_PERSON_NAME, List.of(), List.of(), condition().orElseThrow(), false);
+                    }
+                }
+        );
+        StreamSupport.stream(updatedEntities.spliterator(), false)
+                .forEach(e -> {
+                    Optional<Element> updateField = e.find("newField");
+                    assertSoftly(soft -> {
+                        soft.assertThat(updateField).isPresent();
+                        soft.assertThat(updateField).get().extracting(Element::name).isEqualTo("newField");
+                        soft.assertThat(updateField).get().extracting(Element::get).isEqualTo("10");
+                    });
+                });
+    }
+
+
+    @Test
+    void shouldRemoveEntityByName() throws InterruptedException {
         CommunicationEntity documentEntity = entityManager.insert(getEntity());
         Thread.sleep(1_000L);
         Element name = documentEntity.find("name").get();
@@ -135,7 +188,7 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-   void shouldSaveSubDocument() {
+    void shouldSaveSubDocument() {
         CommunicationEntity entity = getEntity();
         entity.add(Element.of("phones", Element.of("mobile", "1231231")));
         CommunicationEntity entitySaved = entityManager.insert(entity);
@@ -149,7 +202,7 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-   void shouldSaveSubDocument2() throws InterruptedException {
+    void shouldSaveSubDocument2() throws InterruptedException {
         CommunicationEntity entity = getEntity();
         entity.add(Element.of("phones", asList(Element.of("mobile", "1231231"), Element.of("mobile2", "1231231"))));
         CommunicationEntity entitySaved = entityManager.insert(entity);
@@ -165,7 +218,7 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-   void shouldSaveSetDocument() throws InterruptedException {
+    void shouldSaveSetDocument() throws InterruptedException {
         Set<String> set = new HashSet<>();
         set.add("Acarajé");
         set.add("Munguzá");
@@ -184,14 +237,14 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-   void shouldConvertFromListDocumentList() {
+    void shouldConvertFromListDocumentList() {
         CommunicationEntity entity = createSubdocumentList();
         entityManager.insert(entity);
 
     }
 
     @Test
-   void shouldRetrieveListDocumentList() {
+    void shouldRetrieveListDocumentList() {
         CommunicationEntity entity = entityManager.insert(createSubdocumentList());
         Element key = entity.find("_id").get();
         var query = select().from(COLLECTION_APP_NAME).where(key.name()).eq(key.get()).build();
@@ -221,12 +274,12 @@ public class CouchbaseDocumentManagerTest {
             softly.assertThat(entityManager.count(query))
                     .isEqualTo(1L);
 
-            softly.assertThatThrownBy(()->
-                    entityManager.count((String) null))
+            softly.assertThatThrownBy(() ->
+                            entityManager.count((String) null))
                     .isInstanceOf(NullPointerException.class);
 
-            softly.assertThatThrownBy(()->
-                    entityManager.count((SelectQuery) null))
+            softly.assertThatThrownBy(() ->
+                            entityManager.count((SelectQuery) null))
                     .isInstanceOf(NullPointerException.class);
 
         });
@@ -298,7 +351,7 @@ public class CouchbaseDocumentManagerTest {
 
 
     @Test
-   void shouldRunN1Ql() {
+    void shouldRunN1Ql() {
         CommunicationEntity entity = getEntity();
         entityManager.insert(entity);
         await().until(() ->
@@ -308,7 +361,7 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-   void shouldRunN1QlParameters() {
+    void shouldRunN1QlParameters() {
         CommunicationEntity entity = getEntity();
         entityManager.insert(entity);
 
@@ -321,7 +374,7 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-   void shouldCreateLimitOrderQuery(){
+    void shouldCreateLimitOrderQuery() {
         CommunicationEntity entity = getEntity();
         entity.add("_id", "id2");
         entityManager.insert(entity);
@@ -338,7 +391,7 @@ public class CouchbaseDocumentManagerTest {
 
     @Test
     void shouldInsertNull() {
-        CommunicationEntity entity =getEntity();
+        CommunicationEntity entity = getEntity();
         entity.add(Element.of("name", null));
         CommunicationEntity documentEntity = entityManager.insert(entity);
         Optional<Element> name = documentEntity.find("name");
@@ -350,7 +403,7 @@ public class CouchbaseDocumentManagerTest {
     }
 
     @Test
-    void shouldUpdateNull(){
+    void shouldUpdateNull() {
         var entity = entityManager.insert(getEntity());
         entity.add(Element.of("name", null));
         var documentEntity = entityManager.update(entity);
@@ -373,5 +426,37 @@ public class CouchbaseDocumentManagerTest {
         documents.forEach(entity::add);
         return entity;
     }
+
+    private List<CommunicationEntity> getEntities() {
+
+        List<CommunicationEntity> entities = new ArrayList<>();
+
+        CommunicationEntity entity1 = CommunicationEntity.of(COLLECTION_PERSON_NAME);
+        Elements.of(Map.of(
+                "name", "Poliana",
+                "city", "Salvador",
+                "_id", "id"
+        )).forEach(entity1::add);
+        entities.add(entity1);
+
+        CommunicationEntity entity2 = CommunicationEntity.of(COLLECTION_PERSON_NAME);
+        Elements.of(Map.of(
+                "name", "Otavio",
+                "city", "Salvador",
+                "_id", "id2"
+        )).forEach(entity2::add);
+        entities.add(entity2);
+
+        CommunicationEntity entity3 = CommunicationEntity.of(COLLECTION_PERSON_NAME);
+        Elements.of(Map.of(
+                "name", "Maximillian",
+                "city", "Sao Paulo",
+                "_id", "id3"
+        )).forEach(entity3::add);
+        entities.add(entity3);
+
+        return entities;
+    }
+
 
 }
