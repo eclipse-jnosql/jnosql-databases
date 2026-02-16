@@ -98,7 +98,7 @@ final class QueryAQLConverter {
 
     public static AQLQueryResult update(UpdateQuery query) throws NullPointerException {
         return convert(query.name(),
-                query.condition().orElse(null),
+                query.where().orElse(null),
                 Collections.emptyList(),
                 0L,
                 0L,
@@ -111,11 +111,11 @@ final class QueryAQLConverter {
             StringBuilder updatePart = new StringBuilder();
             updatePart.append(" UPDATE ").append(alias)
                     .append(" WITH { ");
-            if (query.set() == null || query.set().isEmpty()) {
+            if (query.sets() == null || query.sets().isEmpty()) {
                 throw new IllegalArgumentException("At least one element is required to update");
             }
             String separator = "";
-            for (Element element : query.set()) {
+            for (Element element : query.sets()) {
                 String nameParam = getNameParam(element.name(), params);
                 updatePart.append(separator)
                         .append(element.name())
