@@ -37,9 +37,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 
 @EnableAutoWeld
 @AddPackages({Database.class,
@@ -50,6 +54,7 @@ import java.util.List;
 @AddPackages(Project.class)
 @AddPackages(Reflections.class)
 @AddPackages(Converters.class)
+@EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 @AddExtensions({ReflectionEntityMetadataExtension.class, DocumentExtension.class, DynamoDBExtension.class})
 public class InheritanceWithDifferentRepositoriesTest {
 

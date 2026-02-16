@@ -36,10 +36,14 @@ import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 
 @EnableAutoWeld
 @AddPackages({Database.class,
@@ -51,6 +55,7 @@ import java.util.stream.Stream;
 @AddPackages(Reflections.class)
 @AddPackages(Converters.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class, DocumentExtension.class, DynamoDBExtension.class})
+@EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class InheritanceWithCustomRepositoryTest {
 
     static {
