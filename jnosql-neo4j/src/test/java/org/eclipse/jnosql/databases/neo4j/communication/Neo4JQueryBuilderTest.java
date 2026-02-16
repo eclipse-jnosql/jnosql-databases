@@ -104,8 +104,8 @@ class Neo4JQueryBuilderTest {
         when(element.name()).thenReturn("age");
         when(element.get()).thenReturn(30);
         when(condition.condition()).thenReturn(org.eclipse.jnosql.communication.Condition.EQUALS);
-        when(query.condition()).thenReturn(java.util.Optional.of(condition));
-        when(query.set()).then(inv->List.of(
+        when(query.where()).thenReturn(java.util.Optional.of(condition));
+        when(query.sets()).then(inv->List.of(
                 Element.of("name", "John"),
                 Element.of("surname", "Doe")
         ));
