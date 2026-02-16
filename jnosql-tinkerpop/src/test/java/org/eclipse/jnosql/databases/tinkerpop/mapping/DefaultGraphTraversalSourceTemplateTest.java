@@ -27,6 +27,9 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, Transactional.class})
@@ -35,10 +38,12 @@ import org.jboss.weld.junit5.auto.EnableAutoWeld;
 abstract class DefaultGraphTraversalSourceTemplateTest extends AbstractTinkerpopTemplateTest {
 
     @AddPackages(ArangoDBGraphProducer.class)
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class ArangoDBTest extends DefaultGraphTraversalSourceTemplateTest {
     }
 
     @AddPackages(Neo4jGraphProducer.class)
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class Neo4jTest extends DefaultGraphTraversalSourceTemplateTest {
     }
 
