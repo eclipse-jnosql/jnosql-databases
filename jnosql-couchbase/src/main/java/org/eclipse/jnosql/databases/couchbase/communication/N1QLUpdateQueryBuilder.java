@@ -32,9 +32,10 @@ record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) 
 
     N1QLUpdateQueryBuilder{
         Objects.requireNonNull(query.name(), "documentCollection is required");
-        Objects.requireNonNull(query.set(), "set operations are required");
-        if (query.set().isEmpty())
+        Objects.requireNonNull(query.sets(), "set operations are required");
+        if (query.sets().isEmpty()){
             throw new IllegalArgumentException("UpdateQuery must have at least one set operation");
+        }
         Objects.requireNonNull(database, "database is required");
         Objects.requireNonNull(scope, "scope is required");
     }
