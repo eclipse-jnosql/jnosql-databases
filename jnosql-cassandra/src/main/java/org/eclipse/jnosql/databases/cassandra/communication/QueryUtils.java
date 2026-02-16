@@ -105,7 +105,7 @@ final class QueryUtils {
             updateStart = updateStart.usingTtl((int) duration.getSeconds());
         }
 
-        updateQuery.set()
+        updateQuery.sets()
                 .forEach(c -> {
                     if (UDT.class.isInstance(c)) {
                         insertUDT(UDT.class.cast(c), keyspace, updateQuery.name(), session, valueConsumer);
@@ -115,7 +115,7 @@ final class QueryUtils {
                 });
 
         return updateStart.set(assignments)
-                .where(Relations.createClause(updateQuery.condition().orElse(null)));
+                .where(Relations.createClause(updateQuery.where().orElse(null)));
     }
 
     public static Select select(SelectQuery query, String keyspace) {
