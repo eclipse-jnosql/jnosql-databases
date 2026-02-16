@@ -52,7 +52,7 @@ record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) 
                 .append(" AS ").append(alias);
 
         n1ql.append(" SET ");
-        String updates = query.set().stream()
+        String updates = query.sets().stream()
                 .map(element -> {
                     ThreadLocalRandom random = ThreadLocalRandom.current();
                     String name =  identifierOf(alias, element.name());
@@ -66,7 +66,7 @@ record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) 
 
         n1ql.append(" WHERE ");
 
-        condition(query.condition().orElseThrow(() -> new IllegalArgumentException("UpdateQuery must have a condition")),
+        condition(query.where().orElseThrow(() -> new IllegalArgumentException("UpdateQuery must have a condition")),
                 alias, n1ql, params);
 
         n1ql.append(" RETURNING ").append(alias).append(".*");
