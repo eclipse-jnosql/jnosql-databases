@@ -32,11 +32,14 @@ import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.apache.tinkerpop.gremlin.structure.Transaction.Status.COMMIT;
 import static org.apache.tinkerpop.gremlin.structure.Transaction.Status.ROLLBACK;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,10 +52,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 abstract class MagazineTemplateTest {
 
     @AddPackages(ArangoDBGraphProducer.class)
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class ArangoDBTest extends MagazineTemplateTest {
     }
 
     @AddPackages(Neo4jGraphProducer.class)
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class Neo4jTest extends MagazineTemplateTest {
     }
 

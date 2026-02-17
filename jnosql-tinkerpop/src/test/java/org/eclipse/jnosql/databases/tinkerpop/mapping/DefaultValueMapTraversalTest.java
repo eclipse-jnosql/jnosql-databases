@@ -28,6 +28,7 @@ import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,10 +51,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 abstract class DefaultValueMapTraversalTest extends AbstractTraversalTest {
 
     @AddPackages(ArangoDBGraphProducer.class)
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class ArangoDBTest extends DefaultValueMapTraversalTest {
     }
 
     @AddPackages(Neo4jGraphProducer.class)
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class Neo4jTest extends DefaultValueMapTraversalTest {
     }
 

@@ -48,10 +48,12 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 abstract class PopulationTest {
 
     @AddPackages(ArangoDBGraphProducer.class)
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class ArangoDBTest extends PopulationTest {
     }
 
     @AddPackages(Neo4jGraphProducer.class)
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class Neo4jTest extends PopulationTest {
     }
 
