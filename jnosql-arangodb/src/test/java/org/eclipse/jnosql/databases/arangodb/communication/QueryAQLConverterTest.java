@@ -182,13 +182,13 @@ public class QueryAQLConverterTest {
 
         UpdateQuery query = mock(UpdateQuery.class);
         when(query.name()).thenReturn("collection");
-        when(query.set()).then( i->
+        when(query.sets()).then( i->
                 List.of(
                         Element.of("name", "John"),
                         Element.of("surname", "Doe")
                 )
         );
-        when(query.condition()).thenReturn(Optional.of(
+        when(query.where()).thenReturn(Optional.of(
                         CriteriaCondition.eq(Element.of("id", 1))));
 
 

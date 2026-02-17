@@ -706,11 +706,11 @@ class MongoDBDocumentManagerTest {
                 .stream(entityManager.insert(getEntitiesWithValues()).spliterator(), false)
                 .toList();
 
-        record UpdateCommand(String name, List<Element> set,
+        record UpdateCommand(String name, List<Element> sets,
                              CriteriaCondition criteriaCondition) implements UpdateQuery {
 
             @Override
-            public Optional<CriteriaCondition> condition() {
+            public Optional<CriteriaCondition> where() {
                 return Optional.ofNullable(criteriaCondition());
             }
 

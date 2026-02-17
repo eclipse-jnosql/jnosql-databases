@@ -188,10 +188,10 @@ public class CassandraColumnManagerTest {
                 .stream(entityManager.insert(getEntities()).spliterator(), false)
                 .toList();
 
-        record UpdateCommand(String name, List<Element> set, CriteriaCondition criteriaCondition )implements UpdateQuery {
+        record UpdateCommand(String name, List<Element> sets, CriteriaCondition criteriaCondition )implements UpdateQuery {
 
             @Override
-            public Optional<CriteriaCondition> condition() {
+            public Optional<CriteriaCondition> where() {
                 return Optional.ofNullable(criteriaCondition());
             }
 

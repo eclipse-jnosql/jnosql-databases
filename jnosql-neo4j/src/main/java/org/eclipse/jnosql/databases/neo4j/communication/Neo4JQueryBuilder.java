@@ -91,9 +91,9 @@ enum Neo4JQueryBuilder {
     }
 
     String buildQuery(UpdateQuery query, Map<String, Object> parameters) {
-        StringBuilder cypher = buildCypher(query.name(), query.condition(), parameters);
+        StringBuilder cypher = buildCypher(query.name(), query.where(), parameters);
 
-        List<Element> elements = query.set();
+        List<Element> elements = query.sets();
         if (elements.isEmpty()) {
             throw new CommunicationException("At least one element is required to update");
         }

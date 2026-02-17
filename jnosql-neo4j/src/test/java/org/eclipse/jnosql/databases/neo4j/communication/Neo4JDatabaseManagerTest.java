@@ -154,8 +154,8 @@ class Neo4JDatabaseManagerTest {
 
         final var updateQuery = mock(UpdateQuery.class);
         when(updateQuery.name()).thenReturn(COLLECTION_NAME);
-        when(updateQuery.condition()).thenReturn(Optional.of(CriteriaCondition.gt(Element.of("index", index))));
-        when(updateQuery.set()).then(inv -> List.of(Element.of("city", "Sao Paulo")));
+        when(updateQuery.where()).thenReturn(Optional.of(CriteriaCondition.gt(Element.of("index", index))));
+        when(updateQuery.sets()).then(inv -> List.of(Element.of("city", "Sao Paulo")));
         when(updateQuery.toSelectQuery()).then(inv -> select().from(COLLECTION_NAME).where("index").gt(index).build());
 
         entityManager.update(updateQuery);

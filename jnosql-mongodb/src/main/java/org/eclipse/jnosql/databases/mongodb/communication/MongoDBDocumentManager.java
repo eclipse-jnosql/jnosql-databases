@@ -147,11 +147,11 @@ public class MongoDBDocumentManager implements DatabaseManager {
         Objects.requireNonNull(query, "update query is required");
         String columnName = query.name();
         Objects.requireNonNull(query, "entity name is required");
-        var filter = query.condition()
+        var filter = query.where()
                 .map(DocumentQueryConversor::convert)
                 .orElseGet(BsonDocument::new);
         MongoCollection<Document> collection = mongoDatabase.getCollection(columnName);
-        collection.updateMany(filter, updateDocument(query::set));
+        collection.updateMany(filter, updateDocument(query::sets));
     }
 
     @Override

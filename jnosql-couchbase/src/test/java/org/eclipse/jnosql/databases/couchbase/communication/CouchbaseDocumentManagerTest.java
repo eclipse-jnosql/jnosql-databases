@@ -146,18 +146,19 @@ public class CouchbaseDocumentManagerTest {
             }
 
             @Override
-            public List<Element> set() {
+            public List<Element> sets() {
                 return List.of(Elements.of("newField", "10"));
             }
 
             @Override
-            public Optional<CriteriaCondition> condition() {
+            public Optional<CriteriaCondition> where() {
                 return Optional.of(CriteriaCondition.eq(id));
             }
 
             @Override
             public SelectQuery toSelectQuery() {
-                return new DefaultSelectQuery(0, 0, COLLECTION_PERSON_NAME, List.of(), List.of(), condition().orElseThrow(), false);
+                return new DefaultSelectQuery(0, 0, COLLECTION_PERSON_NAME, List.of(), List.of(), where().orElseThrow(),
+                        false);
             }
         };
         entityManager.update(updateQuery);

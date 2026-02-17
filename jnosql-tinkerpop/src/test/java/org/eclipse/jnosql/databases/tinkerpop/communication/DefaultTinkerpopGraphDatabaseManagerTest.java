@@ -30,6 +30,7 @@ import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -42,6 +43,8 @@ import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 import static org.eclipse.jnosql.databases.tinkerpop.communication.TinkerpopGraphDatabaseManager.ID;
@@ -53,6 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 abstract class DefaultTinkerpopGraphDatabaseManagerTest {
 
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class ArangoDBTest extends DefaultTinkerpopGraphDatabaseManagerTest {
         @Override
         Graph graph() {
@@ -60,6 +64,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         }
     }
 
+    @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
     static class Neo4jTest extends DefaultTinkerpopGraphDatabaseManagerTest {
         @Override
         Graph graph() {
