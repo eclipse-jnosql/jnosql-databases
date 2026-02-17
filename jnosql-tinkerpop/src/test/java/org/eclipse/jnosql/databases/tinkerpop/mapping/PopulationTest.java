@@ -33,13 +33,18 @@ import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.List;
+
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class, GraphTemplate.class})
 @AddPackages(Reflections.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class, TinkerpopExtension.class, GraphExtension.class})
+@EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 abstract class PopulationTest {
 
     @AddPackages(ArangoDBGraphProducer.class)
