@@ -30,7 +30,7 @@
 
     <properties>
         <casandra.driver.version>4.19.2</casandra.driver.version>
-
+        <cassandra.testcontainers.version>1.21.4</cassandra.testcontainers.version>
     </properties>
     <dependencies>
         <dependency>
@@ -55,7 +55,7 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>cassandra</artifactId>
-            <version>${testcontainers.version}</version>
+            <version>${cassandra.testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
