@@ -28,6 +28,7 @@
 
     <properties>
         <neo4j.driver>6.0.3</neo4j.driver>
+        <neo4j.testcontainers.version>1.21.4</neo4j.testcontainers.version>
     </properties>
 
     <dependencies>
@@ -49,7 +50,7 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>neo4j</artifactId>
-            <version>${testcontainers.version}</version>
+            <version>${neo4j.testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
