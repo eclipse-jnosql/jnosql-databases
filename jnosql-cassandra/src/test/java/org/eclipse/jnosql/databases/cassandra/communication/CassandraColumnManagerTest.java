@@ -26,8 +26,8 @@ import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
-import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -563,8 +563,8 @@ public class CassandraColumnManagerTest {
         entityManager.insert(entity);
         SelectQuery query = select().from("agenda").build();
         var result = entityManager.singleResult(query).get();
-        Assert.assertEquals(Element.of("user", "otaviojava"), result.find("user").get());
-        Assert.assertEquals(2, result.size());
+        Assertions.assertEquals(Element.of("user", "otaviojava"), result.find("user").get());
+        Assertions.assertEquals(2, result.size());
         List<List<Element>> names = (List<List<Element>>) result.find("names").get().get();
         assertEquals(3, names.size());
         assertTrue(names.stream().allMatch(n -> n.size() == 2));
