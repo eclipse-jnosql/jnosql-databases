@@ -27,7 +27,7 @@
     <name>JNoSQL Neo4J Driver</name>
 
     <properties>
-        <neo4j.driver>6.0.2</neo4j.driver>
+        <neo4j.driver>6.0.3</neo4j.driver>
     </properties>
 
     <dependencies>
