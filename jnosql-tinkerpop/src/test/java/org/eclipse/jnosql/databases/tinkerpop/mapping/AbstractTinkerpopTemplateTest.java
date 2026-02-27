@@ -43,7 +43,6 @@ import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -51,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public abstract class AbstractTinkerpopTemplateTest {
 
@@ -401,7 +401,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
     @Test
     void shouldGetTransaction() {
-        assumeTrue("transactions not supported", getGraph().features().graph().supportsTransactions());
+        assumeTrue(getGraph().features().graph().supportsTransactions(), "transactions not supported");
         Transaction transaction = getGraphTemplate().transaction();
         assertNotNull(transaction);
     }
