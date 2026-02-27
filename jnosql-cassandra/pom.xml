@@ -30,7 +30,6 @@
 
     <properties>
         <casandra.driver.version>4.19.2</casandra.driver.version>
-        <cassandra.testcontainers.version>1.21.4</cassandra.testcontainers.version>
     </properties>
     <dependencies>
         <dependency>
