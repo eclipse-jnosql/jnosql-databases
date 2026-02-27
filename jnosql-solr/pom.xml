@@ -25,6 +25,7 @@
 
     <artifactId>jnosql-solr</artifactId>
     <name>JNoSQL Apache Solr Driver</name>
+
     <description>The Eclipse JNoSQL layer implementation to Apache Solr</description>
     <dependencies>
         <dependency>
@@ -43,7 +44,7 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>solr</artifactId>
+            <artifactId>testcontainers-solr</artifactId>
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>

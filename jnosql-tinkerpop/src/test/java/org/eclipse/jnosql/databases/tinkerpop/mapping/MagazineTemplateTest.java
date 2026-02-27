@@ -40,10 +40,10 @@ import static org.apache.tinkerpop.gremlin.structure.Transaction.Status.COMMIT;
 import static org.apache.tinkerpop.gremlin.structure.Transaction.Status.ROLLBACK;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.Assume.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
@@ -73,7 +73,7 @@ abstract class MagazineTemplateTest {
 
     @Test
     void shouldSaveWithTransaction() {
-        assumeTrue("transactions not supported", graph.features().graph().supportsTransactions());
+        assumeTrue(graph.features().graph().supportsTransactions(), "transactions not supported");
 
         AtomicReference<Status> status = new AtomicReference<>();
 
@@ -87,7 +87,7 @@ abstract class MagazineTemplateTest {
 
     @Test
     void shouldSaveWithRollback() {
-        assumeTrue("transactions not supported", graph.features().graph().supportsTransactions());
+        assumeTrue(graph.features().graph().supportsTransactions(), "transactions not supported");
 
         AtomicReference<Status> status = new AtomicReference<>();
 
@@ -107,7 +107,7 @@ abstract class MagazineTemplateTest {
 
     @Test
     void shouldUseAutomaticNormalTransaction() {
-        assumeTrue("transactions not supported", graph.features().graph().supportsTransactions());
+        assumeTrue(graph.features().graph().supportsTransactions(), "transactions not supported");
 
         AtomicReference<Status> status = new AtomicReference<>();
 
