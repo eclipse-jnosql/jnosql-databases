@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Contributors to the Eclipse Foundation
+ *  Copyright (c) 2022, 2026 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
  *   are made available under the terms of the Eclipse Public License v1.0
  *   and Apache License v2.0 which accompanies this distribution.
@@ -11,6 +11,7 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.solr.mapping;
 
@@ -28,6 +29,8 @@ import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
@@ -39,7 +42,7 @@ import static java.util.Objects.requireNonNull;
 @ApplicationScoped
 class DefaultSolrTemplate extends AbstractSemiStructuredTemplate implements SolrTemplate {
 
-    private final Instance<SolrDocumentManager> manager;
+    private final Supplier<SolrDocumentManager> manager;
 
     private final EntityConverter converter;
 
@@ -55,15 +58,31 @@ class DefaultSolrTemplate extends AbstractSemiStructuredTemplate implements Solr
                         EventPersistManager persistManager,
                         EntitiesMetadata entities,
                         Converters converters) {
-        this.manager = manager;
-        this.converter = converter;
-       this.persistManager = persistManager;
-        this.entities = entities;
-        this.converters = converters;
+        this.manager = Objects.requireNonNull(manager, "manager is required")::get;
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.persistManager = Objects.requireNonNull(persistManager, "persistManager is required");
+        this.entities = Objects.requireNonNull(entities, "entities is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
+    }
+
+    DefaultSolrTemplate(Supplier<SolrDocumentManager> manager,
+                        EntityConverter converter,
+                        EventPersistManager persistManager,
+                        EntitiesMetadata entities,
+                        Converters converters) {
+        this.manager = Objects.requireNonNull(manager, "manager is required");
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.persistManager = Objects.requireNonNull(persistManager, "persistManager is required");
+        this.entities = Objects.requireNonNull(entities, "entities is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
     }
 
     DefaultSolrTemplate() {
-        this(null, null, null, null, null);
+        this.manager = null;
+        this.converter = null;
+        this.persistManager = null;
+        this.entities = null;
+        this.converters = null;
     }
 
     @Override

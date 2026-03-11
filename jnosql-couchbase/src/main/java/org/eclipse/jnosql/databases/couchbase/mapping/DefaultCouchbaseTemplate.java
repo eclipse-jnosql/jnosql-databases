@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Contributors to the Eclipse Foundation
+ *  Copyright (c) 2022, 2026 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
  *   are made available under the terms of the Eclipse Public License v1.0
  *   and Apache License v2.0 which accompanies this distribution.
@@ -11,6 +11,7 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.couchbase.mapping;
 
@@ -28,6 +29,8 @@ import org.eclipse.jnosql.mapping.semistructured.AbstractSemiStructuredTemplate;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
+import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -40,7 +43,7 @@ import static java.util.Objects.requireNonNull;
 class DefaultCouchbaseTemplate extends AbstractSemiStructuredTemplate
         implements CouchbaseTemplate {
 
-    private final Instance<CouchbaseDocumentManager> manager;
+    private final Supplier<CouchbaseDocumentManager> manager;
 
     private final EntityConverter converter;
 
@@ -57,15 +60,31 @@ class DefaultCouchbaseTemplate extends AbstractSemiStructuredTemplate
                              EventPersistManager persistManager,
                              EntitiesMetadata entities,
                              Converters converters) {
-        this.manager = manager;
-        this.converter = converter;
-        this.persistManager = persistManager;
-        this.entities = entities;
-        this.converters = converters;
+        this.manager = Objects.requireNonNull(manager, "manager is required")::get;
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.persistManager = Objects.requireNonNull(persistManager, "persistManager is required");
+        this.entities = Objects.requireNonNull(entities, "entities is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
+    }
+
+    DefaultCouchbaseTemplate(Supplier<CouchbaseDocumentManager> manager,
+                             EntityConverter converter,
+                             EventPersistManager persistManager,
+                             EntitiesMetadata entities,
+                             Converters converters) {
+        this.manager = Objects.requireNonNull(manager, "manager is required");
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.persistManager = Objects.requireNonNull(persistManager, "persistManager is required");
+        this.entities = Objects.requireNonNull(entities, "entities is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
     }
 
     DefaultCouchbaseTemplate() {
-        this(null, null, null, null, null);
+        this.manager = null;
+        this.converter = null;
+        this.persistManager = null;
+        this.entities = null;
+        this.converters = null;
     }
 
     @Override

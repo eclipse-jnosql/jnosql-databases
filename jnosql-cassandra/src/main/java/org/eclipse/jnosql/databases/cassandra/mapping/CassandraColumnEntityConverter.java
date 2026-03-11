@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Contributors to the Eclipse Foundation
+ *  Copyright (c) 2022, 2026 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
  *   are made available under the terms of the Eclipse Public License v1.0
  *   and Apache License v2.0 which accompanies this distribution.
@@ -11,6 +11,7 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.cassandra.mapping;
 
@@ -30,6 +31,7 @@ import org.eclipse.jnosql.mapping.semistructured.ProjectorConverter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
@@ -38,14 +40,24 @@ import java.util.stream.StreamSupport;
 @Typed(CassandraColumnEntityConverter.class)
 class CassandraColumnEntityConverter extends EntityConverter {
 
-    @Inject
-    private EntitiesMetadata entities;
+    private final EntitiesMetadata entities;
+
+    private final Converters converters;
+
+    private final ProjectorConverter projectorConverter;
 
     @Inject
-    private Converters converters;
+    CassandraColumnEntityConverter(EntitiesMetadata entities, Converters converters, ProjectorConverter projectorConverter) {
+        this.entities = Objects.requireNonNull(entities, "entities is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
+        this.projectorConverter = Objects.requireNonNull(projectorConverter, "projectorConverter is required");
+    }
 
-    @Inject
-    private ProjectorConverter projectorConverter;
+    CassandraColumnEntityConverter() {
+        this.entities = null;
+        this.converters = null;
+        this.projectorConverter = null;
+    }
 
 
     @Override
