@@ -30,6 +30,7 @@
 
     <properties>
         <casandra.driver.version>4.19.2</casandra.driver.version>
+        <jackson-annotations.version>2.21</jackson-annotations.version>
     </properties>
     <dependencies>
         <dependency>
@@ -45,11 +46,22 @@
             <groupId>org.apache.cassandra</groupId>
             <artifactId>java-driver-core</artifactId>
             <version>${casandra.driver.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.cassandra</groupId>
             <artifactId>java-driver-query-builder</artifactId>
             <version>${casandra.driver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson-annotations.version}</version>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Contributors to the Eclipse Foundation
+ * Copyright (c) 2024, 2026 Contributors to the Eclipse Foundation
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * and Apache License v2.0 which accompanies this distribution.
@@ -27,6 +27,8 @@ import org.eclipse.jnosql.mapping.semistructured.AbstractSemiStructuredTemplate;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
+import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
@@ -35,7 +37,7 @@ import static java.util.Objects.requireNonNull;
 @ApplicationScoped
 class DefaultDynamoDBTemplate extends AbstractSemiStructuredTemplate implements DynamoDBTemplate {
 
-    private final Instance<DynamoDBDatabaseManager> manager;
+    private final Supplier<DynamoDBDatabaseManager> manager;
 
     private final EntityConverter converter;
 
@@ -51,11 +53,23 @@ class DefaultDynamoDBTemplate extends AbstractSemiStructuredTemplate implements 
                             EventPersistManager persistManager,
                             EntitiesMetadata entitiesMetadata,
                             Converters converters) {
-        this.manager = manager;
-        this.converter = converter;
-        this.persistManager = persistManager;
-        this.entitiesMetadata = entitiesMetadata;
-        this.converters = converters;
+        this.manager = Objects.requireNonNull(manager, "manager is required")::get;
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.persistManager = Objects.requireNonNull(persistManager, "persistManager is required");
+        this.entitiesMetadata = Objects.requireNonNull(entitiesMetadata, "entitiesMetadata is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
+    }
+
+    DefaultDynamoDBTemplate(Supplier<DynamoDBDatabaseManager> manager,
+                            EntityConverter converter,
+                            EventPersistManager persistManager,
+                            EntitiesMetadata entitiesMetadata,
+                            Converters converters) {
+        this.manager = Objects.requireNonNull(manager, "manager is required");
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.persistManager = Objects.requireNonNull(persistManager, "persistManager is required");
+        this.entitiesMetadata = Objects.requireNonNull(entitiesMetadata, "entitiesMetadata is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
     }
 
     /**
@@ -63,7 +77,11 @@ class DefaultDynamoDBTemplate extends AbstractSemiStructuredTemplate implements 
      * Don't use it
      */
     DefaultDynamoDBTemplate() {
-        this(null, null, null, null, null);
+        this.manager = null;
+        this.converter = null;
+        this.persistManager = null;
+        this.entitiesMetadata = null;
+        this.converters = null;
     }
 
     @Override

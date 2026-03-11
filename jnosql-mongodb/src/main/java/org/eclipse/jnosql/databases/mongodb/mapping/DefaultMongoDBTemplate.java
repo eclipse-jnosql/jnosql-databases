@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Contributors to the Eclipse Foundation
+ *  Copyright (c) 2022, 2026 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
  *   are made available under the terms of the Eclipse Public License v1.0
  *   and Apache License v2.0 which accompanies this distribution.
@@ -11,6 +11,7 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.mongodb.mapping;
 
@@ -32,6 +33,7 @@ import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 
@@ -39,15 +41,15 @@ import java.util.stream.Stream;
 @Typed(MongoDBTemplate.class)
 class DefaultMongoDBTemplate extends AbstractSemiStructuredTemplate implements MongoDBTemplate {
 
-    private Instance<MongoDBDocumentManager> manager;
+    private final Supplier<MongoDBDocumentManager> manager;
 
-    private EntityConverter converter;
+    private final EntityConverter converter;
 
-    private EntitiesMetadata entities;
+    private final EntitiesMetadata entities;
 
-    private Converters converters;
+    private final Converters converters;
 
-    private EventPersistManager persistManager;
+    private final EventPersistManager persistManager;
 
 
     @Inject
@@ -56,16 +58,33 @@ class DefaultMongoDBTemplate extends AbstractSemiStructuredTemplate implements M
                            EntitiesMetadata entities,
                            Converters converters,
                            EventPersistManager persistManager) {
-        this.manager = manager;
-        this.converter = converter;
-        this.entities = entities;
-        this.converters = converters;
-        this.persistManager = persistManager;
+        this.manager = Objects.requireNonNull(manager, "manager is required")::get;
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.entities = Objects.requireNonNull(entities, "entities is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
+        this.persistManager = Objects.requireNonNull(persistManager, "persistManager is required");
+    }
+
+    DefaultMongoDBTemplate(Supplier<MongoDBDocumentManager> manager,
+                           EntityConverter converter,
+                           EntitiesMetadata entities,
+                           Converters converters,
+                           EventPersistManager persistManager) {
+        this.manager = Objects.requireNonNull(manager, "manager is required");
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.entities = Objects.requireNonNull(entities, "entities is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
+        this.persistManager = Objects.requireNonNull(persistManager, "persistManager is required");
     }
 
     DefaultMongoDBTemplate() {
-        this(null, null, null, null, null);
+        this.manager = null;
+        this.converter = null;
+        this.entities = null;
+        this.converters = null;
+        this.persistManager = null;
     }
+
     @Override
     protected EntityConverter converter() {
         return converter;

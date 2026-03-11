@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Contributors to the Eclipse Foundation
+ *  Copyright (c) 2022, 2026 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
  *   are made available under the terms of the Eclipse Public License v1.0
  *   and Apache License v2.0 which accompanies this distribution.
@@ -11,6 +11,7 @@
  *   Contributors:
  *
  *   Otavio Santana
+ *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.elasticsearch.mapping;
 
@@ -30,6 +31,7 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -41,7 +43,7 @@ import java.util.stream.Stream;
 class DefaultElasticsearchTemplate extends AbstractSemiStructuredTemplate
         implements ElasticsearchTemplate {
 
-    private final Instance<ElasticsearchDocumentManager> manager;
+    private final Supplier<ElasticsearchDocumentManager> manager;
 
     private final EntityConverter converter;
 
@@ -57,15 +59,31 @@ class DefaultElasticsearchTemplate extends AbstractSemiStructuredTemplate
                             EventPersistManager eventManager,
                             EntitiesMetadata entities,
                             Converters converters) {
-        this.manager = manager;
-        this.converter = converter;
-        this.eventManager = eventManager;
-        this.entities = entities;
-        this.converters = converters;
+        this.manager = Objects.requireNonNull(manager, "manager is required")::get;
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.eventManager = Objects.requireNonNull(eventManager, "eventManager is required");
+        this.entities = Objects.requireNonNull(entities, "entities is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
+    }
+
+    DefaultElasticsearchTemplate(Supplier<ElasticsearchDocumentManager> manager,
+                            EntityConverter converter,
+                            EventPersistManager eventManager,
+                            EntitiesMetadata entities,
+                            Converters converters) {
+        this.manager = Objects.requireNonNull(manager, "manager is required");
+        this.converter = Objects.requireNonNull(converter, "converter is required");
+        this.eventManager = Objects.requireNonNull(eventManager, "eventManager is required");
+        this.entities = Objects.requireNonNull(entities, "entities is required");
+        this.converters = Objects.requireNonNull(converters, "converters is required");
     }
 
     DefaultElasticsearchTemplate() {
-        this(null, null, null, null, null);
+        this.manager = null;
+        this.converter = null;
+        this.eventManager = null;
+        this.entities = null;
+        this.converters = null;
     }
 
     @Override
