@@ -16,6 +16,7 @@
 package org.eclipse.jnosql.databases.mongodb.integration;
 
 import jakarta.inject.Inject;
+import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.databases.mongodb.communication.MongoDBDocumentConfigurations;
 import org.eclipse.jnosql.databases.mongodb.mapping.MongoDBTemplate;
 import org.eclipse.jnosql.mapping.Database;
@@ -30,10 +31,13 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.List;
+import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,7 +54,7 @@ import static org.eclipse.jnosql.databases.mongodb.communication.DocumentDatabas
 @AddPackages(Converters.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class,
         DocumentExtension.class})
-@EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
+//@EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class RepositoryIntegrationTest {
 
     static {
@@ -61,16 +65,19 @@ class RepositoryIntegrationTest {
 
     @Inject
     @Database(DatabaseType.DOCUMENT)
-    MagazineRepository repository;
+    private MagazineRepository repository;
 
 
     @Inject
     @Database(DatabaseType.DOCUMENT)
-    BookStore bookStore;
+    private BookStore bookStore;
 
     @Inject
     @Database(DatabaseType.DOCUMENT)
-    AsciiCharacters characters;
+    private AsciiCharacters characters;
+
+    @Inject
+    private MachineRepository machineRepository;
 
     @Test
     void shouldSave() {
@@ -175,5 +182,35 @@ class RepositoryIntegrationTest {
                 .isNotNull()
                 .as("Should return the characters 'A', 'B', 'C', 'D', 'F', and 'O'")
                 .contains('A', 'B', 'C', 'D', 'F', 'O'));
+    }
+
+    @Nested
+    @DisplayName("When saving an entity with UUID as id")
+    class WhenSavingUUID {
+
+        @Test
+        @DisplayName("Then should save")
+        void shouldSave() {
+            UUID id = randomUUID();
+            Machine machine = machineRepository.save(new Machine(id, "Machine 1", 2019));
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(machine).isNotNull();
+                softly.assertThat(machine.id()).isNotNull();
+            });
+        }
+
+        @Test
+        @DisplayName("Then should find by id")
+        void shouldFindById() {
+            UUID id = randomUUID();
+            machineRepository.save(new Machine(id, "Machine 1", 2019));
+            Machine found = machineRepository.findById(id).orElseThrow();
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(found).isNotNull();
+                softly.assertThat(found.id()).isNotNull();
+            });
+        }
+
     }
 }
