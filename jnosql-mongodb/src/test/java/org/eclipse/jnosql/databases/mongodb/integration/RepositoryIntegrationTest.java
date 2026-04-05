@@ -54,7 +54,7 @@ import static org.eclipse.jnosql.databases.mongodb.communication.DocumentDatabas
 @AddPackages(Converters.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class,
         DocumentExtension.class})
-//@EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
+@EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class RepositoryIntegrationTest {
 
     static {
