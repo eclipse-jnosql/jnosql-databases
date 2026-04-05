@@ -61,16 +61,18 @@ class RepositoryIntegrationTest {
 
     @Inject
     @Database(DatabaseType.DOCUMENT)
-    MagazineRepository repository;
+    private MagazineRepository repository;
 
 
     @Inject
     @Database(DatabaseType.DOCUMENT)
-    BookStore bookStore;
+    private BookStore bookStore;
 
     @Inject
     @Database(DatabaseType.DOCUMENT)
-    AsciiCharacters characters;
+    private AsciiCharacters characters;
+
+
 
     @Test
     void shouldSave() {
