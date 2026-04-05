@@ -72,7 +72,7 @@ class CustomRepositoryIntegrationTest {
 
     @Inject
     @Database(DatabaseType.DOCUMENT)
-    MagazineCustomRepository magazineCustomRepository;
+    private MagazineCustomRepository magazineCustomRepository;
 
 
     @BeforeEach
