@@ -7,10 +7,6 @@
  *   and the Apache License v2.0 is available at http://www.opensource.org/licenses/apache2.0.php.
  *
  *   You may elect to redistribute this code under either of these licenses.
- *
- *   Contributors:
- *
- *   Maximillian Arruda
  */
 package org.eclipse.jnosql.databases.mongodb.integration;
 
