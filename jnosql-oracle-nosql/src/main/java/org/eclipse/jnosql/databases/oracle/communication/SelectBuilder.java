@@ -29,7 +29,7 @@ final class SelectBuilder extends AbstractQueryBuilder {
     private final String table;
 
     SelectBuilder(SelectQuery documentQuery, String table) {
-        super(table);
+        super(table, documentQuery.name());
         this.documentQuery = documentQuery;
         this.table = table;
     }
@@ -46,7 +46,7 @@ final class SelectBuilder extends AbstractQueryBuilder {
         entityCondition(query, documentQuery.name());
         this.documentQuery.condition().ifPresent(c -> {
             query.append(" AND ");
-            condition(c, query, params, ids, false);
+            condition(c, query, params, ids, false, hasOnlyIdConditions(c));
         });
 
 
