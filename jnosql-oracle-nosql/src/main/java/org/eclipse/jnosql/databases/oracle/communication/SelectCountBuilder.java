@@ -28,7 +28,7 @@ final class SelectCountBuilder extends AbstractQueryBuilder {
     private final String table;
 
     SelectCountBuilder(SelectQuery documentQuery, String table) {
-        super(table);
+        super(table, documentQuery.name());
         this.documentQuery = documentQuery;
         this.table = table;
     }

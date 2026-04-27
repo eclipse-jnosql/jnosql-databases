@@ -28,7 +28,7 @@ final class DeleteBuilder extends AbstractQueryBuilder {
     private final String table;
 
     DeleteBuilder(DeleteQuery documentQuery, String table) {
-        super(table);
+        super(table, documentQuery.name());
         this.documentQuery = documentQuery;
         this.table = table;
     }

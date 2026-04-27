@@ -140,8 +140,21 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
-        assertThat(entities).contains(entity);
+        assertThat(entities).containsExactly(entity);
+    }
+
+    @Test
+    void shouldNotFindDocumentWhenMixedIdPredicateDoesNotMatch() {
+        var entity = entityManager.insert(getEntity());
+        Optional<Element> id = entity.find("_id");
+
+        var query = select().from(COLLECTION_NAME)
+                .where("_id").eq(id.orElseThrow().get())
+                .and("city").eq("Recife")
+                .build();
+
+        List<CommunicationEntity> entities = entityManager.select(query).toList();
+        assertThat(entities).isEmpty();
     }
 
     @Test
