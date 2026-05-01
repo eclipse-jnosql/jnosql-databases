@@ -110,7 +110,7 @@ public enum RedisClusterConfigurations implements Supplier<String> {
     }
 
     public static enum ClusterConfigurationsResolver implements
-            RedisConfigurationsResolver {
+            ValkeyConfigurationsResolver {
 
         INSTANCE;
 

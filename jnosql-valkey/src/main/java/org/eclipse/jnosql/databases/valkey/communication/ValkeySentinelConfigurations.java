@@ -149,7 +149,7 @@ public enum ValkeySentinelConfigurations implements Supplier<String> {
         return configuration;
     }
 
-    public static enum SentinelMasterConfigurationsResolver implements RedisConfigurationsResolver {
+    public static enum SentinelMasterConfigurationsResolver implements ValkeyConfigurationsResolver {
 
         INSTANCE;
 
@@ -204,7 +204,7 @@ public enum ValkeySentinelConfigurations implements Supplier<String> {
         }
     }
 
-    public static enum SentinelSlaveConfigurationsResolver implements RedisConfigurationsResolver {
+    public static enum SentinelSlaveConfigurationsResolver implements ValkeyConfigurationsResolver {
 
         INSTANCE;
 

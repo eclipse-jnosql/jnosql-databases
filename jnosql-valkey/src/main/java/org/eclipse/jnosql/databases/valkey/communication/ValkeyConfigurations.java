@@ -122,8 +122,8 @@ public enum ValkeyConfigurations implements Supplier<String> {
         return configuration;
     }
 
-    public static enum SingleRedisConfigurationsResolver
-            implements RedisConfigurationsResolver {
+    public static enum SingleValkeyConfigurationsResolver
+            implements ValkeyConfigurationsResolver {
 
         INSTANCE;
 

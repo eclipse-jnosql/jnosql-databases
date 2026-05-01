@@ -17,8 +17,8 @@ package org.eclipse.jnosql.databases.valkey.communication;
 
 import java.util.function.Supplier;
 
-public sealed interface RedisConfigurationsResolver permits
-        ValkeyConfigurations.SingleRedisConfigurationsResolver,
+public sealed interface ValkeyConfigurationsResolver permits
+        ValkeyConfigurations.SingleValkeyConfigurationsResolver,
         RedisClusterConfigurations.ClusterConfigurationsResolver,
         ValkeySentinelConfigurations.SentinelMasterConfigurationsResolver,
         ValkeySentinelConfigurations.SentinelSlaveConfigurationsResolver {

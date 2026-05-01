@@ -81,7 +81,7 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
         }
 
         var simpleJedisConfig = getJedisClientConfig(
-                ValkeyConfigurations.SingleRedisConfigurationsResolver.INSTANCE, settings);
+                ValkeyConfigurations.SingleValkeyConfigurationsResolver.INSTANCE, settings);
 
         HostAndPort hostAndPort = getHostAndPort(settings);
 
@@ -166,7 +166,7 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
         return new DefaultValkeyBucketManagerFactory(jedis);
     }
 
-    private JedisClientConfig getJedisClientConfig(RedisConfigurationsResolver resolver, Settings settings) {
+    private JedisClientConfig getJedisClientConfig(ValkeyConfigurationsResolver resolver, Settings settings) {
 
         DefaultJedisClientConfig.Builder builder = DefaultJedisClientConfig.builder();
 
