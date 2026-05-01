@@ -24,7 +24,7 @@ import java.util.function.Supplier;
  *
  * @see org.eclipse.jnosql.communication.Settings
  */
-public enum RedisSentinelConfigurations implements Supplier<String> {
+public enum ValkeySentinelConfigurations implements Supplier<String> {
     /**
      * The key property that defines if the redis sentinel configuration should be loaded
      * */
@@ -140,7 +140,7 @@ public enum RedisSentinelConfigurations implements Supplier<String> {
 
     private final String configuration;
 
-    RedisSentinelConfigurations(String configuration) {
+    ValkeySentinelConfigurations(String configuration) {
         this.configuration = configuration;
     }
 
@@ -155,52 +155,52 @@ public enum RedisSentinelConfigurations implements Supplier<String> {
 
         @Override
         public Supplier<String> connectionTimeoutSupplier() {
-            return RedisSentinelConfigurations.MASTER_CONNECTION_TIMEOUT;
+            return ValkeySentinelConfigurations.MASTER_CONNECTION_TIMEOUT;
         }
 
         @Override
         public Supplier<String> socketTimeoutSupplier() {
-            return RedisSentinelConfigurations.MASTER_SOCKET_TIMEOUT;
+            return ValkeySentinelConfigurations.MASTER_SOCKET_TIMEOUT;
         }
 
         @Override
         public Supplier<String> clientNameSupplier() {
-            return RedisSentinelConfigurations.MASTER_CLIENT_NAME;
+            return ValkeySentinelConfigurations.MASTER_CLIENT_NAME;
         }
 
         @Override
         public Supplier<String> userSupplier() {
-            return RedisSentinelConfigurations.MASTER_USER;
+            return ValkeySentinelConfigurations.MASTER_USER;
         }
 
         @Override
         public Supplier<String> passwordSupplier() {
-            return RedisSentinelConfigurations.MASTER_PASSWORD;
+            return ValkeySentinelConfigurations.MASTER_PASSWORD;
         }
 
         @Override
         public Supplier<String> timeoutSupplier() {
-            return RedisSentinelConfigurations.MASTER_TIMEOUT;
+            return ValkeySentinelConfigurations.MASTER_TIMEOUT;
         }
 
         @Override
         public Supplier<String> sslSupplier() {
-            return RedisSentinelConfigurations.MASTER_SSL;
+            return ValkeySentinelConfigurations.MASTER_SSL;
         }
 
         @Override
         public Supplier<String> redisProtocolSupplier() {
-            return RedisSentinelConfigurations.MASTER_REDIS_PROTOCOL;
+            return ValkeySentinelConfigurations.MASTER_REDIS_PROTOCOL;
         }
 
         @Override
         public Supplier<String> clientsetInfoConfigLibNameSuffixSupplier() {
-            return RedisSentinelConfigurations.MASTER_CLIENTSET_INFO_CONFIG_LIBNAME_SUFFIX;
+            return ValkeySentinelConfigurations.MASTER_CLIENTSET_INFO_CONFIG_LIBNAME_SUFFIX;
         }
 
         @Override
         public Supplier<String> clientsetInfoConfigDisabled() {
-            return RedisSentinelConfigurations.MASTER_CLIENTSET_INFO_CONFIG_DISABLED;
+            return ValkeySentinelConfigurations.MASTER_CLIENTSET_INFO_CONFIG_DISABLED;
         }
     }
 
@@ -210,52 +210,52 @@ public enum RedisSentinelConfigurations implements Supplier<String> {
 
         @Override
         public Supplier<String> connectionTimeoutSupplier() {
-            return RedisSentinelConfigurations.SLAVE_CONNECTION_TIMEOUT;
+            return ValkeySentinelConfigurations.SLAVE_CONNECTION_TIMEOUT;
         }
 
         @Override
         public Supplier<String> socketTimeoutSupplier() {
-            return RedisSentinelConfigurations.SLAVE_SOCKET_TIMEOUT;
+            return ValkeySentinelConfigurations.SLAVE_SOCKET_TIMEOUT;
         }
 
         @Override
         public Supplier<String> clientNameSupplier() {
-            return RedisSentinelConfigurations.SLAVE_CLIENT_NAME;
+            return ValkeySentinelConfigurations.SLAVE_CLIENT_NAME;
         }
 
         @Override
         public Supplier<String> userSupplier() {
-            return RedisSentinelConfigurations.SLAVE_USER;
+            return ValkeySentinelConfigurations.SLAVE_USER;
         }
 
         @Override
         public Supplier<String> passwordSupplier() {
-            return RedisSentinelConfigurations.SLAVE_PASSWORD;
+            return ValkeySentinelConfigurations.SLAVE_PASSWORD;
         }
 
         @Override
         public Supplier<String> timeoutSupplier() {
-            return RedisSentinelConfigurations.SLAVE_TIMEOUT;
+            return ValkeySentinelConfigurations.SLAVE_TIMEOUT;
         }
 
         @Override
         public Supplier<String> sslSupplier() {
-            return RedisSentinelConfigurations.SLAVE_SSL;
+            return ValkeySentinelConfigurations.SLAVE_SSL;
         }
 
         @Override
         public Supplier<String> redisProtocolSupplier() {
-            return RedisSentinelConfigurations.SLAVE_REDIS_PROTOCOL;
+            return ValkeySentinelConfigurations.SLAVE_REDIS_PROTOCOL;
         }
 
         @Override
         public Supplier<String> clientsetInfoConfigLibNameSuffixSupplier() {
-            return RedisSentinelConfigurations.SLAVE_CLIENTSET_INFO_CONFIG_LIBNAME_SUFFIX;
+            return ValkeySentinelConfigurations.SLAVE_CLIENTSET_INFO_CONFIG_LIBNAME_SUFFIX;
         }
 
         @Override
         public Supplier<String> clientsetInfoConfigDisabled() {
-            return RedisSentinelConfigurations.SLAVE_CLIENTSET_INFO_CONFIG_DISABLED;
+            return ValkeySentinelConfigurations.SLAVE_CLIENTSET_INFO_CONFIG_DISABLED;
         }
     }
 }

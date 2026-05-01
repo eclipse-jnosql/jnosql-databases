@@ -70,7 +70,7 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
 
         if (settings.keySet()
                 .stream()
-                .anyMatch(s -> s.startsWith(RedisSentinelConfigurations.SENTINEL.get()))) {
+                .anyMatch(s -> s.startsWith(ValkeySentinelConfigurations.SENTINEL.get()))) {
             return applyForSentinel(settings);
         }
 
@@ -139,11 +139,11 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
 
     private ValkeyBucketManagerFactory applyForSentinel(Settings settings) {
 
-        String masterName = settings.get(RedisSentinelConfigurations.SENTINEL_MASTER_NAME)
+        String masterName = settings.get(ValkeySentinelConfigurations.SENTINEL_MASTER_NAME)
                 .map(Object::toString)
                 .orElseThrow(() -> new IllegalArgumentException("The sentinel master name is required"));
 
-        Set<HostAndPort> hostAndPorts = settings.get(RedisSentinelConfigurations.SENTINEL_HOSTS)
+        Set<HostAndPort> hostAndPorts = settings.get(ValkeySentinelConfigurations.SENTINEL_HOSTS)
                 .map(Object::toString)
                 .map(h -> h.split(","))
                 .map(h -> Arrays.stream(h).map(HostAndPort::from).collect(Collectors.toSet()))
@@ -152,10 +152,10 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
         ConnectionPoolConfig connectionPoolConfig = getConnectionPoolConfig(settings);
 
         var masterJedisClientConfig = getJedisClientConfig(
-                RedisSentinelConfigurations.SentinelMasterConfigurationsResolver.INSTANCE,settings);
+                ValkeySentinelConfigurations.SentinelMasterConfigurationsResolver.INSTANCE,settings);
 
         var slaveJedisClientConfig = getJedisClientConfig(
-                RedisSentinelConfigurations.SentinelMasterConfigurationsResolver.INSTANCE, settings);
+                ValkeySentinelConfigurations.SentinelMasterConfigurationsResolver.INSTANCE, settings);
 
         JedisSentineled jedis = new JedisSentineled(masterName,
                 masterJedisClientConfig,

@@ -20,8 +20,8 @@ import java.util.function.Supplier;
 public sealed interface RedisConfigurationsResolver permits
         ValkeyConfigurations.SingleRedisConfigurationsResolver,
         RedisClusterConfigurations.ClusterConfigurationsResolver,
-        RedisSentinelConfigurations.SentinelMasterConfigurationsResolver,
-        RedisSentinelConfigurations.SentinelSlaveConfigurationsResolver {
+        ValkeySentinelConfigurations.SentinelMasterConfigurationsResolver,
+        ValkeySentinelConfigurations.SentinelSlaveConfigurationsResolver {
 
     Supplier<String> connectionTimeoutSupplier();
 
