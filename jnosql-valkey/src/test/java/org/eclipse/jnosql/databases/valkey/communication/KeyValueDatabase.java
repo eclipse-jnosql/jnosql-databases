@@ -26,21 +26,21 @@ import java.util.function.Supplier;
 public enum KeyValueDatabase implements Supplier<RedisBucketManagerFactory> {
     INSTANCE;
 
-    private final GenericContainer redis =
-            new GenericContainer("redis:latest")
+    private final GenericContainer<?> valkey =
+            new GenericContainer<>("valkey/valkey:latest")
                     .withExposedPorts(6379)
                     .waitingFor(Wait.defaultWaitStrategy());
 
     {
-        redis.start();
+        valkey.start();
     }
 
     public String host() {
-        return redis.getHost();
+        return valkey.getHost();
     }
 
     public String port() {
-        return String.valueOf(redis.getFirstMappedPort());
+        return String.valueOf(valkey.getFirstMappedPort());
     }
 
     @Override
@@ -48,8 +48,8 @@ public enum KeyValueDatabase implements Supplier<RedisBucketManagerFactory> {
         RedisConfiguration configuration = new RedisConfiguration();
         Map<String, Object> settings = new HashMap<>();
 
-        settings.put(RedisConfigurations.HOST.get(), redis.getHost());
-        settings.put(RedisConfigurations.PORT.get(), redis.getFirstMappedPort());
+        settings.put(RedisConfigurations.HOST.get(), valkey.getHost());
+        settings.put(RedisConfigurations.PORT.get(), valkey.getFirstMappedPort());
         return configuration.apply(Settings.of(settings));
     }
 }
