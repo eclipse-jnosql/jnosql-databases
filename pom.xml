@@ -61,6 +61,7 @@
         <module>jnosql-orientdb</module>
         <module>jnosql-ravendb</module>
         <module>jnosql-redis</module>
+        <module>jnosql-valkey</module>
         <module>jnosql-riak</module>
         <module>jnosql-solr</module>
         <module>jnosql-oracle-nosql</module>
