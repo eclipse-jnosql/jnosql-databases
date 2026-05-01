@@ -16,12 +16,12 @@
 package org.eclipse.jnosql.databases.valkey.communication;
 
 
+import io.valkey.UnifiedJedis;
 import jakarta.json.bind.Jsonb;
 import org.eclipse.jnosql.communication.Value;
 import org.eclipse.jnosql.communication.driver.ValueJSON;
 import org.eclipse.jnosql.communication.keyvalue.BucketManager;
 import org.eclipse.jnosql.communication.keyvalue.KeyValueEntity;
-import redis.clients.jedis.UnifiedJedis;
 
 import java.time.Duration;
 import java.util.Objects;
