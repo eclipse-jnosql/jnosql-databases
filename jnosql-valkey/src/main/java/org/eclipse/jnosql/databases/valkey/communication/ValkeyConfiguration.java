@@ -44,7 +44,7 @@ import static java.util.Arrays.asList;
 /**
  * The redis implementation of {@link KeyValueConfiguration} whose returns {@link ValkeyBucketManagerFactory}.
  *
- * @see RedisConfigurations
+ * @see ValkeyConfigurations
  */
 public final class ValkeyConfiguration implements KeyValueConfiguration {
 
@@ -81,7 +81,7 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
         }
 
         var simpleJedisConfig = getJedisClientConfig(
-                RedisConfigurations.SingleRedisConfigurationsResolver.INSTANCE, settings);
+                ValkeyConfigurations.SingleRedisConfigurationsResolver.INSTANCE, settings);
 
         HostAndPort hostAndPort = getHostAndPort(settings);
 
@@ -97,10 +97,10 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
 
     private HostAndPort getHostAndPort(Settings settings) {
         String localhost = settings
-                .getSupplier(asList(RedisConfigurations.HOST, Configurations.HOST))
+                .getSupplier(asList(ValkeyConfigurations.HOST, Configurations.HOST))
                 .map(Object::toString).orElse(DEFAULT_HOST);
 
-        Integer port = settings.get(RedisConfigurations.PORT)
+        Integer port = settings.get(ValkeyConfigurations.PORT)
                 .map(Object::toString).map(Integer::parseInt)
                 .orElse(DEFAULT_PORT);
         return new HostAndPort(localhost, port);
@@ -219,19 +219,19 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
 
         ConnectionPoolConfig poolConfig = new ConnectionPoolConfig();
 
-        settings.get(RedisConfigurations.MAX_TOTAL)
+        settings.get(ValkeyConfigurations.MAX_TOTAL)
                 .map(Object::toString).map(Integer::parseInt)
                 .ifPresent(poolConfig::setMaxTotal);
 
-        settings.get(RedisConfigurations.MAX_IDLE)
+        settings.get(ValkeyConfigurations.MAX_IDLE)
                 .map(Object::toString).map(Integer::parseInt)
                 .ifPresent(poolConfig::setMaxIdle);
 
-        settings.get(RedisConfigurations.MIN_IDLE)
+        settings.get(ValkeyConfigurations.MIN_IDLE)
                 .map(Object::toString).map(Integer::parseInt)
                 .ifPresent(poolConfig::setMinIdle);
 
-        settings.get(RedisConfigurations.MAX_WAIT_MILLIS)
+        settings.get(ValkeyConfigurations.MAX_WAIT_MILLIS)
                 .map(Object::toString).map(Integer::parseInt)
                 .ifPresent(poolConfig::setMaxWaitMillis);
 

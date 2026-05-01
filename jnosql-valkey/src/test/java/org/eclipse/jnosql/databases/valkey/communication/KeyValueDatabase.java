@@ -48,8 +48,8 @@ public enum KeyValueDatabase implements Supplier<ValkeyBucketManagerFactory> {
         ValkeyConfiguration configuration = new ValkeyConfiguration();
         Map<String, Object> settings = new HashMap<>();
 
-        settings.put(RedisConfigurations.HOST.get(), valkey.getHost());
-        settings.put(RedisConfigurations.PORT.get(), valkey.getFirstMappedPort());
+        settings.put(ValkeyConfigurations.HOST.get(), valkey.getHost());
+        settings.put(ValkeyConfigurations.PORT.get(), valkey.getFirstMappedPort());
         return configuration.apply(Settings.of(settings));
     }
 }

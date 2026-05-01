@@ -21,15 +21,15 @@ import jakarta.enterprise.inject.se.SeContainerInitializer;
 import jakarta.enterprise.inject.spi.CDI;
 import jakarta.nosql.Template;
 import org.eclipse.jnosql.databases.valkey.communication.KeyValueDatabase;
-import org.eclipse.jnosql.databases.valkey.communication.RedisConfigurations;
+import org.eclipse.jnosql.databases.valkey.communication.ValkeyConfigurations;
 import org.eclipse.jnosql.mapping.core.config.MappingConfigurations;
 
 
 public class RedisDBTemplateSupplier implements TemplateSupplier {
 
     static {
-        System.setProperty(RedisConfigurations.HOST.get(), KeyValueDatabase.INSTANCE.host());
-        System.setProperty(RedisConfigurations.PORT.get(), KeyValueDatabase.INSTANCE.port());
+        System.setProperty(ValkeyConfigurations.HOST.get(), KeyValueDatabase.INSTANCE.host());
+        System.setProperty(ValkeyConfigurations.PORT.get(), KeyValueDatabase.INSTANCE.port());
         System.setProperty(MappingConfigurations.KEY_VALUE_DATABASE.get(), "jakarta-nosql-tck");
         SeContainerInitializer.newInstance().initialize();
     }
