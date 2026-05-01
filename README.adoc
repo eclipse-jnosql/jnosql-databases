@@ -1734,7 +1734,7 @@ jnosql.keyvalue.database=heroes
 
 This API provides enum classes to programmatically establish the credentials as:
 
-- link:README.adoc#_single_node_configuration[`RedisConfigurations`] for single node configuration
+- link:README.adoc#_single_node_configuration[`ValkeyConfigurations`] for single node configuration
 +
 [source,properties]
 ----
