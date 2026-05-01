@@ -204,7 +204,7 @@ public enum ValkeySentinelConfigurations implements Supplier<String> {
         }
     }
 
-    public static enum SentinelSlaveConfigurationsResolver implements ValkeyConfigurationsResolver {
+    public enum SentinelSlaveConfigurationsResolver implements ValkeyConfigurationsResolver {
 
         INSTANCE;
 
