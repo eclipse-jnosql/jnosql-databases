@@ -14,7 +14,7 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.InjectionPoint;
 import jakarta.inject.Inject;
 import org.eclipse.jnosql.databases.valkey.communication.Counter;
-import org.eclipse.jnosql.databases.valkey.communication.RedisBucketManagerFactory;
+import org.eclipse.jnosql.databases.valkey.communication.ValkeyBucketManagerFactory;
 import org.eclipse.jnosql.databases.valkey.communication.SortedSet;
 import org.eclipse.jnosql.mapping.keyvalue.KeyValueDatabase;
 
@@ -24,7 +24,7 @@ class CollectionSupplier {
 
 
     @Inject
-    private RedisBucketManagerFactory factory;
+    private ValkeyBucketManagerFactory factory;
 
 
     @Produces

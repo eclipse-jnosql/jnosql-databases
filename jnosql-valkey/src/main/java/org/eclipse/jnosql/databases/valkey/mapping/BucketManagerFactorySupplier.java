@@ -13,7 +13,7 @@ import jakarta.enterprise.inject.Disposes;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.Typed;
 import org.eclipse.jnosql.communication.Settings;
-import org.eclipse.jnosql.databases.valkey.communication.RedisBucketManagerFactory;
+import org.eclipse.jnosql.databases.valkey.communication.ValkeyBucketManagerFactory;
 import org.eclipse.jnosql.databases.valkey.communication.RedisConfiguration;
 import org.eclipse.jnosql.mapping.core.config.MicroProfileSettings;
 
@@ -22,20 +22,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @ApplicationScoped
-class BucketManagerFactorySupplier implements Supplier<RedisBucketManagerFactory> {
+class BucketManagerFactorySupplier implements Supplier<ValkeyBucketManagerFactory> {
 
     private static final Logger LOGGER = Logger.getLogger(BucketManagerFactorySupplier.class.getName());
 
     @Override
     @Produces
-    @Typed(RedisBucketManagerFactory.class)
-    public RedisBucketManagerFactory get() {
+    @Typed(ValkeyBucketManagerFactory.class)
+    public ValkeyBucketManagerFactory get() {
         Settings settings = MicroProfileSettings.INSTANCE;
         RedisConfiguration configuration = new RedisConfiguration();
         return configuration.apply(settings);
     }
 
-    public void close(@Disposes RedisBucketManagerFactory factory) {
+    public void close(@Disposes ValkeyBucketManagerFactory factory) {
         LOGGER.log(Level.FINEST, "Closing RedisBucketManagerFactory resource");
         factory.close();
     }

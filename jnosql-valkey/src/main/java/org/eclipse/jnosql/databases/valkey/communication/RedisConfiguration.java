@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 
 /**
- * The redis implementation of {@link KeyValueConfiguration} whose returns {@link RedisBucketManagerFactory}.
+ * The redis implementation of {@link KeyValueConfiguration} whose returns {@link ValkeyBucketManagerFactory}.
  *
  * @see RedisConfigurations
  */
@@ -57,7 +57,7 @@ public final class RedisConfiguration implements KeyValueConfiguration {
      * @param configurations the map configuration
      * @return the RedisConfiguration instance
      */
-    public RedisBucketManagerFactory getManagerFactory(Map<String, String> configurations) {
+    public ValkeyBucketManagerFactory getManagerFactory(Map<String, String> configurations) {
         Objects.requireNonNull(configurations, "configurations is required");
         SettingsBuilder builder = Settings.builder();
         configurations.forEach(builder::put);
@@ -65,7 +65,7 @@ public final class RedisConfiguration implements KeyValueConfiguration {
     }
 
     @Override
-    public RedisBucketManagerFactory apply(Settings settings) {
+    public ValkeyBucketManagerFactory apply(Settings settings) {
         Objects.requireNonNull(settings, "settings is required");
 
         if (settings.keySet()
@@ -92,7 +92,7 @@ public final class RedisConfiguration implements KeyValueConfiguration {
                 hostAndPort,
                 simpleJedisConfig);
 
-        return new DefaultRedisBucketManagerFactory(jedis);
+        return new DefaultValkeyBucketManagerFactory(jedis);
     }
 
     private HostAndPort getHostAndPort(Settings settings) {
@@ -106,7 +106,7 @@ public final class RedisConfiguration implements KeyValueConfiguration {
         return new HostAndPort(localhost, port);
     }
 
-    private RedisBucketManagerFactory applyForCluster(Settings settings) {
+    private ValkeyBucketManagerFactory applyForCluster(Settings settings) {
 
         Set<HostAndPort> clusterNodes = settings.get(RedisClusterConfigurations.CLUSTER_HOSTS)
                 .map(Object::toString)
@@ -134,10 +134,10 @@ public final class RedisConfiguration implements KeyValueConfiguration {
                 maxAttempts,
                 maxTotalRetriesDuration,
                 poolConfig);
-        return new DefaultRedisBucketManagerFactory(jedis);
+        return new DefaultValkeyBucketManagerFactory(jedis);
     }
 
-    private RedisBucketManagerFactory applyForSentinel(Settings settings) {
+    private ValkeyBucketManagerFactory applyForSentinel(Settings settings) {
 
         String masterName = settings.get(RedisSentinelConfigurations.SENTINEL_MASTER_NAME)
                 .map(Object::toString)
@@ -163,7 +163,7 @@ public final class RedisConfiguration implements KeyValueConfiguration {
                 hostAndPorts,
                 slaveJedisClientConfig);
 
-        return new DefaultRedisBucketManagerFactory(jedis);
+        return new DefaultValkeyBucketManagerFactory(jedis);
     }
 
     private JedisClientConfig getJedisClientConfig(RedisConfigurationsResolver resolver, Settings settings) {

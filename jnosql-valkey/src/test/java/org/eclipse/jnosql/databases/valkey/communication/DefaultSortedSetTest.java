@@ -36,7 +36,7 @@ public class DefaultSortedSetTest {
     private static final String USA = "USA";
     private static final String ENGLAND = "England";
 
-    private RedisBucketManagerFactory keyValueEntityManagerFactory;
+    private ValkeyBucketManagerFactory keyValueEntityManagerFactory;
     private SortedSet sortedSet;
 
     @BeforeEach

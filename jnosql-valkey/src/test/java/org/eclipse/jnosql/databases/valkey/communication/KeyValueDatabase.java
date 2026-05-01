@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public enum KeyValueDatabase implements Supplier<RedisBucketManagerFactory> {
+public enum KeyValueDatabase implements Supplier<ValkeyBucketManagerFactory> {
     INSTANCE;
 
     private final GenericContainer<?> valkey =
@@ -44,7 +44,7 @@ public enum KeyValueDatabase implements Supplier<RedisBucketManagerFactory> {
     }
 
     @Override
-    public RedisBucketManagerFactory get() {
+    public ValkeyBucketManagerFactory get() {
         RedisConfiguration configuration = new RedisConfiguration();
         Map<String, Object> settings = new HashMap<>();
 

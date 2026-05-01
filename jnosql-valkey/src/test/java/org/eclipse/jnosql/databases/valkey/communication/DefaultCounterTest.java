@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class DefaultCounterTest {
 
-    private RedisBucketManagerFactory keyValueEntityManagerFactory;
+    private ValkeyBucketManagerFactory keyValueEntityManagerFactory;
     private Counter counter;
 
     @BeforeEach

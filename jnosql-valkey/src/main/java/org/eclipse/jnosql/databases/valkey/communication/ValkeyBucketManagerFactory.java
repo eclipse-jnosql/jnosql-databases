@@ -20,7 +20,7 @@ import org.eclipse.jnosql.communication.keyvalue.BucketManagerFactory;
 /**
  * The redis implementation to {@link BucketManagerFactory} where returns {@link ValkeyBucketManager}
  */
-public interface RedisBucketManagerFactory extends BucketManagerFactory {
+public interface ValkeyBucketManagerFactory extends BucketManagerFactory {
 
 
     /**

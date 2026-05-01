@@ -25,13 +25,13 @@ import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
-class DefaultRedisBucketManagerFactory implements RedisBucketManagerFactory {
+class DefaultValkeyBucketManagerFactory implements ValkeyBucketManagerFactory {
 
     private static final Jsonb JSON = JsonbSupplier.getInstance().get();
 
     private final UnifiedJedis jedis;
 
-    DefaultRedisBucketManagerFactory(UnifiedJedis jedis) {
+    DefaultValkeyBucketManagerFactory(UnifiedJedis jedis) {
         this.jedis = jedis;
     }
 
