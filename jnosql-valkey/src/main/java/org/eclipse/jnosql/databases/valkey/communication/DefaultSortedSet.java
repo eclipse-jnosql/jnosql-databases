@@ -32,9 +32,8 @@ class DefaultSortedSet implements SortedSet {
 
 
     private static final int LAST_ELEMENT = -1;
-    private String key;
-
-    private UnifiedJedis jedis;
+    private final String key;
+    private final UnifiedJedis jedis;
 
     DefaultSortedSet(UnifiedJedis jedis, String keyspace) {
         Objects.requireNonNull(jedis, "jedis is required");
