@@ -1701,7 +1701,7 @@ SortedSet game;
 
 == Valkey
 
-image::https://jnosql.github.io/img/logos/valkey.png[Redis Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/valkey.png[Valkey Project,align="center" width=25%,height=25%]
 
 https://valkey.io/[Valkey] is a software project that implements data structure servers.
 It is open-source, networked, in-memory, and stores keys with optional durability.
