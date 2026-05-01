@@ -15,27 +15,52 @@
 package org.eclipse.jnosql.databases.valkey.communication;
 
 /**
- * An SortedSet element
+ * Represents an element of a sorted set, composed of a member and its associated score.
+ * <p>
+ * In data stores such as Valkey, a sorted set maintains elements ordered
+ * by a numeric value (commonly referred to as a <em>score</em>). This interface models
+ * that concept in a domain-oriented way, abstracting the underlying storage details
+ * while preserving ordering semantics.
+ * </p>
+ *
+ * <p>
+ * <strong>Design note:</strong> This type is a value object and should be treated as immutable.
+ * Implementations are expected to provide consistent {@code equals} and {@code hashCode}
+ * semantics based on both member and score.
+ * </p>
+ *
+ * @see <a href="https://valkey.io/">Valkey documentation</a>
  */
 public interface Ranking {
 
     /**
-     * @return the point
+     * Returns the numeric score associated with this member.
+     * <p>
+     * The score determines the ordering of elements within the sorted set.
+     * </p>
+     *
+     * @return the score used for ordering; never {@code null}
      */
     Number getPoints();
 
     /**
-     * @return the member name
+     * Returns the unique member identifier within the sorted set.
+     *
+     * @return the member identifier; never {@code null}
      */
     String getMember();
 
     /**
-     * Returns a {@link Ranking} instance
+     * Creates a new {@link Ranking} instance with the given member and score.
+     * <p>
+     * This factory method provides a consistent way to create immutable
+     * {@code Ranking} instances.
+     * </p>
      *
-     * @param member the member name
-     * @param points the point value
-     * @return the instance
-     * @throws NullPointerException when either member and points are null
+     * @param member the member identifier; must not be {@code null}
+     * @param points the score associated with the member; must not be {@code null}
+     * @return a new {@link Ranking} instance
+     * @throws NullPointerException if either {@code member} or {@code points} is {@code null}
      */
     static Ranking of(String member, Number points) throws NullPointerException {
         return new DefaultRanking(member, points);
