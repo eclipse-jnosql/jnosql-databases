@@ -28,115 +28,115 @@ public enum RedisSentinelConfigurations implements Supplier<String> {
     /**
      * The key property that defines if the redis sentinel configuration should be loaded
      * */
-    SENTINEL("jnosql.redis.sentinel"),
+    SENTINEL("jnosql.valkey.sentinel"),
     /**
      * The value for the master name configuration attribute for the jedis client configuration with this configuration instance.
      */
-    SENTINEL_MASTER_NAME("jnosql.redis.sentinel.master.name"),
+    SENTINEL_MASTER_NAME("jnosql.valkey.sentinel.master.name"),
     /**
      * The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
      */
-    SENTINEL_HOSTS("jnosql.redis.sentinel.hosts"),
+    SENTINEL_HOSTS("jnosql.valkey.sentinel.hosts"),
     /**
      * The master client's name, the default value is 0
      */
-    MASTER_CLIENT_NAME("jnosql.redis.sentinel.master.client.name"),
+    MASTER_CLIENT_NAME("jnosql.valkey.sentinel.master.client.name"),
     /**
      * The slave client's name, the default value is 0
      */
-    SLAVE_CLIENT_NAME("jnosql.redis.sentinel.slave.client.name"),
+    SLAVE_CLIENT_NAME("jnosql.valkey.sentinel.slave.client.name"),
     /**
      * The master redis timeout, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT} on milliseconds
      */
-    MASTER_TIMEOUT("jnosql.redis.sentinel.master.timeout"),
+    MASTER_TIMEOUT("jnosql.valkey.sentinel.master.timeout"),
     /**
      * The slave redis timeout, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT} on milliseconds
      */
-    SLAVE_TIMEOUT("jnosql.redis.sentinel.slave.timeout"),
+    SLAVE_TIMEOUT("jnosql.valkey.sentinel.slave.timeout"),
     /**
      * The value for the connection timeout in milliseconds configuration attribute for the master jedis client configuration
      * created with this configuration instance.
      * The connection timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
      */
-    MASTER_CONNECTION_TIMEOUT("jnosql.redis.sentinel.master.connection.timeout"),
+    MASTER_CONNECTION_TIMEOUT("jnosql.valkey.sentinel.master.connection.timeout"),
     /**
      * The value for the connection timeout in milliseconds configuration attribute for the slave jedis client configuration
      * created with this configuration instance.
      * The connection timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
      */
-    SLAVE_CONNECTION_TIMEOUT("jnosql.redis.sentinel.slave.connection.timeout"),
+    SLAVE_CONNECTION_TIMEOUT("jnosql.valkey.sentinel.slave.connection.timeout"),
     /**
      * The value for the socket timeout in milliseconds configuration attribute for the master jedis client configuration with
      * this configuration instance.
      * The socket timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
      */
-    MASTER_SOCKET_TIMEOUT("jnosql.redis.sentinel.master.socket.timeout"),
+    MASTER_SOCKET_TIMEOUT("jnosql.valkey.sentinel.master.socket.timeout"),
     /**
      * The value for the socket timeout in milliseconds configuration attribute for the slave jedis client configuration with
      * this configuration instance.
      * The socket timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
      */
-    SLAVE_SOCKET_TIMEOUT("jnosql.redis.sentinel.slave.socket.timeout"),
+    SLAVE_SOCKET_TIMEOUT("jnosql.valkey.sentinel.slave.socket.timeout"),
     /**
      * The value for the user configuration attribute for the master jedis client configuration with this configuration instance.
      * The user on {@link redis.clients.jedis.JedisClientConfig}
      */
-    MASTER_USER("jnosql.redis.sentinel.master.user"),
+    MASTER_USER("jnosql.valkey.sentinel.master.user"),
     /**
      * The value for the user configuration attribute for the slave jedis client configuration with this configuration instance.
      * The user on {@link redis.clients.jedis.JedisClientConfig}
      */
-    SLAVE_USER("jnosql.redis.sentinel.slave.user"),
+    SLAVE_USER("jnosql.valkey.sentinel.slave.user"),
     /**
      * The value for the password configuration attribute for the master jedis client configuration with this configuration instance.
      * The user on {@link redis.clients.jedis.JedisClientConfig}
      */
-    MASTER_PASSWORD("jnosql.redis.sentinel.master.password"),
+    MASTER_PASSWORD("jnosql.valkey.sentinel.master.password"),
     /**
      * The value for the password configuration attribute for the slave jedis client configuration with this configuration instance.
      * The user on {@link redis.clients.jedis.JedisClientConfig}
      */
-    SLAVE_PASSWORD("jnosql.redis.sentinel.slave.password"),
+    SLAVE_PASSWORD("jnosql.valkey.sentinel.slave.password"),
     /**
      * The value for the ssl configuration attribute for the master jedis client configuration with this configuration instance.
      * The ssl on {@link redis.clients.jedis.JedisClientConfig}. The default value is false.
      */
-    MASTER_SSL("jnosql.redis.sentinel.master.ssl"),
+    MASTER_SSL("jnosql.valkey.sentinel.master.ssl"),
     /**
      * The value for the ssl configuration attribute for the slave jedis client configuration with this configuration instance.
      * The ssl on {@link redis.clients.jedis.JedisClientConfig}. The default value is false
      */
-    SLAVE_SSL("jnosql.redis.sentinel.slave.ssl"),
+    SLAVE_SSL("jnosql.valkey.sentinel.slave.ssl"),
     /**
      * The value for the protocol configuration attribute for the master jedis client configuration with this configuration instance.
      * The protocol on {@link redis.clients.jedis.JedisClientConfig}
      */
-    MASTER_REDIS_PROTOCOL("jnosql.redis.sentinel.master.protocol"),
+    MASTER_REDIS_PROTOCOL("jnosql.valkey.sentinel.master.protocol"),
     /**
      * The value for the protocol configuration attribute for the slave jedis client configuration with this configuration instance.
      * The protocol on {@link redis.clients.jedis.JedisClientConfig}
      */
-    SLAVE_REDIS_PROTOCOL("jnosql.redis.sentinel.slave.protocol"),
+    SLAVE_REDIS_PROTOCOL("jnosql.valkey.sentinel.slave.protocol"),
     /**
      * The value for the clientset info disabled configuration attribute for the master jedis client configuration with this configuration instance.
      * The clientset info disabled on {@link redis.clients.jedis.JedisClientConfig}
      */
-    MASTER_CLIENTSET_INFO_CONFIG_DISABLED("jnosql.redis.sentinel.master.clientset.info.config.disabled"),
+    MASTER_CLIENTSET_INFO_CONFIG_DISABLED("jnosql.valkey.sentinel.master.clientset.info.config.disabled"),
     /**
      * The value for the clientset info disabled configuration attribute for the slave jedis client configuration with this configuration instance.
      * The clientset info disabled on {@link redis.clients.jedis.JedisClientConfig}
      */
-    SLAVE_CLIENTSET_INFO_CONFIG_DISABLED("jnosql.redis.sentinel.slave.clientset.info.config.disabled"),
+    SLAVE_CLIENTSET_INFO_CONFIG_DISABLED("jnosql.valkey.sentinel.slave.clientset.info.config.disabled"),
     /**
      * The value for the clientset info configuration libname suffix attribute for the master jedis client configuration with this configuration instance.
      * The clientset info libname suffix on {@link redis.clients.jedis.JedisClientConfig}
      */
-    MASTER_CLIENTSET_INFO_CONFIG_LIBNAME_SUFFIX("jnosql.redis.sentinel.master.clientset.info.config.libname.suffix"),
+    MASTER_CLIENTSET_INFO_CONFIG_LIBNAME_SUFFIX("jnosql.valkey.sentinel.master.clientset.info.config.libname.suffix"),
     /**
      * The value for the clientset info configuration libname suffix attribute for the slave jedis client configuration with this configuration instance.
      * The clientset info libname suffix on {@link redis.clients.jedis.JedisClientConfig}
      */
-    SLAVE_CLIENTSET_INFO_CONFIG_LIBNAME_SUFFIX("jnosql.redis.sentinel.slave.clientset.info.config.libname.suffix");
+    SLAVE_CLIENTSET_INFO_CONFIG_LIBNAME_SUFFIX("jnosql.valkey.sentinel.slave.clientset.info.config.libname.suffix");
 
     private final String configuration;
 
