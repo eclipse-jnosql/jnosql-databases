@@ -45,7 +45,7 @@ public enum KeyValueDatabase implements Supplier<ValkeyBucketManagerFactory> {
 
     @Override
     public ValkeyBucketManagerFactory get() {
-        RedisConfiguration configuration = new RedisConfiguration();
+        ValkeyConfiguration configuration = new ValkeyConfiguration();
         Map<String, Object> settings = new HashMap<>();
 
         settings.put(RedisConfigurations.HOST.get(), valkey.getHost());

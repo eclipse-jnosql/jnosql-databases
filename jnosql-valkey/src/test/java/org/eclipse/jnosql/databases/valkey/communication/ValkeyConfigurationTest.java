@@ -26,13 +26,13 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class RedisConfigurationTest {
+public class ValkeyConfigurationTest {
 
-    private RedisConfiguration configuration;
+    private ValkeyConfiguration configuration;
 
     @BeforeEach
     public void setUp() {
-        configuration = new RedisConfiguration();
+        configuration = new ValkeyConfiguration();
     }
 
     @Test
@@ -53,10 +53,10 @@ public class RedisConfigurationTest {
 
     @Test
     public void shouldReturnFromConfigurationQuery() {
-        RedisConfiguration configuration = KeyValueConfiguration
-                .getConfiguration(RedisConfiguration.class);
+        ValkeyConfiguration configuration = KeyValueConfiguration
+                .getConfiguration(ValkeyConfiguration.class);
         Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof RedisConfiguration);
+        Assertions.assertTrue(configuration instanceof ValkeyConfiguration);
     }
 
 }

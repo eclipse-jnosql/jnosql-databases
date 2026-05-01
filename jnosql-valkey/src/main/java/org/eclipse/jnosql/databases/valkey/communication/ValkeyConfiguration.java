@@ -46,13 +46,13 @@ import static java.util.Arrays.asList;
  *
  * @see RedisConfigurations
  */
-public final class RedisConfiguration implements KeyValueConfiguration {
+public final class ValkeyConfiguration implements KeyValueConfiguration {
 
     private static final int DEFAULT_PORT = 6379;
     private static final String DEFAULT_HOST = "localhost";
 
     /**
-     * Creates a {@link RedisConfiguration} from map configuration
+     * Creates a {@link ValkeyConfiguration} from map configuration
      *
      * @param configurations the map configuration
      * @return the RedisConfiguration instance

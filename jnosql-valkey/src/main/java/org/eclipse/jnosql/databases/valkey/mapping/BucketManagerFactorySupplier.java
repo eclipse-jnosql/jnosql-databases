@@ -14,7 +14,7 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.Typed;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.databases.valkey.communication.ValkeyBucketManagerFactory;
-import org.eclipse.jnosql.databases.valkey.communication.RedisConfiguration;
+import org.eclipse.jnosql.databases.valkey.communication.ValkeyConfiguration;
 import org.eclipse.jnosql.mapping.core.config.MicroProfileSettings;
 
 import java.util.function.Supplier;
@@ -31,7 +31,7 @@ class BucketManagerFactorySupplier implements Supplier<ValkeyBucketManagerFactor
     @Typed(ValkeyBucketManagerFactory.class)
     public ValkeyBucketManagerFactory get() {
         Settings settings = MicroProfileSettings.INSTANCE;
-        RedisConfiguration configuration = new RedisConfiguration();
+        ValkeyConfiguration configuration = new ValkeyConfiguration();
         return configuration.apply(settings);
     }
 
