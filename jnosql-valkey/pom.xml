@@ -36,9 +36,9 @@
             <artifactId>jnosql-mapping-key-value</artifactId>
         </dependency>
         <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>7.4.1</version>
+            <groupId>io.valkey</groupId>
+            <artifactId>valkey-java</artifactId>
+            <version>5.5.0</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
