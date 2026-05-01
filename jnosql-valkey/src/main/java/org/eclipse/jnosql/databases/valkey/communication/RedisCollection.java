@@ -15,9 +15,9 @@
 
 package org.eclipse.jnosql.databases.valkey.communication;
 
+import io.valkey.UnifiedJedis;
 import jakarta.json.bind.Jsonb;
 import org.eclipse.jnosql.communication.driver.JsonbSupplier;
-import redis.clients.jedis.UnifiedJedis;
 
 import java.util.ArrayList;
 import java.util.Collection;
