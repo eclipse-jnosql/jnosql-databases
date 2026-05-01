@@ -35,7 +35,7 @@ public enum ValkeyConfigurations implements Supplier<String> {
      */
     PORT("jnosql.valkey.port"),
     /**
-     * The redis timeout, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT} on milliseconds
+     * The redis timeout, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT} on milliseconds
      */
     TIMEOUT("jnosql.valkey.timeout"),
     /**
@@ -73,40 +73,40 @@ public enum ValkeyConfigurations implements Supplier<String> {
     /**
      * The value for the connection timeout in milliseconds configuration attribute for the jedis client configuration
      * created with this configuration instance.
-     * The connection timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
+     * The connection timeout on millis on {@link io.valkey.JedisClientConfig, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT}
      */
     CONNECTION_TIMEOUT("jnosql.valkey.connection.timeout"),
     /**
      * The value for the socket timeout in milliseconds configuration attribute for the jedis client configuration with
      * this configuration instance.
-     * The socket timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
+     * The socket timeout on millis on {@link io.valkey.JedisClientConfig}, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT}
      */
     SOCKET_TIMEOUT("jnosql.valkey.socket.timeout"),
     /**
      * The value for the user configuration attribute for the jedis client configuration with this configuration instance.
-     * The user on {@link redis.clients.jedis.JedisClientConfig}
+     * The user on {@link io.valkey.JedisClientConfig}
      */
     USER("jnosql.valkey.user"),
     /**
      * The value for the ssl configuration attribute for the jedis client configuration with this configuration instance.
-     * The ssl on {@link redis.clients.jedis.JedisClientConfig}. The default value is false.
+     * The ssl on {@link io.valkey.JedisClientConfig}. The default value is false.
      */
     SSL("jnosql.valkey.ssl"),
     /**
      * The value for the protocol configuration attribute for the jedis client configuration with this configuration instance.
-     * The protocol on {@link redis.clients.jedis.JedisClientConfig}.
+     * The protocol on {@link io.valkey.JedisClientConfig}.
      * The default value is not defined.
      */
     REDIS_PROTOCOL("jnosql.valkey.protocol"),
     /**
      * The value for the clientset info disabled configuration attribute for the jedis client configuration with this configuration instance.
-     * The clientset info disabled on {@link redis.clients.jedis.JedisClientConfig}.
+     * The clientset info disabled on {@link io.valkey.JedisClientConfig}.
      * The default value is false.
      */
     CLIENTSET_INFO_CONFIG_DISABLED("jnosql.valkey.clientset.info.config.disabled"),
     /**
      * The value for the clientset info configuration libname suffix attribute for the jedis client configuration with this configuration instance.
-     * The clientset info libname suffix on {@link redis.clients.jedis.JedisClientConfig}.
+     * The clientset info libname suffix on {@link io.valkey.JedisClientConfig}.
      * The default value is not defined.
      */
     CLIENTSET_INFO_CONFIG_LIBNAME_SUFFIX("jnosql.valkey.clientset.info.config.libname.suffix"),;
