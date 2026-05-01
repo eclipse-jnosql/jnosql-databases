@@ -46,35 +46,35 @@ public enum RedisSentinelConfigurations implements Supplier<String> {
      */
     SLAVE_CLIENT_NAME("jnosql.valkey.sentinel.slave.client.name"),
     /**
-     * The master redis timeout, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT} on milliseconds
+     * The master redis timeout, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT} on milliseconds
      */
     MASTER_TIMEOUT("jnosql.valkey.sentinel.master.timeout"),
     /**
-     * The slave redis timeout, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT} on milliseconds
+     * The slave redis timeout, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT} on milliseconds
      */
     SLAVE_TIMEOUT("jnosql.valkey.sentinel.slave.timeout"),
     /**
      * The value for the connection timeout in milliseconds configuration attribute for the master jedis client configuration
      * created with this configuration instance.
-     * The connection timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
+     * The connection timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT}
      */
     MASTER_CONNECTION_TIMEOUT("jnosql.valkey.sentinel.master.connection.timeout"),
     /**
      * The value for the connection timeout in milliseconds configuration attribute for the slave jedis client configuration
      * created with this configuration instance.
-     * The connection timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
+     * The connection timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT}
      */
     SLAVE_CONNECTION_TIMEOUT("jnosql.valkey.sentinel.slave.connection.timeout"),
     /**
      * The value for the socket timeout in milliseconds configuration attribute for the master jedis client configuration with
      * this configuration instance.
-     * The socket timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
+     * The socket timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT}
      */
     MASTER_SOCKET_TIMEOUT("jnosql.valkey.sentinel.master.socket.timeout"),
     /**
      * The value for the socket timeout in milliseconds configuration attribute for the slave jedis client configuration with
      * this configuration instance.
-     * The socket timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link redis.clients.jedis.Protocol#DEFAULT_TIMEOUT}
+     * The socket timeout on millis on {@link redis.clients.jedis.JedisClientConfig}, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT}
      */
     SLAVE_SOCKET_TIMEOUT("jnosql.valkey.sentinel.slave.socket.timeout"),
     /**
