@@ -73,7 +73,7 @@ public enum ValkeyConfigurations implements Supplier<String> {
     /**
      * The value for the connection timeout in milliseconds configuration attribute for the jedis client configuration
      * created with this configuration instance.
-     * The connection timeout on millis on {@link io.valkey.JedisClientConfig, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT}
+     * The connection timeout on millis on {@link io.valkey.JedisClientConfig}, the default value is {@link io.valkey.Protocol#DEFAULT_TIMEOUT}
      */
     CONNECTION_TIMEOUT("jnosql.valkey.connection.timeout"),
     /**
