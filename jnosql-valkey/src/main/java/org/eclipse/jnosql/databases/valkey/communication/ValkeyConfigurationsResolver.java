@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 public sealed interface ValkeyConfigurationsResolver permits
         ValkeyConfigurations.SingleValkeyConfigurationsResolver,
-        RedisClusterConfigurations.ClusterConfigurationsResolver,
+        ValkeyClusterConfigurations.ClusterConfigurationsResolver,
         ValkeySentinelConfigurations.SentinelMasterConfigurationsResolver,
         ValkeySentinelConfigurations.SentinelSlaveConfigurationsResolver {
 

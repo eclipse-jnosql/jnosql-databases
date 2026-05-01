@@ -76,7 +76,7 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
 
         if (settings.keySet()
                 .stream()
-                .anyMatch(s -> s.startsWith(RedisClusterConfigurations.CLUSTER.get()))) {
+                .anyMatch(s -> s.startsWith(ValkeyClusterConfigurations.CLUSTER.get()))) {
             return applyForCluster(settings);
         }
 
@@ -108,21 +108,21 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
 
     private ValkeyBucketManagerFactory applyForCluster(Settings settings) {
 
-        Set<HostAndPort> clusterNodes = settings.get(RedisClusterConfigurations.CLUSTER_HOSTS)
+        Set<HostAndPort> clusterNodes = settings.get(ValkeyClusterConfigurations.CLUSTER_HOSTS)
                 .map(Object::toString)
                 .map(h -> h.split(","))
                 .map(h -> Arrays.stream(h).map(HostAndPort::from).collect(Collectors.toSet()))
                 .orElseThrow(() -> new IllegalArgumentException("The cluster nodes are required"));
 
         JedisClientConfig clientConfig = getJedisClientConfig(
-                RedisClusterConfigurations.ClusterConfigurationsResolver.INSTANCE, settings);
+                ValkeyClusterConfigurations.ClusterConfigurationsResolver.INSTANCE, settings);
 
-        int maxAttempts = settings.get(RedisClusterConfigurations.CLUSTER_MAX_ATTEMPTS)
+        int maxAttempts = settings.get(ValkeyClusterConfigurations.CLUSTER_MAX_ATTEMPTS)
                 .map(Object::toString).map(Integer::parseInt)
                 .orElse(JedisCluster.DEFAULT_MAX_ATTEMPTS);
 
         Duration maxTotalRetriesDuration = settings
-                .get(RedisClusterConfigurations.CLUSTER_MAX_TOTAL_RETRIES_DURATION)
+                .get(ValkeyClusterConfigurations.CLUSTER_MAX_TOTAL_RETRIES_DURATION)
                 .map(Object::toString).map(Duration::parse)
                 .orElse(Duration.ofMillis((long) clientConfig.getSocketTimeoutMillis() * maxAttempts));
 
