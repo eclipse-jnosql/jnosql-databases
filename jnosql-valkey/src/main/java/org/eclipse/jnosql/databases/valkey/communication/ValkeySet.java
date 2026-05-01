@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-class RedisSet<T> extends RedisCollection<T> implements Set<T> {
+class ValkeySet<T> extends ValkeyCollection<T> implements Set<T> {
 
-    RedisSet(UnifiedJedis jedis, Class<T> clazz, String keyWithNameSpace) {
+    ValkeySet(UnifiedJedis jedis, Class<T> clazz, String keyWithNameSpace) {
         super(jedis, clazz, keyWithNameSpace);
     }
 

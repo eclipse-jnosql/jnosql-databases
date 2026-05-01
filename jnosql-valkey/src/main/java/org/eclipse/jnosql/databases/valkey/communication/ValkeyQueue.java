@@ -21,9 +21,9 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Queue;
 
-class RedisQueue<T> extends RedisCollection<T> implements Queue<T> {
+class ValkeyQueue<T> extends ValkeyCollection<T> implements Queue<T> {
 
-    RedisQueue(UnifiedJedis jedis, Class<T> clazz, String keyWithNameSpace) {
+    ValkeyQueue(UnifiedJedis jedis, Class<T> clazz, String keyWithNameSpace) {
         super(jedis, clazz, keyWithNameSpace);
     }
 

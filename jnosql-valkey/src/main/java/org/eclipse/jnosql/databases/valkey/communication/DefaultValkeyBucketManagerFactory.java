@@ -47,21 +47,21 @@ class DefaultValkeyBucketManagerFactory implements ValkeyBucketManagerFactory {
     public <T> List<T> getList(String bucketName, Class<T> clazz) {
         requireNonNull(bucketName, "bucket name is required");
         requireNonNull(clazz, "Class type is required");
-        return new RedisList<>(jedis, clazz, bucketName);
+        return new ValkeyList<>(jedis, clazz, bucketName);
     }
 
     @Override
     public <T> Set<T> getSet(String bucketName, Class<T> clazz) {
         requireNonNull(bucketName, "bucket name is required");
         requireNonNull(clazz, "Class type is required");
-        return new RedisSet<>(jedis, clazz, bucketName);
+        return new ValkeySet<>(jedis, clazz, bucketName);
     }
 
     @Override
     public <T> Queue<T> getQueue(String bucketName, Class<T> clazz) {
         requireNonNull(bucketName, "bucket name is required");
         requireNonNull(clazz, "Class type is required");
-        return new RedisQueue<>(jedis, clazz, bucketName);
+        return new ValkeyQueue<>(jedis, clazz, bucketName);
     }
 
     @Override

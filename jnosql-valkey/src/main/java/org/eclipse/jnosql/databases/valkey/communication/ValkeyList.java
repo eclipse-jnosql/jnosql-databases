@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
 
-class RedisList<T> extends RedisCollection<T> implements List<T> {
+class ValkeyList<T> extends ValkeyCollection<T> implements List<T> {
 
 
-    RedisList(UnifiedJedis jedis, Class<T> clazz, String keyWithNameSpace) {
+    ValkeyList(UnifiedJedis jedis, Class<T> clazz, String keyWithNameSpace) {
         super(jedis, clazz, keyWithNameSpace);
     }
 

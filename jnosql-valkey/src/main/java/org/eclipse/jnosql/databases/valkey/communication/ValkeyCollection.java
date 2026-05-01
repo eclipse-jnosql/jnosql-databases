@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-abstract class RedisCollection<T> implements Collection<T> {
+abstract class ValkeyCollection<T> implements Collection<T> {
 
     protected static final  Jsonb JSONB = JsonbSupplier.getInstance().get();
 
@@ -37,7 +37,7 @@ abstract class RedisCollection<T> implements Collection<T> {
 
     protected final boolean isString;
 
-    RedisCollection(UnifiedJedis jedis, Class<T> clazz, String keyWithNameSpace) {
+    ValkeyCollection(UnifiedJedis jedis, Class<T> clazz, String keyWithNameSpace) {
         this.clazz = clazz;
         this.keyWithNameSpace = keyWithNameSpace;
         this.jedis = jedis;
@@ -205,8 +205,8 @@ abstract class RedisCollection<T> implements Collection<T> {
         if (obj == this) {
             return true;
         }
-        if (RedisCollection.class.isInstance(obj)) {
-            RedisCollection otherRedis = RedisCollection.class.cast(obj);
+        if (ValkeyCollection.class.isInstance(obj)) {
+            ValkeyCollection otherRedis = ValkeyCollection.class.cast(obj);
             return Objects.equals(otherRedis.keyWithNameSpace, keyWithNameSpace);
         }
         return false;
