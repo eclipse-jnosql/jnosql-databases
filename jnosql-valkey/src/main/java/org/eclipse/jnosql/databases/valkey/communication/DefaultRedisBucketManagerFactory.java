@@ -37,10 +37,10 @@ class DefaultRedisBucketManagerFactory implements RedisBucketManagerFactory {
 
 
     @Override
-    public RedisBucketManager apply(String bucketName) {
+    public ValkeyBucketManager apply(String bucketName) {
         requireNonNull(bucketName, "bucket name is required");
 
-        return new RedisBucketManager(bucketName, JSON, jedis);
+        return new ValkeyBucketManager(bucketName, JSON, jedis);
     }
 
     @Override

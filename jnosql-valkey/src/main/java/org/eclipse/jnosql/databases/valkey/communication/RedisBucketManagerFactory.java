@@ -18,7 +18,7 @@ package org.eclipse.jnosql.databases.valkey.communication;
 import org.eclipse.jnosql.communication.keyvalue.BucketManagerFactory;
 
 /**
- * The redis implementation to {@link BucketManagerFactory} where returns {@link RedisBucketManager}
+ * The redis implementation to {@link BucketManagerFactory} where returns {@link ValkeyBucketManager}
  */
 public interface RedisBucketManagerFactory extends BucketManagerFactory {
 

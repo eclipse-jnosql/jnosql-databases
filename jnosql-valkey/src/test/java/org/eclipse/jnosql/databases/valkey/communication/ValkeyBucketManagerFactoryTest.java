@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
-public class RedisBucketManagerFactoryTest {
+public class ValkeyBucketManagerFactoryTest {
 
     public static final String BUCKET_NAME = "bucketName";
     private BucketManagerFactory managerFactory;

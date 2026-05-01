@@ -33,14 +33,14 @@ import static java.util.stream.Collectors.toList;
 /**
  * The redis implementation to {@link BucketManager}
  */
-public class RedisBucketManager implements BucketManager {
+public class ValkeyBucketManager implements BucketManager {
 
     private final String nameSpace;
     private final Jsonb jsonB;
 
     private final UnifiedJedis jedis;
 
-    RedisBucketManager(String nameSpace, Jsonb provider, UnifiedJedis jedis) {
+    ValkeyBucketManager(String nameSpace, Jsonb provider, UnifiedJedis jedis) {
         this.nameSpace = nameSpace;
         this.jsonB = provider;
         this.jedis = jedis;
