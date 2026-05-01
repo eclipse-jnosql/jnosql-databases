@@ -17,6 +17,7 @@ package org.eclipse.jnosql.databases.valkey.communication;
 
 
 import io.valkey.UnifiedJedis;
+import io.valkey.args.ListPosition;
 
 import java.util.ArrayList;
 import java.util.Collection;
