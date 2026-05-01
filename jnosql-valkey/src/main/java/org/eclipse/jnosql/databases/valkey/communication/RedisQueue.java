@@ -15,7 +15,7 @@
 
 package org.eclipse.jnosql.databases.valkey.communication;
 
-import redis.clients.jedis.UnifiedJedis;
+import io.valkey.UnifiedJedis;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
