@@ -1876,7 +1876,7 @@ Please note that you can establish properties using the https://microprofile.io/
 |`jnosql.valkey.cluster.max.total.retries.duration` |The value for the max total retries configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 10000 milliseconds.
 |===
 
-=== RedisBucketManagerFactory
+=== ValkeyBucketManagerFactory
 
 The ```ValkeyBucketManagerFactory``` is a specialization of the ```BucketManagerFactory``` that enables ranking and counter feature.
 
