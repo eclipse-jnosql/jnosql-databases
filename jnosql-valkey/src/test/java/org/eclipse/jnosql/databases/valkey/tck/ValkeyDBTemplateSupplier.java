@@ -25,7 +25,7 @@ import org.eclipse.jnosql.databases.valkey.communication.ValkeyConfigurations;
 import org.eclipse.jnosql.mapping.core.config.MappingConfigurations;
 
 
-public class RedisDBTemplateSupplier implements TemplateSupplier {
+public class ValkeyDBTemplateSupplier implements TemplateSupplier {
 
     static {
         System.setProperty(ValkeyConfigurations.HOST.get(), KeyValueDatabase.INSTANCE.host());
