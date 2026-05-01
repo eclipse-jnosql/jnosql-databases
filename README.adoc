@@ -1698,6 +1698,222 @@ Counter counter;
 @KeyValueDatabase("game")
 SortedSet game;
 ----
+
+== Valkey
+
+image::https://jnosql.github.io/img/logos/valkey.png[Redis Project,align="center" width=25%,height=25%]
+
+https://valkey.io/[Valkey] is a software project that implements data structure servers.
+It is open-source, networked, in-memory, and stores keys with optional durability.
+
+This driver provides support for the *Key-Value* NoSQL API.
+
+=== How To Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-valkey</artifactId>
+    <version>1.1.13</version>
+</dependency>
+----
+
+=== Configuration
+
+This is an example using Valkey's Key-Value API with MicroProfile Config.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[source,properties]
+----
+jnosql.keyvalue.provider=org.eclipse.jnosql.databases.valkey.communication.ValkeyConfiguration
+jnosql.keyvalue.database=heroes
+----
+
+This API provides enum classes to programmatically establish the credentials as:
+
+- link:README.adoc#_single_node_configuration[`RedisConfigurations`] for single node configuration
++
+[source,properties]
+----
+# Single Node Configuration
+
+# by default the host is localhost
+jnosql.valkey.host=localhost
+# by default the port is 6379
+jnosql.valkey.port=6379
+# if you have user
+jnosql.valkey.user=youruser
+# if you have password
+jnosql.valkey.password=yourpassword
+----
+
+- link:README.adoc#_valkey_sentinel_configuration[`ValkeySentinelConfigurations`] for sentinel configuration
++
+[source,properties]
+----
+# Sentinel Configuration
+jnosql.valkey.sentinel.hosts=host1:26379,host2:26379
+
+jnosql.valkey.sentinel.master.name=masterName
+jnosql.valkey.sentinel.master.user=masterUser
+jnosql.valkey.sentinel.master.password=masterPassword
+#jnosql.valkey.sentinel.master.ssl=false
+#jnosql.valkey.sentinel.master.timeout=2000
+#jnosql.valkey.sentinel.master.connection.timeout=2000
+#jnosql.valkey.sentinel.master.socket.timeout=2000
+
+jnosql.valkey.sentinel.slave.user=slaveUser
+jnosql.valkey.sentinel.slave.password=slavePassword
+#jnosql.valkey.sentinel.slave.ssl=false
+#jnosql.valkey.sentinel.slave.timeout=2000
+#jnosql.valkey.sentinel.slave.connection.timeout=2000
+#jnosql.valkey.sentinel.slave.socket.timeout=2000
+----
+
+- link:README.adoc#_valkey_sentinel_configuration[`ValkeyClusterConfigurations`] for cluster configuration
++
+[source,properties]
+----
+# Cluster Configuration
+
+jnosql.valkey.cluster.hosts=host1:6379,host2:6379
+jnosql.valkey.cluster.user=clusterUser
+jnosql.valkey.cluster.password=clusterPassword
+jnosql.valkey.cluster.client.name=clusterClientName
+jnosql.valkey.cluster.max.attempts=5
+jnosql.valkey.cluster.max.total.retries.duration=10000
+#jnosql.valkey.cluster.ssl=false
+#jnosql.valkey.cluster.timeout=2000
+#jnosql.valkey.cluster.connection.timeout=2000
+#jnosql.valkey.cluster.socket.timeout=2000
+----
+
+==== Single Node Configuration
+
+This API provides the `ValkeyConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,2", options="header"]
+|===
+|Configuration property |Description
+
+|`jnosql.valkey.host` |The database host
+|`jnosql.valkey.port` |The database port
+|`jnosql.valkey.timeout` |The redis timeout, the default value is 2000 milliseconds
+|`jnosql.valkey.password` |The password's credential
+|`jnosql.valkey.database` |The redis database number
+|`jnosql.valkey.client.name` |The cluster client's name. The default value is 0.
+|`jnosql.valkey.max.total` |The value for the maxTotal configuration attribute for pools created with this configuration instance. The default value is 1000.
+|`jnosql.valkey.max.idle` |The value for the maxIdle configuration attribute for pools created with this configuration instance. The default value is 10.
+|`jnosql.valkey.min.idle` |The value for the minIdle configuration attribute for pools created with this configuration instance. The default value is 1.
+|`jnosql.valkey.max.wait.millis` |The value for the maxWait configuration attribute for pools created with this configuration instance. The default value is 3000 milliseconds.
+|`jnosql.valkey.connection.timeout` |The connection timeout in milliseconds configuration attribute for the jedis client configuration created with this configuration instance.
+|`jnosql.valkey.socket.timeout` |The socket timeout in milliseconds configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.user` |The user configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.ssl` |The ssl configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.protocol` |The protocol configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the jedis client configuration with this configuration instance.
+|===
+
+==== Valkey Sentinel Configuration
+
+This API provides the `ValkeySentinelConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,2", options="header"]
+|===
+|Configuration Property |Description
+
+|`jnosql.valkey.sentinel.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.name` |The value for the master name configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.client.name` |The master client's name, the default value is 0
+|`jnosql.valkey.sentinel.slave.client.name` |The slave client's name, the default value is 0
+|`jnosql.valkey.sentinel.master.timeout` |The master redis timeout, the default value is 2000 milliseconds
+|`jnosql.valkey.sentinel.slave.timeout` |The slave redis timeout, the default value is 2000 milliseconds
+|`jnosql.valkey.sentinel.master.connection.timeout` |The connection timeout in milliseconds configuration attribute for the master jedis client configuration created with this configuration instance.
+|`jnosql.valkey.sentinel.slave.connection.timeout` |The connection timeout in milliseconds configuration attribute for the slave jedis client configuration created with this configuration instance.
+|`jnosql.valkey.sentinel.master.socket.timeout` |The socket timeout in milliseconds configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.socket.timeout` |The socket timeout in milliseconds configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.user` |The user configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.user` |The user configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.password` |The password configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.password` |The password configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.ssl` |The ssl configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.sentinel.slave.ssl` |The ssl configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.sentinel.master.protocol` |The protocol configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.protocol` |The protocol configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.sentinel.slave.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.sentinel.master.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the slave jedis client configuration with this configuration instance.
+|===
+
+==== Valkey Cluster Configuration
+
+This API provides the `ValkeyClusterConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,2", options="header"]
+|===
+|Configuration Property |Description
+
+|`jnosql.valkey.cluster.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.client.name` |The cluster client's name. The default value is 0.
+|`jnosql.valkey.cluster.timeout` |The cluster redis timeout, the default value is 2000 milliseconds
+|`jnosql.valkey.cluster.connection.timeout` |The connection timeout in milliseconds configuration attribute for the cluster jedis client configuration created with this configuration instance.
+|`jnosql.valkey.cluster.socket.timeout` |The socket timeout in milliseconds configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.user` |The user configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.password` |The password configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.ssl` |The ssl configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.cluster.protocol` |The protocol configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.cluster.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.max.attempts` |The value for the max attempts configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 5.
+|`jnosql.valkey.cluster.max.total.retries.duration` |The value for the max total retries configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 10000 milliseconds.
+|===
+
+=== RedisBucketManagerFactory
+
+The ```ValkeyBucketManagerFactory``` is a specialization of the ```BucketManagerFactory``` that enables ranking and counter feature.
+
+[source,java]
+----
+@Inject
+ValkeyBucketManagerFactory factory;
+...
+SortedSet game = factory.getSortedSet("game");
+game.add("Otavio", 10);
+game.add("Luiz", 20);
+game.add("Ada", 30);
+game.add(Ranking.of("Poliana", 40));
+
+List<Ranking> ranking = game.getRanking();
+
+Counter home = factory.getCounter("home");
+Counter products = factory.getCounter("products");
+home.increment();
+products.increment();
+products.increment(3L);
+----
+
+Using the same principle of the API you can inject using the `@KeyValueDatabase` qualifier.
+
+[source,java]
+----
+@Inject
+@KeyValueDatabase("counter")
+Counter counter;
+
+@Inject
+@KeyValueDatabase("game")
+SortedSet game;
+----
+
+
 == Riak
 
 image::https://jnosql.github.io/img/logos/riak.png[Riak Project,align="center" width=25%,height=25%]
