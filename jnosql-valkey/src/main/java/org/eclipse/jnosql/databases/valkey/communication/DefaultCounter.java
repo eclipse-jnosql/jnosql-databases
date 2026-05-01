@@ -14,7 +14,7 @@
  */
 package org.eclipse.jnosql.databases.valkey.communication;
 
-import redis.clients.jedis.UnifiedJedis;
+import io.valkey.UnifiedJedis;
 
 import java.time.Duration;
 import java.util.Objects;
