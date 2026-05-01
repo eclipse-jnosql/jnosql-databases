@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
-public class RedisMapStringTest {
+public class ValkeyMapStringTest {
 
     private BucketManagerFactory entityManagerFactory;
 

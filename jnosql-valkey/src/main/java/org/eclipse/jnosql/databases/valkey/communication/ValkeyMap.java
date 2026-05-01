@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
-class RedisMap<K, V> implements Map<K, V> {
+class ValkeyMap<K, V> implements Map<K, V> {
 
 
     protected static final Jsonb JSONB = JsonbSupplier.getInstance().get();
@@ -46,7 +46,7 @@ class RedisMap<K, V> implements Map<K, V> {
 
     private final boolean isValueString;
 
-    RedisMap(UnifiedJedis jedis, Class<K> keyValue, Class<V> valueClass, String keyWithNameSpace) {
+    ValkeyMap(UnifiedJedis jedis, Class<K> keyValue, Class<V> valueClass, String keyWithNameSpace) {
         this.keyClass = keyValue;
         this.valueClass = valueClass;
         this.nameSpace = keyWithNameSpace;
@@ -227,8 +227,8 @@ class RedisMap<K, V> implements Map<K, V> {
         if (obj == this) {
             return true;
         }
-        if (RedisMap.class.isInstance(obj)) {
-            RedisMap otherRedis = RedisMap.class.cast(obj);
+        if (ValkeyMap.class.isInstance(obj)) {
+            ValkeyMap otherRedis = ValkeyMap.class.cast(obj);
             return Objects.equals(otherRedis.nameSpace, nameSpace);
         }
         return false;

@@ -68,7 +68,7 @@ class DefaultValkeyBucketManagerFactory implements ValkeyBucketManagerFactory {
     public <K, V> Map<K, V> getMap(String bucketName, Class<K> keyValue, Class<V> valueValue) {
         requireNonNull(bucketName, "bucket name is required");
         requireNonNull(valueValue, "Class type is required");
-        return new RedisMap<>(jedis, keyValue, valueValue, bucketName);
+        return new ValkeyMap<>(jedis, keyValue, valueValue, bucketName);
     }
 
     @Override
