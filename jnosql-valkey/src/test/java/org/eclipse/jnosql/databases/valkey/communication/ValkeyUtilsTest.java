@@ -20,15 +20,15 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class RedisUtilsTest {
+public class ValkeyUtilsTest {
 
     @Test
     public void shouldReturnNameSpace() {
-        assertEquals("namespace:key", RedisUtils.createKeyWithNameSpace("key", "namespace"));
+        assertEquals("namespace:key", ValkeyUtils.createKeyWithNameSpace("key", "namespace"));
     }
 
     @Test
     public void shouldThrowWithNullKey() {
-        assertThrows(IrregularKeyValue.class, () -> RedisUtils.createKeyWithNameSpace(null, ""));
+        assertThrows(IrregularKeyValue.class, () -> ValkeyUtils.createKeyWithNameSpace(null, ""));
     }
 }

@@ -15,7 +15,7 @@
 
 package org.eclipse.jnosql.databases.valkey.communication;
 
-abstract class RedisUtils {
+abstract class ValkeyUtils {
 
 
     public static String createKeyWithNameSpace(String key, String nameSpace) {

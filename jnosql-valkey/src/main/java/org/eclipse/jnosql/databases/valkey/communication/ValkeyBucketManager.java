@@ -55,7 +55,7 @@ public class ValkeyBucketManager implements BucketManager {
     public <K, V> void put(K key, V value) throws NullPointerException {
         Objects.requireNonNull(value, "Value is required");
         Objects.requireNonNull(key, "key is required");
-        String valideKey = RedisUtils.createKeyWithNameSpace(key.toString(), nameSpace);
+        String valideKey = ValkeyUtils.createKeyWithNameSpace(key.toString(), nameSpace);
         jedis.set(valideKey, jsonB.toJson(value));
     }
 
@@ -67,7 +67,7 @@ public class ValkeyBucketManager implements BucketManager {
     @Override
     public void put(KeyValueEntity entity, Duration ttl) throws NullPointerException, UnsupportedOperationException {
         put(entity);
-        String valideKey = RedisUtils.createKeyWithNameSpace(entity.key().toString(), nameSpace);
+        String valideKey = ValkeyUtils.createKeyWithNameSpace(entity.key().toString(), nameSpace);
         jedis.expire(valideKey, (int) ttl.getSeconds());
     }
 
@@ -80,13 +80,13 @@ public class ValkeyBucketManager implements BucketManager {
     public void put(Iterable<KeyValueEntity> entities, Duration ttl) throws NullPointerException, UnsupportedOperationException {
         StreamSupport.stream(entities.spliterator(), false).forEach(this::put);
         StreamSupport.stream(entities.spliterator(), false).map(KeyValueEntity::key)
-                .map(k -> RedisUtils.createKeyWithNameSpace(k.toString(), nameSpace))
+                .map(k -> ValkeyUtils.createKeyWithNameSpace(k.toString(), nameSpace))
                 .forEach(k -> jedis.expire(k, (int) ttl.getSeconds()));
     }
 
     @Override
     public <K> Optional<Value> get(K key) throws NullPointerException {
-        String value = jedis.get(RedisUtils.createKeyWithNameSpace(key.toString(), nameSpace));
+        String value = jedis.get(ValkeyUtils.createKeyWithNameSpace(key.toString(), nameSpace));
         if (value != null && !value.isEmpty()) {
             return Optional.of(ValueJSON.of(value));
         }
@@ -96,14 +96,14 @@ public class ValkeyBucketManager implements BucketManager {
     @Override
     public <K> Iterable<Value> get(Iterable<K> keys) throws NullPointerException {
         return StreamSupport.stream(keys.spliterator(), false)
-                .map(k -> jedis.get(RedisUtils.createKeyWithNameSpace(k.toString(), nameSpace)))
+                .map(k -> jedis.get(ValkeyUtils.createKeyWithNameSpace(k.toString(), nameSpace)))
                 .filter(value -> value != null && !value.isEmpty())
                 .map(ValueJSON::of).collect(toList());
     }
 
     @Override
     public <K> void delete(K key) {
-        jedis.del(RedisUtils.createKeyWithNameSpace(key.toString(), nameSpace));
+        jedis.del(ValkeyUtils.createKeyWithNameSpace(key.toString(), nameSpace));
     }
 
     @Override
