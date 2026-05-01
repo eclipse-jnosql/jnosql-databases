@@ -15,20 +15,22 @@
 
 package org.eclipse.jnosql.databases.valkey.communication;
 
+import io.valkey.ClientSetInfoConfig;
+import io.valkey.ConnectionPoolConfig;
+import io.valkey.DefaultJedisClientConfig;
+import io.valkey.HostAndPort;
+import io.valkey.JedisClientConfig;
+import io.valkey.JedisCluster;
+import io.valkey.JedisPooled;
+import io.valkey.JedisSentineled;
+import io.valkey.RedisProtocol;
+import io.valkey.UnifiedJedis;
 import org.eclipse.jnosql.communication.Configurations;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.SettingsBuilder;
 import org.eclipse.jnosql.communication.keyvalue.KeyValueConfiguration;
-import redis.clients.jedis.ClientSetInfoConfig;
-import redis.clients.jedis.ConnectionPoolConfig;
-import redis.clients.jedis.DefaultJedisClientConfig;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPooled;
-import redis.clients.jedis.JedisSentineled;
-import redis.clients.jedis.RedisProtocol;
-import redis.clients.jedis.UnifiedJedis;
+
+
 
 import java.time.Duration;
 import java.util.Arrays;
