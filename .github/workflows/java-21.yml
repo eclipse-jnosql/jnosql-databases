@@ -16,10 +16,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: jnosql-databases
+      - name: Checkout JNoSQL 1.1.x
+        uses: actions/checkout@v4
+        with:
+          repository: eclipse-jnosql/jnosql
+          ref: 1.1.x
+          path: jnosql
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 21
+      - name: Install JNoSQL 1.1.x snapshots
+        working-directory: jnosql
+        run: mvn -B install -DskipTests -DskipITs -Djnosql.test.integration=false -Dpmd.skip=true
       - name: Build with Maven
+        working-directory: jnosql-databases
         run: mvn -B package --file pom.xml
