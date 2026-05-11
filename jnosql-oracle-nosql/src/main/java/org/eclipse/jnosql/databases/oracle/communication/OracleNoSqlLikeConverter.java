@@ -30,7 +30,7 @@ enum OracleNoSqlLikeConverter {
      *   "%Lu"   -> ".*Lu"
      *   "%Lu%"  -> ".*Lu.*"
      *   "Lu"    -> "Lu"        // exact match equivalent in regex_like
-     *   "a.c"   -> "a\\.c"     // '.' escaped
+     *   "a.c"   -> "a\\.c"     // '.' escaped for the Oracle NoSQL SQL literal and regex parser
      */
     String convert(Object value) {
         if (value == null) return ""; // let caller decide behavior for empty
@@ -43,8 +43,7 @@ enum OracleNoSqlLikeConverter {
                 case '%': out.append(".*"); break; // zero or more
                 case '_': out.append('.');  break; // exactly one
                 default:
-                    if (META.contains(c)) out.append('\\');
-                    out.append(c);
+                    appendEscaped(out, c);
             }
         }
         return out.toString();
@@ -69,9 +68,15 @@ enum OracleNoSqlLikeConverter {
     private String escape(String s) {
         StringBuilder out = new StringBuilder(s.length());
         for (char c : s.toCharArray()) {
-            if (META.contains(c)) out.append('\\');
-            out.append(c);
+            appendEscaped(out, c);
         }
         return out.toString();
+    }
+
+    private void appendEscaped(StringBuilder out, char c) {
+        if (META.contains(c)) {
+            out.append("\\\\");
+        }
+        out.append(c);
     }
 }
