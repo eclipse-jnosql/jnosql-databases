@@ -35,8 +35,8 @@ import static java.util.Objects.requireNonNull;
 
 
 /**
- * The MongoDB implementation to {@link DatabaseConfiguration}
- * that returns  {@link MongoDBDocumentManagerFactory}
+ * The MongoDB implementation to {@link DatabaseConfiguration} that returns  {@link MongoDBDocumentManagerFactory}
+ *
  * @see MongoDBDocumentConfigurations
  */
 public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
@@ -91,10 +91,15 @@ public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
         }
 
         Optional<MongoCredential> credential = MongoAuthentication.of(settings);
-        final MongoClientSettings mongoClientSettings = credential.map(c -> MongoClientSettings.builder().credential(c)
-                .applyToClusterSettings(builder -> builder.hosts(servers))).orElseGet(() ->
-                MongoClientSettings.builder()
-                        .applyToClusterSettings(builder -> builder.hosts(servers))).build();
+        final MongoClientSettings mongoClientSettings = credential.map(c -> {
+            var builderSettings = MongoClientSettings.builder().credential(c).applyToClusterSettings(builder -> builder.hosts(servers));
+            applicationName.ifPresent(builderSettings::applicationName);
+            return builderSettings;
+        }).orElseGet(() -> {
+            var settingsBuilder = MongoClientSettings.builder();
+            applicationName.ifPresent(settingsBuilder::applicationName);
+            return settingsBuilder.applyToClusterSettings(builder -> builder.hosts(servers));
+        }).build();
         return new MongoDBDocumentManagerFactory(MongoClients.create(mongoClientSettings));
     }
 
