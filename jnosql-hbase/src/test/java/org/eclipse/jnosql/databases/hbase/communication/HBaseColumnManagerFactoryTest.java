@@ -22,7 +22,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
