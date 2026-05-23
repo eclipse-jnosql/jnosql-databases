@@ -15,11 +15,10 @@
 
 package org.eclipse.jnosql.databases.solr.communication;
 
-import org.apache.solr.client.solrj.impl.Http2SolrClient;
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 
 import java.util.Objects;
-
 /**
  * The solr implementation to {@link DatabaseManagerFactory}
  * <br/>
@@ -27,27 +26,41 @@ import java.util.Objects;
  */
 public class SolrDocumentManagerFactory implements DatabaseManagerFactory {
 
-    private final Http2SolrClient solrClient;
+    private final String host;
 
     private final boolean automaticCommit;
 
-    SolrDocumentManagerFactory(Http2SolrClient solrClient, boolean automaticCommit) {
-        this.solrClient = solrClient;
+    SolrDocumentManagerFactory(String host, boolean automaticCommit) {
+
+        this.host = Objects.requireNonNull(host, "host is required");
+
         this.automaticCommit = automaticCommit;
     }
 
     @Override
     public SolrDocumentManager apply(String database) {
-        Objects.requireNonNull(database, "database is required");
-        final String baseURL = solrClient.getBaseURL() + '/' + database;
-        return new DefaultSolrDocumentManager(new Http2SolrClient.Builder(baseURL).build(), database, automaticCommit);
+
+        Objects.requireNonNull(
+                database,
+                "database is required");
+
+        final String baseUrl =
+                host.endsWith("/")
+                        ? host + database
+                        : host + "/" + database;
+
+        HttpJdkSolrClient solrClient =
+                new HttpJdkSolrClient.Builder(baseUrl)
+                        .build();
+        return new DefaultSolrDocumentManager(solrClient, database, automaticCommit);
     }
 
-
     /**
-     * Closing a {@link SolrDocumentManagerFactory} has no effect.
+     * Closing a {@link SolrDocumentManagerFactory}
+     * has no effect.
      */
     @Override
     public void close() {
+
     }
 }
