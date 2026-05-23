@@ -14,9 +14,8 @@
  */
 package org.eclipse.jnosql.databases.solr.communication;
 
-import org.apache.solr.client.solrj.impl.Http2SolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.impl.XMLResponseParser;
+
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
 import org.eclipse.jnosql.communication.Configurations;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
@@ -37,32 +36,48 @@ public class SolrDocumentConfiguration implements DatabaseConfiguration {
     private static final String DEFAULT_HOST = "http://localhost:8983/solr/";
 
     /**
-     * Creates a {@link SolrDocumentManagerFactory} from mongoClient
+     * Creates a {@link SolrDocumentManagerFactory}
+     * from a {@link HttpJdkSolrClient}.
      *
-     * @param solrClient the mongo client {@link HttpSolrClient}
+     * @param solrClient the Solr client
      * @return a SolrDocumentManagerFactory instance
-     * @throws NullPointerException when the mongoClient is null
+     * @throws NullPointerException when solrClient is null
      */
-    public SolrDocumentManagerFactory get(Http2SolrClient solrClient) throws NullPointerException {
+    public SolrDocumentManagerFactory get(
+            HttpJdkSolrClient solrClient) {
+
         requireNonNull(solrClient, "solrClient is required");
-        return new SolrDocumentManagerFactory(solrClient, true);
+
+        return new SolrDocumentManagerFactory(
+                solrClient,
+                true);
     }
 
-
     @Override
-    public SolrDocumentManagerFactory apply(Settings settings) throws NullPointerException {
+    public SolrDocumentManagerFactory apply(
+            Settings settings) {
+
         requireNonNull(settings, "settings is required");
 
+        String host = settings.getSupplier(
+                        Arrays.asList(
+                                SolrDocumentConfigurations.HOST,
+                                Configurations.HOST))
+                .map(Object::toString)
+                .orElse(DEFAULT_HOST);
 
-        String host = settings.getSupplier(Arrays.asList(SolrDocumentConfigurations.HOST,
-                        Configurations.HOST)).map(Object::toString).orElse(DEFAULT_HOST);
+        boolean automaticCommit =
+                settings.getOrDefault(
+                        SolrDocumentConfigurations.AUTOMATIC_COMMIT,
+                        true);
 
-        boolean automaticCommit = settings.getOrDefault(SolrDocumentConfigurations.AUTOMATIC_COMMIT, true);
+        final HttpJdkSolrClient solrClient =
+                new HttpJdkSolrClient.Builder(host)
+                        .build();
 
-        final Http2SolrClient solrClient = new Http2SolrClient.Builder(host)
-                .withResponseParser(new XMLResponseParser()).build();
-        return new SolrDocumentManagerFactory(solrClient, automaticCommit);
-
+        return new SolrDocumentManagerFactory(
+                solrClient,
+                automaticCommit);
     }
 
 
