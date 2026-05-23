@@ -23,6 +23,7 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;
+import static org.eclipse.jnosql.databases.solr.communication.SolrDocumentConfigurations.AUTOMATIC_COMMIT;
 
 
 /**
@@ -51,8 +52,7 @@ public class SolrDocumentConfiguration implements DatabaseConfiguration {
     }
 
     @Override
-    public SolrDocumentManagerFactory apply(
-            Settings settings) {
+    public SolrDocumentManagerFactory apply(Settings settings) {
 
         requireNonNull(settings, "settings is required");
 
@@ -63,12 +63,10 @@ public class SolrDocumentConfiguration implements DatabaseConfiguration {
                 .map(Object::toString)
                 .orElse(DEFAULT_HOST);
 
-        boolean automaticCommit =
-                settings.getOrDefault(
-                        SolrDocumentConfigurations.AUTOMATIC_COMMIT,
-                        true);
+        boolean automaticCommit = settings.getOrDefault(AUTOMATIC_COMMIT, true);
 
-        return new SolrDocumentManagerFactory(host, automaticCommit);
+        var solrClient = new HttpJdkSolrClient.Builder(host).build();
+        return new SolrDocumentManagerFactory(solrClient, automaticCommit);
     }
 
 }
