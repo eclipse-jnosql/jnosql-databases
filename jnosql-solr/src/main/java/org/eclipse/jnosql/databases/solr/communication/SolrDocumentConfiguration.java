@@ -43,8 +43,7 @@ public class SolrDocumentConfiguration implements DatabaseConfiguration {
      * @return a SolrDocumentManagerFactory instance
      * @throws NullPointerException when solrClient is null
      */
-    public SolrDocumentManagerFactory get(
-            HttpJdkSolrClient solrClient) {
+    public SolrDocumentManagerFactory get(HttpJdkSolrClient solrClient) {
 
         requireNonNull(solrClient, "solrClient is required");
 
@@ -69,11 +68,7 @@ public class SolrDocumentConfiguration implements DatabaseConfiguration {
                         SolrDocumentConfigurations.AUTOMATIC_COMMIT,
                         true);
 
-        final HttpJdkSolrClient solrClient =
-                new HttpJdkSolrClient.Builder(host)
-                        .build();
-
-        return new SolrDocumentManagerFactory(solrClient, automaticCommit);
+        return new SolrDocumentManagerFactory(host, automaticCommit);
     }
 
 }
