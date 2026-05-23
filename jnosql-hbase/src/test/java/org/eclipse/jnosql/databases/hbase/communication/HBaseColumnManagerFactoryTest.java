@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class HBaseColumnManagerFactoryTest {
-    private DatabaseConfiguration configuration = new HBaseColumnConfiguration();
+    private final DatabaseConfiguration configuration = new HBaseColumnConfiguration();
 
     @Test
     public void shouldCreateColumnManager() {

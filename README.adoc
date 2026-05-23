@@ -1120,6 +1120,9 @@ Please note that you can establish properties using the https://microprofile.io/
 |`jnosql.mongodb.authentication.mechanism`
 |Authentication mechanisms com.mongodb.AuthenticationMechanism
 
+|`jnosql.mongodb.application.name`
+|Defines the logical name of the application connecting to MongoDB.
+
 |===
 
 This is an example using Mongodb's Document API with MicroProfile Config.

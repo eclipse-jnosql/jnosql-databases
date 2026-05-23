@@ -16,17 +16,14 @@ package org.eclipse.jnosql.databases.mongodb.communication;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.eclipse.jnosql.communication.Configurations;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.SettingsBuilder;
-import org.eclipse.jnosql.communication.driver.ConfigurationReader;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,12 +32,15 @@ import static java.util.Objects.requireNonNull;
 
 
 /**
- * The MongoDB implementation to {@link DatabaseConfiguration}
- * that returns  {@link MongoDBDocumentManagerFactory}
+ * The MongoDB implementation to {@link DatabaseConfiguration} that returns  {@link MongoDBDocumentManagerFactory}
+ *
  * @see MongoDBDocumentConfigurations
  */
 public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
 
+    /**
+     * Default MongoDB port.
+     */
     static final int DEFAULT_PORT = 27017;
 
 
@@ -72,46 +72,67 @@ public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
 
 
     @Override
-    public MongoDBDocumentManagerFactory apply(Settings settings) throws NullPointerException {
+    public MongoDBDocumentManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");
 
-        List<ServerAddress> servers = settings
-                .prefixSupplier(Arrays.asList(MongoDBDocumentConfigurations.HOST,
-                        Configurations.HOST))
+        List<ServerAddress> servers = getServers(settings);
+        Optional<String> applicationName = getApplicationName(settings);
+
+        if (servers.isEmpty()) {
+            return createFromConnectionString(settings, applicationName.orElse(null));
+        }
+
+        var mongoClientSettings = createClientSettings(settings, servers, applicationName.orElse(null));
+        var mongoClient = MongoClients.create(mongoClientSettings);
+        return new MongoDBDocumentManagerFactory(mongoClient);
+    }
+
+    private List<ServerAddress> getServers(Settings settings) {
+        return settings.prefixSupplier(List.of(
+                        MongoDBDocumentConfigurations.HOST,
+                        Configurations.HOST
+                ))
                 .stream()
                 .map(Object::toString)
                 .map(HostPortConfiguration::new)
                 .map(HostPortConfiguration::toServerAddress)
                 .toList();
-
-        if (servers.isEmpty()) {
-            Optional<ConnectionString> connectionString = settings
-                    .get(MongoDBDocumentConfigurations.URL, String.class)
-                    .map(ConnectionString::new);
-
-            return connectionString.map(c -> MongoClientSettings.builder()
-                    .applyConnectionString(c)
-                    .build())
-                    .map(MongoClients::create)
-                    .map(MongoDBDocumentManagerFactory::new)
-                    .orElseGet(() -> new MongoDBDocumentManagerFactory(MongoClients.create()));
-        }
-
-        Optional<MongoCredential> credential = MongoAuthentication.of(settings);
-
-
-        final MongoClientSettings mongoClientSettings = credential.map(c -> MongoClientSettings.builder().credential(c)
-                .applyToClusterSettings(builder -> builder.hosts(servers))).orElseGet(() ->
-                MongoClientSettings.builder()
-                        .applyToClusterSettings(builder -> builder.hosts(servers))).build();
-
-        return new MongoDBDocumentManagerFactory(MongoClients.create(mongoClientSettings));
     }
 
-    public MongoDBDocumentManagerFactory get(String pathFileConfig) throws NullPointerException {
-        requireNonNull(pathFileConfig, "settings is required");
+    private Optional<String> getApplicationName(Settings settings) {
+        return settings.get(
+                MongoDBDocumentConfigurations.APPLICATION_NAME,
+                String.class
+        );
+    }
 
-        Map<String, String> configuration = ConfigurationReader.from(pathFileConfig);
-        return get(configuration);
+    private MongoClientSettings createClientSettings(
+            Settings settings,
+            List<ServerAddress> servers,
+            String applicationName) {
+
+        MongoClientSettings.Builder builder = MongoClientSettings.builder()
+                .applyToClusterSettings(cluster -> cluster.hosts(servers));
+
+        MongoAuthentication.of(settings)
+                .ifPresent(builder::credential);
+
+        Optional.ofNullable(applicationName).ifPresent(builder::applicationName);
+
+        return builder.build();
+    }
+
+    private MongoDBDocumentManagerFactory createFromConnectionString(Settings settings, String applicationName) {
+        Optional<ConnectionString> connectionString = settings.get(MongoDBDocumentConfigurations.URL, String.class).map(ConnectionString::new);
+
+        if (connectionString.isEmpty()) {
+            return new MongoDBDocumentManagerFactory(MongoClients.create());
+        }
+
+        MongoClientSettings.Builder builder = MongoClientSettings.builder().applyConnectionString(connectionString.orElseThrow());
+
+        Optional.ofNullable(applicationName).ifPresent(builder::applicationName);
+        MongoClient mongoClient = MongoClients.create(builder.build());
+        return new MongoDBDocumentManagerFactory(mongoClient);
     }
 }
