@@ -41,6 +41,9 @@ import static java.util.Objects.requireNonNull;
  */
 public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
 
+    /**
+     * Default MongoDB port.
+     */
     static final int DEFAULT_PORT = 27017;
 
 
