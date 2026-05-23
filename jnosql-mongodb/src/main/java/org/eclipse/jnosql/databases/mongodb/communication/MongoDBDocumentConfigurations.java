@@ -50,7 +50,7 @@ public enum MongoDBDocumentConfigurations implements Supplier<String> {
      */
     AUTHENTICATION_MECHANISM("jnosql.mongodb.authentication.mechanism"),
     /**
-     * The database name to be used as default.
+     * Defines the logical name of the application connecting to MongoDB.
      */
     APPLICATION_NAME("jnosql.mongodb.application.name");
 
