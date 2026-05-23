@@ -84,28 +84,34 @@ public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
                 .map(HostPortConfiguration::toServerAddress)
                 .toList();
 
-        if (servers.isEmpty()) {
-            Optional<ConnectionString> connectionString = settings
-                    .get(MongoDBDocumentConfigurations.URL, String.class)
-                    .map(ConnectionString::new);
+        var applicationName = settings.get(MongoDBDocumentConfigurations.APPLICATION_NAME, String.class);
 
-            return connectionString.map(c -> MongoClientSettings.builder()
-                    .applyConnectionString(c)
-                    .build())
-                    .map(MongoClients::create)
-                    .map(MongoDBDocumentManagerFactory::new)
-                    .orElseGet(() -> new MongoDBDocumentManagerFactory(MongoClients.create()));
+        if (servers.isEmpty()) {
+            return createMongoDBDocumentManagerFactory(settings, applicationName.orElse(null));
         }
 
         Optional<MongoCredential> credential = MongoAuthentication.of(settings);
-
-
         final MongoClientSettings mongoClientSettings = credential.map(c -> MongoClientSettings.builder().credential(c)
                 .applyToClusterSettings(builder -> builder.hosts(servers))).orElseGet(() ->
                 MongoClientSettings.builder()
                         .applyToClusterSettings(builder -> builder.hosts(servers))).build();
-
         return new MongoDBDocumentManagerFactory(MongoClients.create(mongoClientSettings));
+    }
+
+    private static MongoDBDocumentManagerFactory createMongoDBDocumentManagerFactory(Settings settings, String applicationName) {
+        var connectionString = settings
+                .get(MongoDBDocumentConfigurations.URL, String.class)
+                .map(ConnectionString::new);
+
+        if (connectionString.isEmpty()) {
+            return new MongoDBDocumentManagerFactory(MongoClients.create());
+        }
+        MongoClientSettings.Builder builder = MongoClientSettings.builder()
+                .applyConnectionString(connectionString.orElseThrow());
+        Optional.ofNullable(applicationName).ifPresent(builder::applicationName);
+        MongoClientSettings mongoClientSettings = builder.build();
+        MongoClient mongoClient = MongoClients.create(mongoClientSettings);
+        return new MongoDBDocumentManagerFactory(mongoClient);
     }
 
     public MongoDBDocumentManagerFactory get(String pathFileConfig) throws NullPointerException {
