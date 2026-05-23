@@ -13,13 +13,14 @@
  *   Otavio Santana
  */
 
+
 package org.eclipse.jnosql.databases.solr.communication;
 
-import jakarta.data.Direction;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrQuery.SortClause;
+import jakarta.data.Sort;
+import org.apache.solr.client.solrj.request.SolrQuery;
+import org.apache.solr.client.solrj.request.SolrQuery.SortClause;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.Http2SolrClient;
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
@@ -31,10 +32,10 @@ import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -47,13 +48,16 @@ import static java.util.stream.Collectors.toList;
  */
 class DefaultSolrDocumentManager implements SolrDocumentManager {
 
-    private final Http2SolrClient solrClient;
+    private final HttpJdkSolrClient solrClient;
 
     private final String database;
 
     private final boolean automaticCommit;
 
-    DefaultSolrDocumentManager(Http2SolrClient solrClient, String database, boolean automaticCommit) {
+    DefaultSolrDocumentManager(HttpJdkSolrClient solrClient,
+                               String database,
+                               boolean automaticCommit) {
+
         this.solrClient = solrClient;
         this.database = database;
         this.automaticCommit = automaticCommit;
@@ -155,8 +159,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
                 solrQuery.setRows((int) query.limit());
             }
             final List<SortClause> sorts = query.sorts().stream()
-                    .map(s -> new SortClause(s.property(), s.isAscending()? Direction.ASC.name().toLowerCase(Locale.US):
-                            Direction.DESC.name().toLowerCase(Locale.US)))
+                    .map(convertSortToClause())
                     .collect(toList());
             solrQuery.setSorts(sorts);
             final QueryResponse response = solrClient.query(solrQuery);
@@ -165,6 +168,14 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
         } catch (SolrServerException | IOException e) {
             throw new SolrException("Error to query at Solr", e);
         }
+    }
+
+    private static Function<Sort<?>, SortClause> convertSortToClause() {
+        return sort -> new SortClause(
+                sort.property(),
+                sort.isAscending()
+                        ? SolrQuery.ORDER.asc
+                        : SolrQuery.ORDER.desc);
     }
 
     @Override
