@@ -82,16 +82,11 @@ public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
         Optional<String> applicationName = getApplicationName(settings);
 
         if (servers.isEmpty()) {
-            return createFromConnectionString(settings, applicationName);
+            return createFromConnectionString(settings, applicationName.orElse(null));
         }
 
-        MongoClientSettings mongoClientSettings = createClientSettings(
-                settings,
-                servers,
-                applicationName
-        );
-
-        MongoClient mongoClient = MongoClients.create(mongoClientSettings);
+        var mongoClientSettings = createClientSettings(settings, servers, applicationName.orElse(null));
+        var mongoClient = MongoClients.create(mongoClientSettings);
         return new MongoDBDocumentManagerFactory(mongoClient);
     }
 
@@ -117,7 +112,7 @@ public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
     private MongoClientSettings createClientSettings(
             Settings settings,
             List<ServerAddress> servers,
-            Optional<String> applicationName) {
+            String applicationName) {
 
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
                 .applyToClusterSettings(cluster -> cluster.hosts(servers));
@@ -125,12 +120,12 @@ public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
         MongoAuthentication.of(settings)
                 .ifPresent(builder::credential);
 
-        applicationName.ifPresent(builder::applicationName);
+        Optional.ofNullable(applicationName).ifPresent(builder::applicationName);
 
         return builder.build();
     }
 
-    private MongoDBDocumentManagerFactory createFromConnectionString(Settings settings, Optional<String> applicationName) {
+    private MongoDBDocumentManagerFactory createFromConnectionString(Settings settings, String applicationName) {
         Optional<ConnectionString> connectionString = settings.get(MongoDBDocumentConfigurations.URL, String.class).map(ConnectionString::new);
 
         if (connectionString.isEmpty()) {
@@ -139,7 +134,7 @@ public class MongoDBDocumentConfiguration implements DatabaseConfiguration {
 
         MongoClientSettings.Builder builder = MongoClientSettings.builder().applyConnectionString(connectionString.orElseThrow());
 
-        applicationName.ifPresent(builder::applicationName);
+        Optional.ofNullable(applicationName).ifPresent(builder::applicationName);
         MongoClient mongoClient = MongoClients.create(builder.build());
         return new MongoDBDocumentManagerFactory(mongoClient);
     }
