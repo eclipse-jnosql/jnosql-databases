@@ -48,9 +48,7 @@ public class SolrDocumentConfiguration implements DatabaseConfiguration {
 
         requireNonNull(solrClient, "solrClient is required");
 
-        return new SolrDocumentManagerFactory(
-                solrClient,
-                true);
+        return new SolrDocumentManagerFactory(solrClient, true);
     }
 
     @Override
@@ -75,10 +73,7 @@ public class SolrDocumentConfiguration implements DatabaseConfiguration {
                 new HttpJdkSolrClient.Builder(host)
                         .build();
 
-        return new SolrDocumentManagerFactory(
-                solrClient,
-                automaticCommit);
+        return new SolrDocumentManagerFactory(solrClient, automaticCommit);
     }
-
 
 }
