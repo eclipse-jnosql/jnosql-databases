@@ -16,17 +16,14 @@ package org.eclipse.jnosql.databases.mongodb.communication;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.eclipse.jnosql.communication.Configurations;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.SettingsBuilder;
-import org.eclipse.jnosql.communication.driver.ConfigurationReader;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
