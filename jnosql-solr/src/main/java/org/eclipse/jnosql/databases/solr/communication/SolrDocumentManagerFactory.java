@@ -26,16 +26,21 @@ import java.util.Objects;
  */
 public class SolrDocumentManagerFactory implements DatabaseManagerFactory {
 
-    private final String host;
+    private final HttpJdkSolrClient solrClient;
 
     private final boolean automaticCommit;
 
-    SolrDocumentManagerFactory(String host, boolean automaticCommit) {
+    SolrDocumentManagerFactory(
+            HttpJdkSolrClient solrClient,
+            boolean automaticCommit) {
 
-        this.host = Objects.requireNonNull(host, "host is required");
+        this.solrClient = Objects.requireNonNull(
+                solrClient,
+                "solrClient is required");
 
         this.automaticCommit = automaticCommit;
     }
+
 
     @Override
     public SolrDocumentManager apply(String database) {
@@ -44,14 +49,6 @@ public class SolrDocumentManagerFactory implements DatabaseManagerFactory {
                 database,
                 "database is required");
 
-        final String baseUrl =
-                host.endsWith("/")
-                        ? host + database
-                        : host + "/" + database;
-
-        HttpJdkSolrClient solrClient =
-                new HttpJdkSolrClient.Builder(baseUrl)
-                        .build();
         return new DefaultSolrDocumentManager(solrClient, database, automaticCommit);
     }
 
