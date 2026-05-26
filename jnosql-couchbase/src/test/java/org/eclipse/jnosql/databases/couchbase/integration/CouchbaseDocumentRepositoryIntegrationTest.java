@@ -126,7 +126,7 @@ class CouchbaseDocumentRepositoryIntegrationTest {
         assertSoftly(softly -> {
             softly.assertThat(data).as("query result is a non-null instance").isNotNull();
             softly.assertThat(data.size()).as("query result size is correct").isEqualTo(1);
-            softly.assertThat(data.get(0)).as("returned data is correct").isEqualTo(magazine);
+            softly.assertThat(data.getFirst()).as("returned data is correct").isEqualTo(magazine);
         });
     }
 
@@ -144,7 +144,7 @@ class CouchbaseDocumentRepositoryIntegrationTest {
         assertSoftly(softly -> {
             softly.assertThat(booksFoundByEditionLessThan).as("query result from findByEditionLessThan() is a non-null instance").isNotNull();
             softly.assertThat(booksFoundByEditionLessThan.size()).as("query result size from findByEditionLessThan() is correct").isEqualTo(1);
-            softly.assertThat(booksFoundByEditionLessThan.get(0)).as("returned books from findByEditionLessThan() are correct").isEqualTo(magazine);
+            softly.assertThat(booksFoundByEditionLessThan.getFirst()).as("returned books from findByEditionLessThan() are correct").isEqualTo(magazine);
         });
 
         var booksFoundByEditionLessThanZero = library.findByEditionLessThan(0).toList();
@@ -159,7 +159,7 @@ class CouchbaseDocumentRepositoryIntegrationTest {
         assertSoftly(softly -> {
             softly.assertThat(booksFoundByEditionGreaterThan).as("query result from findByEditionGreaterThan() is a non-null instance").isNotNull();
             softly.assertThat(booksFoundByEditionGreaterThan.size()).as("query result size from findByEditionGreaterThan() is correct").isEqualTo(1);
-            softly.assertThat(booksFoundByEditionGreaterThan.get(0)).as("returned books from findByEditionGreaterThan() are correct").isEqualTo(magazine);
+            softly.assertThat(booksFoundByEditionGreaterThan.getFirst()).as("returned books from findByEditionGreaterThan() are correct").isEqualTo(magazine);
         });
 
 
@@ -185,7 +185,7 @@ class CouchbaseDocumentRepositoryIntegrationTest {
         assertSoftly(softly -> {
             softly.assertThat(booksFoundByEditionGreaterThanZero).as("query result from findByEditionGreaterThan() is a non-null instance").isNotNull();
             softly.assertThat(booksFoundByEditionGreaterThanZero.size()).as("query result size from findByEditionGreaterThan() is correct").isEqualTo(1);
-            softly.assertThat(booksFoundByEditionGreaterThanZero.get(0)).as("returned books from findByEditionGreaterThan() are correct").isEqualTo(magazine);
+            softly.assertThat(booksFoundByEditionGreaterThanZero.getFirst()).as("returned books from findByEditionGreaterThan() are correct").isEqualTo(magazine);
         });
 
 
