@@ -197,9 +197,9 @@ class Neo4JDatabaseManagerTest {
         var entities = entityManager.select(query).toList();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(entities).hasSize(1);
-            softly.assertThat(entities.get(0).elements()).hasSize(2);
-            softly.assertThat(entities.get(0).contains("name")).isTrue();
-            softly.assertThat(entities.get(0).contains("city")).isTrue();
+            softly.assertThat(entities.getFirst().elements()).hasSize(2);
+            softly.assertThat(entities.getFirst().contains("name")).isTrue();
+            softly.assertThat(entities.getFirst().contains("city")).isTrue();
         });
     }
 
@@ -529,10 +529,10 @@ class Neo4JDatabaseManagerTest {
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result).isNotEmpty();
-            softly.assertThat(result.get(0).name()).isEqualTo(COLLECTION_NAME);
-            softly.assertThat(result.get(0).find("name")).isPresent();
-            softly.assertThat(result.get(0).find("city")).isPresent();
-            softly.assertThat(result.get(0).find("_id")).isPresent(); // Ensuring _id exists
+            softly.assertThat(result.getFirst().name()).isEqualTo(COLLECTION_NAME);
+            softly.assertThat(result.getFirst().find("name")).isPresent();
+            softly.assertThat(result.getFirst().find("city")).isPresent();
+            softly.assertThat(result.getFirst().find("_id")).isPresent(); // Ensuring _id exists
         });
     }
 
@@ -680,7 +680,7 @@ class Neo4JDatabaseManagerTest {
         var result = entityManager.select(query).toList();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -695,7 +695,7 @@ class Neo4JDatabaseManagerTest {
         var result = entityManager.select(query).toList();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -710,7 +710,7 @@ class Neo4JDatabaseManagerTest {
         var result = entityManager.select(query).toList();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
