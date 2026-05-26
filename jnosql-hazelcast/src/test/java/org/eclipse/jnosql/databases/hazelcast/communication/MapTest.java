@@ -37,9 +37,9 @@ public class MapTest {
 
     private BucketManagerFactory entityManagerFactory;
 
-    private Species mammals = new Species("lion", "cow", "dog");
-    private Species fishes = new Species("redfish", "glassfish");
-    private Species amphibians = new Species("crododile", "frog");
+    private final Species mammals = new Species("lion", "cow", "dog");
+    private final Species fishes = new Species("redfish", "glassfish");
+    private final Species amphibians = new Species("crododile", "frog");
 
     @BeforeEach
     public void init() {
