@@ -83,7 +83,7 @@ public class ArangoDBEnumIntegrationTest {
 
         SoftAssertions.assertSoftly(soft -> {
             Predicate<MailTemplate> isTimer = m -> m.getCategory().equals(MailCategory.TIMER);
-            Predicate<MailTemplate> isTrue = m -> m.isDefault();
+            Predicate<MailTemplate> isTrue = MailTemplate::isDefault;
             soft.assertThat(result).allMatch(isTimer.and(isTrue));
         });
     }
@@ -133,7 +133,7 @@ public class ArangoDBEnumIntegrationTest {
 
         SoftAssertions.assertSoftly(soft -> {
             Predicate<MailTemplate> isTimer = m -> m.getCategory().equals(MailCategory.TIMER);
-            Predicate<MailTemplate> isTrue = m -> m.isDefault();
+            Predicate<MailTemplate> isTrue = MailTemplate::isDefault;
             soft.assertThat(categoryAndIsDefaultTrue).hasSize(1).allMatch(
                     isTimer.and(isTrue));
         });
