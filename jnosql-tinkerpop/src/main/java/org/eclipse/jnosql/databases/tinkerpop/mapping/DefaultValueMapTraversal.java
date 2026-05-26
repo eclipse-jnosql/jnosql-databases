@@ -67,7 +67,7 @@ class DefaultValueMapTraversal implements ValueMapTraversal {
             return Optional.empty();
         }
         if (result.size() == 1) {
-            return Optional.of(result.get(0));
+            return Optional.of(result.getFirst());
         }
         throw new NonUniqueResultException("The Edge traversal query returns more than one result");
     }
