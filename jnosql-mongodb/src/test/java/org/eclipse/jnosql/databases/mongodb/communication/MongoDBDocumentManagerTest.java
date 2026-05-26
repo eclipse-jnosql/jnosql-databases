@@ -244,7 +244,7 @@ class MongoDBDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
     @Test
@@ -261,7 +261,7 @@ class MongoDBDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
     @Test
@@ -279,7 +279,7 @@ class MongoDBDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).contains(entities.get(0));
+        assertThat(entitiesFound).contains(entities.getFirst());
     }
 
     @Test
@@ -386,7 +386,7 @@ class MongoDBDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
                 .where("age").gt(22)
@@ -414,7 +414,7 @@ class MongoDBDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
                 .where("age").gt(22)
@@ -490,7 +490,7 @@ class MongoDBDocumentManagerTest {
         SelectQuery query = select("name").from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
         assertFalse(entities.isEmpty());
-        final CommunicationEntity entity = entities.get(0);
+        final CommunicationEntity entity = entities.getFirst();
         assertEquals(2, entity.size());
         assertTrue(entity.find("name").isPresent());
         assertTrue(entity.find("_id").isPresent());
@@ -508,7 +508,7 @@ class MongoDBDocumentManagerTest {
                 .where("_id").eq(id.get())
                 .build();
 
-        CommunicationEntity entityFound = entityManager.select(query).toList().get(0);
+        CommunicationEntity entityFound = entityManager.select(query).toList().getFirst();
         Element subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -537,7 +537,7 @@ class MongoDBDocumentManagerTest {
         SelectQuery query = select().from(COLLECTION_NAME)
                 .where(id.name()).eq(id.get())
                 .build();
-        var entityFound = entityManager.select(query).toList().get(0);
+        var entityFound = entityManager.select(query).toList().getFirst();
         var subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -560,7 +560,7 @@ class MongoDBDocumentManagerTest {
                 .where("_id").eq(id).build()).toList();
 
         assertEquals(1, entities.size());
-        CommunicationEntity documentEntity = entities.get(0);
+        CommunicationEntity documentEntity = entities.getFirst();
         assertEquals(id, documentEntity.find("_id").get().get());
 
         assertArrayEquals(contents, (byte[]) documentEntity.find("contents").get().get());
@@ -584,7 +584,7 @@ class MongoDBDocumentManagerTest {
                 .where("_id").eq(id).build()).toList();
 
         assertEquals(1, entities.size());
-        CommunicationEntity documentEntity = entities.get(0);
+        CommunicationEntity documentEntity = entities.getFirst();
         assertEquals(id, documentEntity.find("_id").get().get());
         assertEquals(date, documentEntity.find("date").get().get(Date.class));
         assertEquals(now, documentEntity.find("date").get().get(LocalDate.class));
@@ -719,7 +719,7 @@ class MongoDBDocumentManagerTest {
             }
         }
 
-        var entityToUpdate = entities.get(0);
+        var entityToUpdate = entities.getFirst();
         var idField = entityToUpdate.find(MongoDBUtils.ID_FIELD).orElseThrow();
 
         UpdateCommand updateCommand = new UpdateCommand(entityToUpdate.name(),
@@ -765,7 +765,7 @@ class MongoDBDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -780,7 +780,7 @@ class MongoDBDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -795,7 +795,7 @@ class MongoDBDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
