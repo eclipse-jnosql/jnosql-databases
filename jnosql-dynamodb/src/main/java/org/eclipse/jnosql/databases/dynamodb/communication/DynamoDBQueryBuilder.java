@@ -149,7 +149,7 @@ abstract class DynamoDBQueryBuilder implements Supplier<DynamoDBQuery> {
         filterExpression.append(attributeName).append(" BETWEEN ");
 
         var fistAttributeValueName = ":" + name + "_" + expressionAttributeValues.size();
-        expressionAttributeValues.put(fistAttributeValueName, toAttributeValue(values.get(0)));
+        expressionAttributeValues.put(fistAttributeValueName, toAttributeValue(values.getFirst()));
         filterExpression.append(fistAttributeValueName).append(" AND ");
 
         var secondAttributeValueName = ":" + name + "_" + expressionAttributeValues.size();

@@ -32,7 +32,13 @@ import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -50,9 +56,7 @@ public final class ArangoDBUtil {
     public static final String REV = "_rev";
     public static final String FROM = "_from";
     public static final String TO = "_to";
-    private static final Set<String> META_FIELDS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            ID, KEY, REV, FROM, TO
-    )));
+    private static final Set<String> META_FIELDS =Set.of(ID, KEY, REV, FROM, TO);
 
     private static final Logger LOGGER = Logger.getLogger(ArangoDBUtil.class.getName());
 

@@ -110,18 +110,15 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
 
     protected boolean hasOnlyIdConditions(CriteriaCondition condition) {
         var document = condition.element();
-        switch (condition.condition()) {
-            case EQUALS:
-            case IN:
-                return document.name().equals(DefaultOracleNoSQLDocumentManager.ID);
-            case OR:
-            case AND:
+        return switch (condition.condition()) {
+            case EQUALS, IN -> document.name().equals(DefaultOracleNoSQLDocumentManager.ID);
+            case OR, AND -> {
                 var conditions = document.get(new TypeReference<List<CriteriaCondition>>() {
                 });
-                return !conditions.isEmpty() && conditions.stream().allMatch(this::hasOnlyIdConditions);
-            default:
-                return false;
-        }
+                yield !conditions.isEmpty() && conditions.stream().allMatch(this::hasOnlyIdConditions);
+            }
+            default -> false;
+        };
     }
 
     protected void predicateBetween(StringBuilder query,List<FieldValue> params, Element document) {

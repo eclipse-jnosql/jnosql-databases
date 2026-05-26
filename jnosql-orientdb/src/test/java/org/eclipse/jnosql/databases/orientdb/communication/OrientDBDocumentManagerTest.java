@@ -172,7 +172,7 @@ public class OrientDBDocumentManagerTest {
         var entitySaved = entityManager.insert(entity);
         var id = entitySaved.find("name").get();
         var query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
-        var entityFound = entityManager.select(query).toList().get(0);
+        var entityFound = entityManager.select(query).toList().getFirst();
         var subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -186,7 +186,7 @@ public class OrientDBDocumentManagerTest {
         var entitySaved = entityManager.insert(entity);
         Element id = entitySaved.find("name").get();
         var query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
-        var entityFound = entityManager.select(query).toList().get(0);
+        var entityFound = entityManager.select(query).toList().getFirst();
         var subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -515,12 +515,9 @@ public class OrientDBDocumentManagerTest {
                 .or(key2.name()).eq(key2.get())
                 .build();
 
-        assertSoftly(softly -> {
-            softly.assertThat(entityManager.count(query))
-                    .as("Count with query should be equal to 2")
-                    .isEqualTo(2L);
-
-        });
+        assertSoftly(softly -> softly.assertThat(entityManager.count(query))
+                .as("Count with query should be equal to 2")
+                .isEqualTo(2L));
     }
 
     @Test

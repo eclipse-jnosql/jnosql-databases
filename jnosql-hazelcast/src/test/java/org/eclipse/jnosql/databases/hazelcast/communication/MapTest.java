@@ -37,9 +37,9 @@ public class MapTest {
 
     private BucketManagerFactory entityManagerFactory;
 
-    private Species mammals = new Species("lion", "cow", "dog");
-    private Species fishes = new Species("redfish", "glassfish");
-    private Species amphibians = new Species("crododile", "frog");
+    private final Species mammals = new Species("lion", "cow", "dog");
+    private final Species fishes = new Species("redfish", "glassfish");
+    private final Species amphibians = new Species("crododile", "frog");
 
     @BeforeEach
     public void init() {
@@ -54,7 +54,7 @@ public class MapTest {
         vertebrates.put("mammals", mammals);
         Species species = vertebrates.get("mammals");
         assertNotNull(species);
-        assertEquals(species.getAnimals().get(0), mammals.getAnimals().get(0));
+        assertEquals(species.getAnimals().getFirst(), mammals.getAnimals().getFirst());
         assertEquals(1, vertebrates.size());
     }
 

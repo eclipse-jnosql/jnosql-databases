@@ -122,7 +122,7 @@ class CouchbaseTemplateIntegrationTest {
         assertSoftly(softly -> {
             softly.assertThat(data).as("query result is a non-null instance").isNotNull();
             softly.assertThat(data.size()).as("query result size is correct").isEqualTo(1);
-            softly.assertThat(data.get(0)).as("returned data is correct").isEqualTo(magazine);
+            softly.assertThat(data.getFirst()).as("returned data is correct").isEqualTo(magazine);
         });
     }
 
@@ -137,7 +137,7 @@ class CouchbaseTemplateIntegrationTest {
         assertSoftly(softly -> {
             softly.assertThat(data).as("query result is a non-null instance").isNotNull();
             softly.assertThat(data.size()).as("query result size is correct").isEqualTo(1);
-            softly.assertThat(data.get(0)).as("returned data is correct").isEqualTo(magazine);
+            softly.assertThat(data.getFirst()).as("returned data is correct").isEqualTo(magazine);
         });
     }
 

@@ -200,7 +200,7 @@ public class QueryAQLConverterTest {
             softly.assertThat(values.get("id")).isEqualTo(1);
             softly.assertThat(values.get("name")).isEqualTo("John");
             softly.assertThat(values.get("surname")).isEqualTo("Doe");
-            softly.assertThat(aql.replaceAll("  "," "))
+            softly.assertThat(aql.replace("  "," "))
                     .isEqualTo(
                             "FOR c IN collection FILTER c.id == @id " +
                                     "UPDATE c WITH { name: @name, surname: @surname } IN collection " +

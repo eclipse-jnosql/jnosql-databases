@@ -112,7 +112,7 @@ public class DefaultSolrDocumentManagerTest {
 
         List<CommunicationEntity> entities = entityManager.select(query).toList();
         assertFalse(entities.isEmpty());
-        final CommunicationEntity result = entities.get(0);
+        final CommunicationEntity result = entities.getFirst();
 
         assertEquals(entity.find("name").get(), result.find("name").get());
         assertEquals(entity.find("city").get(), result.find("city").get());
@@ -131,7 +131,7 @@ public class DefaultSolrDocumentManagerTest {
 
         List<CommunicationEntity> entities = entityManager.select(query).toList();
         assertFalse(entities.isEmpty());
-        final CommunicationEntity result = entities.get(0);
+        final CommunicationEntity result = entities.getFirst();
 
         assertEquals(entity.find("name").get(), result.find("name").get());
         assertEquals(entity.find("city").get(), result.find("city").get());
@@ -149,7 +149,7 @@ public class DefaultSolrDocumentManagerTest {
 
         List<CommunicationEntity> entities = entityManager.select(query).toList();
         assertFalse(entities.isEmpty());
-        final CommunicationEntity result = entities.get(0);
+        final CommunicationEntity result = entities.getFirst();
         assertEquals(entity.find("name").get(), result.find("name").get());
         assertEquals(entity.find("city").get(), result.find("city").get());
     }
@@ -195,7 +195,7 @@ public class DefaultSolrDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
     @Test
@@ -274,7 +274,7 @@ public class DefaultSolrDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
                 .where("age").gt(22)
@@ -302,7 +302,7 @@ public class DefaultSolrDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
                 .where("age").gt(22)
@@ -422,7 +422,7 @@ public class DefaultSolrDocumentManagerTest {
                 .where(ID).eq(id).build()).toList();
 
         assertEquals(1, entities.size());
-        var documentEntity = entities.get(0);
+        var documentEntity = entities.getFirst();
         assertEquals(date, documentEntity.find("date").get().get(Date.class));
         assertEquals(now, documentEntity.find("date").get().get(LocalDate.class));
     }

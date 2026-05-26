@@ -196,7 +196,7 @@ public class CouchbaseDocumentManagerTest {
         CommunicationEntity entitySaved = entityManager.insert(entity);
         Element id = entitySaved.find("_id").get();
         SelectQuery query = select().from(COLLECTION_PERSON_NAME).where(id.name()).eq(id.get()).build();
-        CommunicationEntity entityFound = entityManager.select(query).toList().get(0);
+        CommunicationEntity entityFound = entityManager.select(query).toList().getFirst();
         Element subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -211,7 +211,7 @@ public class CouchbaseDocumentManagerTest {
         Thread.sleep(1_00L);
         Element id = entitySaved.find("_id").get();
         var query = select().from(COLLECTION_PERSON_NAME).where(id.name()).eq(id.get()).build();
-        CommunicationEntity entityFound = entityManager.select(query).toList().get(0);
+        CommunicationEntity entityFound = entityManager.select(query).toList().getFirst();
         Element subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -388,7 +388,7 @@ public class CouchbaseDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -407,7 +407,7 @@ public class CouchbaseDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -427,7 +427,7 @@ public class CouchbaseDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 

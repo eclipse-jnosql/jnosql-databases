@@ -82,7 +82,7 @@ public class HBaseFamilyManagerTest {
         List<CommunicationEntity> columnFamilyEntities = manager.select(query).collect(Collectors.toList());
         assertNotNull(columnFamilyEntities);
         assertFalse(columnFamilyEntities.isEmpty());
-        var entity = columnFamilyEntities.get(0);
+        var entity = columnFamilyEntities.getFirst();
         assertEquals(FAMILY, entity.name());
         assertThat(entity.elements()).contains(Element.of(ID_FIELD, "otaviojava"),
                 Element.of("age", "26"), Element.of("country", "Brazil"));
