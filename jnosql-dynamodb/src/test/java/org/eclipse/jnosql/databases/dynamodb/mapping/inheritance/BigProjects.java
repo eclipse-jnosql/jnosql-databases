@@ -17,9 +17,6 @@ package org.eclipse.jnosql.databases.dynamodb.mapping.inheritance;
 import jakarta.data.repository.*;
 import org.eclipse.jnosql.mapping.NoSQLRepository;
 
-import java.util.List;
-import java.util.Optional;
-
 @Repository
 public interface BigProjects extends NoSQLRepository<BigProject, String> {
 

@@ -15,7 +15,6 @@
 
 package org.eclipse.jnosql.databases.dynamodb.mapping;
 
-import ee.jakarta.tck.nosql.entities.Person;
 import jakarta.data.repository.Param;
 import jakarta.inject.Inject;
 import org.assertj.core.api.Assertions;
