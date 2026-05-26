@@ -191,7 +191,7 @@ public class RavenDBDocumentManagerTest {
 
         Thread.sleep(TIME_LIMIT);
         List<CommunicationEntity> entitiesFound = manager.select(query).collect(Collectors.toList());
-        assertThat(entitiesFound).hasSize(2).isNotIn(entities.get(0));
+        assertThat(entitiesFound).hasSize(2).isNotIn(entities.getFirst());
     }
 
     @Test
@@ -209,7 +209,7 @@ public class RavenDBDocumentManagerTest {
         Thread.sleep(TIME_LIMIT);
         List<CommunicationEntity> entitiesFound = manager.select(query).collect(Collectors.toList());
         assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
     @Test
@@ -225,7 +225,7 @@ public class RavenDBDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = manager.select(query).collect(Collectors.toList());
-        assertThat(entitiesFound).hasSize(1).contains(entities.get(0));
+        assertThat(entitiesFound).hasSize(1).contains(entities.getFirst());
     }
 
     @Test
@@ -283,7 +283,7 @@ public class RavenDBDocumentManagerTest {
                 .where("_id").eq(id.get())
                 .build();
 
-        var entityFound = manager.select(query).toList().get(0);
+        var entityFound = manager.select(query).toList().getFirst();
         var subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -300,7 +300,7 @@ public class RavenDBDocumentManagerTest {
         var query = select().from(COLLECTION_NAME)
                 .where(id.name()).eq(id.get())
                 .build();
-        var entityFound = manager.select(query).toList().get(0);
+        var entityFound = manager.select(query).toList().getFirst();
         var subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
