@@ -515,12 +515,9 @@ public class OrientDBDocumentManagerTest {
                 .or(key2.name()).eq(key2.get())
                 .build();
 
-        assertSoftly(softly -> {
-            softly.assertThat(entityManager.count(query))
-                    .as("Count with query should be equal to 2")
-                    .isEqualTo(2L);
-
-        });
+        assertSoftly(softly -> softly.assertThat(entityManager.count(query))
+                .as("Count with query should be equal to 2")
+                .isEqualTo(2L));
     }
 
     @Test
