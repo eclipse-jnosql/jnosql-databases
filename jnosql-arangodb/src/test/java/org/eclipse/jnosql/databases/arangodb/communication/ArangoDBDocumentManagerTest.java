@@ -128,7 +128,7 @@ public class ArangoDBDocumentManagerTest {
         SelectQuery query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
         assertFalse(entities.isEmpty());
-        CommunicationEntity documentEntity = entities.get(0);
+        CommunicationEntity documentEntity = entities.getFirst();
         assertEquals(entity.find(KEY_NAME).get().value().get(String.class), documentEntity.find(KEY_NAME).get()
                 .value().get(String.class));
         assertEquals(entity.find("name").get(), documentEntity.find("name").get());
@@ -143,7 +143,7 @@ public class ArangoDBDocumentManagerTest {
         CommunicationEntity entitySaved = entityManager.insert(entity);
         Element id = entitySaved.find(KEY_NAME).get();
         SelectQuery query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
-        CommunicationEntity entityFound = entityManager.select(query).toList().get(0);
+        CommunicationEntity entityFound = entityManager.select(query).toList().getFirst();
         Element subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -157,7 +157,7 @@ public class ArangoDBDocumentManagerTest {
         CommunicationEntity entitySaved = entityManager.insert(entity);
         Element id = entitySaved.find(KEY_NAME).get();
         SelectQuery query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
-        CommunicationEntity entityFound = entityManager.select(query).toList().get(0);
+        CommunicationEntity entityFound = entityManager.select(query).toList().getFirst();
         Element subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -477,7 +477,7 @@ public class ArangoDBDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -492,7 +492,7 @@ public class ArangoDBDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -507,7 +507,7 @@ public class ArangoDBDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
