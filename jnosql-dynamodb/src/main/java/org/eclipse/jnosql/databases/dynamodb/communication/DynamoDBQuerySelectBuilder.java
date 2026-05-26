@@ -42,12 +42,10 @@ class DynamoDBQuerySelectBuilder extends DynamoDBQueryBuilder {
         var expressionAttributeNames = new HashMap<String, String>();
         var expressionAttributeValues = new HashMap<String, AttributeValue>();
 
-        this.selectQuery.condition().ifPresent(c -> {
-            super.condition(c,
-                    filterExpression,
-                    expressionAttributeNames,
-                    expressionAttributeValues);
-        });
+        this.selectQuery.condition().ifPresent(c -> super.condition(c,
+                filterExpression,
+                expressionAttributeNames,
+                expressionAttributeValues));
 
         return new DynamoDBQuery(
                 table,
