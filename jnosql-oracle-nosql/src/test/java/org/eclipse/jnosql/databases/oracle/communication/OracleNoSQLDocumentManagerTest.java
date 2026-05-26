@@ -186,7 +186,7 @@ class OracleNoSQLDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
     @Test
@@ -203,7 +203,7 @@ class OracleNoSQLDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
     @Test
@@ -290,7 +290,7 @@ class OracleNoSQLDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
                 .where("age").gt(22)
@@ -318,7 +318,7 @@ class OracleNoSQLDocumentManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
                 .where("age").gt(22)
@@ -392,7 +392,7 @@ class OracleNoSQLDocumentManagerTest {
         var query = select("name").from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
         assertFalse(entities.isEmpty());
-        final CommunicationEntity entity = entities.get(0);
+        final CommunicationEntity entity = entities.getFirst();
         assertSoftly(soft -> {
             soft.assertThat(entity.find("name")).isPresent();
             soft.assertThat(entity.find("_id")).isPresent();
@@ -411,7 +411,7 @@ class OracleNoSQLDocumentManagerTest {
                 .where("_id").eq(id.get())
                 .build();
 
-        var entityFound = entityManager.select(query).toList().get(0);
+        var entityFound = entityManager.select(query).toList().getFirst();
         var subDocument = entityFound.find("phones").orElseThrow();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -428,7 +428,7 @@ class OracleNoSQLDocumentManagerTest {
         var query = select().from(COLLECTION_NAME)
                 .where(id.name()).eq(id.get())
                 .build();
-        var entityFound = entityManager.select(query).toList().get(0);
+        var entityFound = entityManager.select(query).toList().getFirst();
         var subDocument = entityFound.find("phones").orElseThrow();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -452,7 +452,7 @@ class OracleNoSQLDocumentManagerTest {
                 .where("_id").eq(id).build()).toList();
 
         assertEquals(1, entities.size());
-        var documentEntity = entities.get(0);
+        var documentEntity = entities.getFirst();
         assertEquals(id, documentEntity.find("_id").orElseThrow().get(Long.class));
 
         assertArrayEquals(contents, documentEntity.find("contents").orElseThrow().get(byte[].class));
@@ -474,7 +474,7 @@ class OracleNoSQLDocumentManagerTest {
                 .where("_id").eq(id).build()).toList();
 
         assertEquals(1, entities.size());
-        var documentEntity = entities.get(0);
+        var documentEntity = entities.getFirst();
         assertSoftly(soft -> {
             soft.assertThat(id).isEqualTo(documentEntity.find("_id").orElseThrow().get(Long.class));
             soft.assertThat(now).isEqualTo(documentEntity.find("now").orElseThrow().get(LocalDate.class));
@@ -676,7 +676,7 @@ class OracleNoSQLDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -691,7 +691,7 @@ class OracleNoSQLDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -706,7 +706,7 @@ class OracleNoSQLDocumentManagerTest {
         var result = entityManager.select(query).toList();
         assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
