@@ -226,7 +226,7 @@ class DefaultCouchDBDocumentManagerTest {
                 .where("_id").eq(id.get())
                 .build();
 
-        var entityFound = entityManager.select(query).toList().get(0);
+        var entityFound = entityManager.select(query).toList().getFirst();
         var subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
@@ -244,7 +244,7 @@ class DefaultCouchDBDocumentManagerTest {
         var query = select().from(COLLECTION_NAME)
                 .where(id.name()).eq(id.get())
                 .build();
-        var entityFound = entityManager.select(query).toList().get(0);
+        var entityFound = entityManager.select(query).toList().getFirst();
         var subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
         });
