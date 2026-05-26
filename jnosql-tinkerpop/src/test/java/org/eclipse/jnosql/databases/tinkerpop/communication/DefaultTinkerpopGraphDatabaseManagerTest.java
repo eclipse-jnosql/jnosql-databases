@@ -139,7 +139,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         assertNotNull(communicationEntities);
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(communicationEntities).hasSize(2);
-            softly.assertThat(communicationEntities.get(0).find("name", String.class)).get().isEqualTo(name);
+            softly.assertThat(communicationEntities.getFirst().find("name", String.class)).get().isEqualTo(name);
             softly.assertThat(communicationEntities.get(0).find("age", int.class)).get().isEqualTo(age);
             softly.assertThat(communicationEntities.get(0).find(ID)).isPresent();
 
@@ -248,7 +248,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
     @Test
@@ -265,7 +265,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
     @Test
@@ -283,7 +283,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).contains(entities.get(0));
+        assertThat(entitiesFound).contains(entities.getFirst());
     }
 
     @Test
@@ -355,7 +355,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
                 .where("age").gt(22)
@@ -383,7 +383,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
         assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
+        assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
                 .where("age").gt(22)
@@ -457,7 +457,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         SelectQuery query = select("name").from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
         assertFalse(entities.isEmpty());
-        final CommunicationEntity entity = entities.get(0);
+        final CommunicationEntity entity = entities.getFirst();
         assertEquals(3, entity.size());
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(entity.find("name")).isPresent();
@@ -583,7 +583,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         var result = entityManager.select(query).toList();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -598,7 +598,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         var result = entityManager.select(query).toList();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
@@ -613,7 +613,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         var result = entityManager.select(query).toList();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result).hasSize(1);
-            softly.assertThat(result.get(0).find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
+            softly.assertThat(result.getFirst().find("name").orElseThrow().get(String.class)).isEqualTo("Poliana");
         });
     }
 
