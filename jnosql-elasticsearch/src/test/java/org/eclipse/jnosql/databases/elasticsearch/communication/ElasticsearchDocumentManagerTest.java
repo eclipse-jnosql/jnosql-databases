@@ -368,7 +368,7 @@ public class ElasticsearchDocumentManagerTest {
 
         var entityFound = entityManager.select(query)
                 .toList()
-                .get(0);
+                .getFirst();
 
         var subDocument = entityFound.find("phones").get();
         List<Element> documents = subDocument.get(new TypeReference<>() {
