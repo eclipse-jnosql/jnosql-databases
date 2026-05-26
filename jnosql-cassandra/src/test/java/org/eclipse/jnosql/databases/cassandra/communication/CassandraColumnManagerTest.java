@@ -201,7 +201,7 @@ public class CassandraColumnManagerTest {
             }
         }
 
-        var entityToUpdate = entities.get(0);
+        var entityToUpdate = entities.getFirst();
         var idField = entityToUpdate.find("id").orElseThrow();
 
         entityManager.update(
@@ -290,7 +290,7 @@ public class CassandraColumnManagerTest {
         var query = select().from(Constants.COLUMN_FAMILY).where("id").eq(10L).build();
         List<CommunicationEntity> columnEntity = entityManager.select(query).toList();
         assertFalse(columnEntity.isEmpty());
-        List<Element> columns = columnEntity.get(0).elements();
+        List<Element> columns = columnEntity.getFirst().elements();
         assertThat(columns.stream().map(Element::name).collect(toList()))
                 .contains("name", "version", "options", "id");
         assertThat(columns.stream().map(Element::value).map(Value::get).collect(toList())).contains
@@ -305,7 +305,7 @@ public class CassandraColumnManagerTest {
         var query = select().from(Constants.COLUMN_FAMILY).where("id").eq(10L).build();
         List<CommunicationEntity> columnEntity = entityManager.select(query, CONSISTENCY_LEVEL).toList();
         assertFalse(columnEntity.isEmpty());
-        List<Element> columns = columnEntity.get(0).elements();
+        List<Element> columns = columnEntity.getFirst().elements();
         assertThat(columns.stream().map(Element::name).collect(toList())).contains("name", "version", "options", "id");
         assertThat(columns.stream().map(Element::value).map(Value::get).collect(toList()))
                 .contains("Cassandra", 3.2, asList(1, 2, 3), 10L);
@@ -318,7 +318,7 @@ public class CassandraColumnManagerTest {
         List<CommunicationEntity> entities = entityManager.cql("select * from newKeySpace.newColumnFamily where id=10;")
                 .toList();
         assertFalse(entities.isEmpty());
-        List<Element> columns = entities.get(0).elements();
+        List<Element> columns = entities.getFirst().elements();
         assertThat(columns.stream().map(Element::name).collect(toList())).contains("name", "version", "options", "id");
         assertThat(columns.stream().map(Element::value).map(Value::get).collect(toList()))
                 .contains("Cassandra", 3.2, asList(1, 2, 3), 10L);
@@ -330,7 +330,7 @@ public class CassandraColumnManagerTest {
         String query = "select * from newKeySpace.newColumnFamily where id = :id;";
         List<CommunicationEntity> entities = entityManager.cql(query, singletonMap("id", 10L)).toList();
         assertFalse(entities.isEmpty());
-        List<Element> columns = entities.get(0).elements();
+        List<Element> columns = entities.getFirst().elements();
         assertThat(columns.stream().map(Element::name).collect(toList()))
                 .contains("name", "version", "options", "id");
         assertThat(columns.stream().map(Element::value).map(Value::get).collect(toList()))
@@ -343,7 +343,7 @@ public class CassandraColumnManagerTest {
         CassandraPreparedStatement preparedStatement = entityManager.nativeQueryPrepare("select * from newKeySpace.newColumnFamily where id=?");
         preparedStatement.bind(10L);
         List<CommunicationEntity> entities = preparedStatement.executeQuery().toList();
-        List<Element> columns = entities.get(0).elements();
+        List<Element> columns = entities.getFirst().elements();
         assertThat(columns.stream().map(Element::name).collect(toList()))
                 .contains("name", "version", "options", "id");
         assertThat(columns.stream().map(Element::value).map(Value::get)
