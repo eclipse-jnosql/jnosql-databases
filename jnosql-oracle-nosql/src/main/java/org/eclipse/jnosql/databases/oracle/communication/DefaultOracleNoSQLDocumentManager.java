@@ -191,7 +191,7 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
         QueryResult queryResult = serviceHandle.query(queryRequest);
         List<MapValue> results = queryResult.getResults();
         if(results.size() == 1) {
-            return results.get(0).get("count").asLong().getValue();
+            return results.getFirst().get("count").asLong().getValue();
         }
         return 0;
     }
@@ -211,7 +211,7 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
         QueryResult queryResult = serviceHandle.query(new QueryRequest().setPreparedStatement(prepRes));
         List<MapValue> results = queryResult.getResults();
         if(results.size() == 1) {
-            return results.get(0).get(SelectCountBuilder.COUNT).asLong().getValue();
+            return results.getFirst().get(SelectCountBuilder.COUNT).asLong().getValue();
         }
         return 0;
     }
