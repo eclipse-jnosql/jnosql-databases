@@ -115,33 +115,42 @@ class DynamoDBConverter {
     }
 
     public static AttributeValue toAttributeValue(Object value) {
-        if (value == null)
-            return AttributeValue.builder().nul(true).build();
-        if (value instanceof String str)
-            return AttributeValue.builder().s(str).build();
-        if (value instanceof Number number)
-            return AttributeValue.builder().n(String.valueOf(number)).build();
-        if (value instanceof Boolean bool)
-            return AttributeValue.builder().bool(bool).build();
-        if (value instanceof List<?> list)
-            return AttributeValue.builder().l(list.stream().filter(Objects::nonNull)
-                    .map(DynamoDBConverter::toAttributeValue).toList()).build();
-        if (value instanceof Map<?, ?> mapValue) {
-            HashMap<String, AttributeValue> values = new HashMap<>();
-            mapValue.forEach((k, v) -> values.put(String.valueOf(k), toAttributeValue(v)));
-            return AttributeValue.builder().m(values).build();
-        }
-        if (value instanceof byte[] data) {
-            return AttributeValue.builder().b(SdkBytes.fromByteArray(data)).build();
-        }
-        if (value instanceof ByteBuffer byteBuffer) {
-            return AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build();
-        }
-        if (value instanceof InputStream input) {
-            return AttributeValue.builder().b(SdkBytes.fromInputStream(input)).build();
-        }
-        if (value instanceof Element element) {
-            return toAttributeValue(getMap(element));
+        switch (value) {
+            case null -> {
+                return AttributeValue.builder().nul(true).build();
+            }
+            case String str -> {
+                return AttributeValue.builder().s(str).build();
+            }
+            case Number number -> {
+                return AttributeValue.builder().n(String.valueOf(number)).build();
+            }
+            case Boolean bool -> {
+                return AttributeValue.builder().bool(bool).build();
+            }
+            case List<?> list -> {
+                return AttributeValue.builder().l(list.stream().filter(Objects::nonNull)
+                        .map(DynamoDBConverter::toAttributeValue).toList()).build();
+            }
+            case Map<?, ?> mapValue -> {
+                HashMap<String, AttributeValue> values = new HashMap<>();
+                mapValue.forEach((k, v) -> values.put(String.valueOf(k), toAttributeValue(v)));
+                return AttributeValue.builder().m(values).build();
+            }
+            case byte[] data -> {
+                return AttributeValue.builder().b(SdkBytes.fromByteArray(data)).build();
+            }
+            case ByteBuffer byteBuffer -> {
+                return AttributeValue.builder().b(SdkBytes.fromByteBuffer(byteBuffer)).build();
+            }
+            case InputStream input -> {
+                return AttributeValue.builder().b(SdkBytes.fromInputStream(input)).build();
+            }
+            case Element element -> {
+                return toAttributeValue(getMap(element));
+            }
+            default -> {
+            }
         }
         return AttributeValue.builder().s(String.valueOf(value)).build();
     }
