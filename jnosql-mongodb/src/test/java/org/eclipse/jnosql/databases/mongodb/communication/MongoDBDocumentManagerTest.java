@@ -118,16 +118,13 @@ class MongoDBDocumentManagerTest {
             softly.assertThat(entityRef).isPresent();
             softly.assertThat(entityRef)
                     .get()
-                    .satisfies(updatedEntity -> {
-                        softly.assertThat(updatedEntity.find("newField"))
-                                .as("newField must be present")
-                                .isPresent()
-                                .get()
-                                .extracting(Element::get)
-                                .as("newField value is not correct")
-                                .isEqualTo("10");
-
-                    });
+                    .satisfies(updatedEntity -> softly.assertThat(updatedEntity.find("newField"))
+                            .as("newField must be present")
+                            .isPresent()
+                            .get()
+                            .extracting(Element::get)
+                            .as("newField value is not correct")
+                            .isEqualTo("10"));
         });
     }
 
@@ -156,15 +153,13 @@ class MongoDBDocumentManagerTest {
                 softly.assertThat(entityRef2).isPresent();
                 softly.assertThat(entityRef2)
                         .get()
-                        .satisfies(e -> {
-                            softly.assertThat(e.find("newField"))
-                                    .as("newField must be present")
-                                    .isPresent()
-                                    .get()
-                                    .extracting(Element::get)
-                                    .as("newField value is not correct")
-                                    .isEqualTo(_id.get());
-                        });
+                        .satisfies(e -> softly.assertThat(e.find("newField"))
+                                .as("newField must be present")
+                                .isPresent()
+                                .get()
+                                .extracting(Element::get)
+                                .as("newField value is not correct")
+                                .isEqualTo(_id.get()));
             });
         }
 
