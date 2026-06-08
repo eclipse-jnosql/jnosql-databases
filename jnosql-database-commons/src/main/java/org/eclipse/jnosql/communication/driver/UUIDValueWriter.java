@@ -19,6 +19,19 @@ import org.eclipse.jnosql.communication.ValueWriter;
 import java.util.Objects;
 import java.util.UUID;
 
+
+/**
+ * A {@link ValueWriter} implementation responsible for converting a {@link UUID}
+ * into its {@link String} representation.
+ * <p>
+ * This custom writer allows Eclipse JNoSQL to seamlessly serialize UUID fields
+ * into standard strings before persisting them to the underlying NoSQL database.
+ * </p>
+ *
+ * @author YourName
+ * @see ValueWriter
+ * @see UUID
+ */
 public class UUIDValueWriter implements ValueWriter<UUID, String> {
 
     @Override
