@@ -16,6 +16,7 @@ package org.eclipse.jnosql.databases.arangodb.communication;
 
 import org.eclipse.jnosql.communication.ValueWriter;
 import org.eclipse.jnosql.communication.ValueWriterDecorator;
+import org.eclipse.jnosql.communication.driver.UUIDValueWriter;
 
 import java.util.UUID;
 
