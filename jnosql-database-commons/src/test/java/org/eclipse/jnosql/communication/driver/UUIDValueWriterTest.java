@@ -13,7 +13,7 @@ class UUIDValueWriterTest {
 
     @Nested
     @DisplayName("When evaluating supported types via test()")
-    class TestMethodScenarios {
+    class WhenRecognizingSupportedTypes {
 
         @Test
         @DisplayName("Should return true when the class type is exactly UUID")
