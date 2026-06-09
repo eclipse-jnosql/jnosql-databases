@@ -31,6 +31,7 @@ final class ArangoDBValueWriteDecorator<T, S> implements ValueWriter<T, S> {
             new UUIDValueWriter()
     );
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean test(Class<?> type) {
         return delegate.test(type);
