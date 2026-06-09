@@ -16,6 +16,7 @@ package org.eclipse.jnosql.databases.mongodb.communication;
 
 import org.eclipse.jnosql.communication.ValueWriter;
 import org.eclipse.jnosql.communication.ValueWriterDecorator;
+import org.eclipse.jnosql.communication.driver.CompositeValueWriter;
 import org.eclipse.jnosql.communication.driver.UUIDValueWriter;
 
 import java.util.UUID;
@@ -26,24 +27,19 @@ final class MongoDBValueWriteDecorator<T, S> implements ValueWriter<T, S> {
     static final ValueWriter MONGO_DB_VALUE_WRITER = new MongoDBValueWriteDecorator();
 
     @SuppressWarnings("rawtypes")
-    private static final ValueWriter DEFAULT = ValueWriterDecorator.getInstance();
-
-    private static final UUIDValueWriter UUID_VALUE_WRITER = new UUIDValueWriter();
-
+    private final ValueWriter delegate = new CompositeValueWriter(
+            new UUIDValueWriter()
+    );
 
     @Override
     public boolean test(Class<?> type) {
-        return UUID_VALUE_WRITER.test(type) || DEFAULT.test(type);
+        return delegate.test(type);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public S write(T type) {
-        if(type != null && UUID_VALUE_WRITER.test(type.getClass())) {
-            return (S) UUID_VALUE_WRITER.write((UUID) type);
-        } else {
-            return (S) DEFAULT.write(type);
-        }
+        return (S) delegate.write(type);
     }
 
 }
