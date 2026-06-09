@@ -10,22 +10,22 @@ import java.util.Objects;
  * A composite {@link ValueWriter} that delegates type checks and writing operations
  * to a chain of custom writers before falling back to the system default.
  */
+@SuppressWarnings("rawtypes")
 public final class CompositeValueWriter<T, S> implements ValueWriter<T, S> {
 
-    @SuppressWarnings("rawtypes")
     private static final ValueWriter DEFAULT = ValueWriterDecorator.getInstance();
 
-    @SuppressWarnings("rawtypes")
+
     private final List<ValueWriter> customWriters;
 
-    @SuppressWarnings("rawtypes")
     public CompositeValueWriter(ValueWriter... customWriters) {
         this.customWriters = List.of(Objects.requireNonNull(customWriters));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean test(Class<?> type) {
-        for (@SuppressWarnings("rawtypes") ValueWriter writer : customWriters) {
+        for (var writer : customWriters) {
             if (writer.test(type)) {
                 return true;
             }
@@ -38,7 +38,7 @@ public final class CompositeValueWriter<T, S> implements ValueWriter<T, S> {
     public S write(T type) {
         if (type != null) {
             Class<?> clazz = type.getClass();
-            for (@SuppressWarnings("rawtypes") ValueWriter writer : customWriters) {
+            for (var writer : customWriters) {
                 if (writer.test(clazz)) {
                     return (S) writer.write(type);
                 }
