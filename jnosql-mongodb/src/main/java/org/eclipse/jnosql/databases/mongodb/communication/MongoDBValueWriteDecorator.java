@@ -15,7 +15,6 @@
 package org.eclipse.jnosql.databases.mongodb.communication;
 
 import org.eclipse.jnosql.communication.ValueWriter;
-import org.eclipse.jnosql.communication.ValueWriterDecorator;
 import org.eclipse.jnosql.communication.driver.CompositeValueWriter;
 import org.eclipse.jnosql.communication.driver.UUIDValueWriter;
 
