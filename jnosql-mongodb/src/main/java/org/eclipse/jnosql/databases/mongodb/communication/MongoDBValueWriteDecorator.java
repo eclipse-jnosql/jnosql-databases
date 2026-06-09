@@ -18,8 +18,6 @@ import org.eclipse.jnosql.communication.ValueWriter;
 import org.eclipse.jnosql.communication.driver.CompositeValueWriter;
 import org.eclipse.jnosql.communication.driver.UUIDValueWriter;
 
-import java.util.UUID;
-
 final class MongoDBValueWriteDecorator<T, S> implements ValueWriter<T, S> {
 
     @SuppressWarnings("rawtypes")
