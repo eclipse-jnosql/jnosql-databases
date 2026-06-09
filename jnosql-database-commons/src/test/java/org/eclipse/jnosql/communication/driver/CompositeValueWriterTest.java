@@ -144,9 +144,7 @@ class CompositeValueWriterTest {
         @DisplayName("Should fall back to default writer behavior when payload type has no custom match")
         void shouldFallbackToDefaultWriterWhenNoCustomMatchFound() {
             // Arrange
-            CompositeValueWriter<Object, Object> composite = new CompositeValueWriter<>(
-                    new DummyUUIDWriter()
-            );
+            CompositeValueWriter<Object, Object> composite = new CompositeValueWriter<>(new DummyUUIDWriter());
 
             // Act & Assert
             // Passing a plain String, which bypasses DummyUUIDWriter and hits the framework default pipeline
