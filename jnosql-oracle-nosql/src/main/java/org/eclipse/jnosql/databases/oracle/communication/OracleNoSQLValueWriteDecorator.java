@@ -21,7 +21,7 @@ import org.eclipse.jnosql.communication.driver.UUIDValueWriter;
 final class OracleNoSQLValueWriteDecorator<T, S> implements ValueWriter<T, S> {
 
     @SuppressWarnings("rawtypes")
-    static final ValueWriter MONGO_DB_VALUE_WRITER = new OracleNoSQLValueWriteDecorator();
+    static final ValueWriter ORACLE_NO_SQL_VALUE_WRITE_DECORATOR = new OracleNoSQLValueWriteDecorator();
 
     @SuppressWarnings("rawtypes")
     private final ValueWriter delegate = new CompositeValueWriter(
