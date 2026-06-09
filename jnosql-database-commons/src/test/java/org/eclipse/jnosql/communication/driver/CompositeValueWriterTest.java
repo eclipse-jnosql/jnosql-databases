@@ -20,6 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Month;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -148,10 +149,10 @@ class CompositeValueWriterTest {
 
             // Act & Assert
             // Passing a plain String, which bypasses DummyUUIDWriter and hits the framework default pipeline
-            Object result = composite.write("Plain String Payload");
+            Object result = composite.write(Month.APRIL);
 
             // Default framework behavior for a String value writer usually returns the string itself
-            assertThat(result).isEqualTo("Plain String Payload");
+            assertThat(result).isEqualTo("APRIL");
         }
     }
 }
