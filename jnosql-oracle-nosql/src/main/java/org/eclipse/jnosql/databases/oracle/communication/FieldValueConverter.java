@@ -34,16 +34,14 @@ enum FieldValueConverter {
 
     INSTANCE;
 
-    FieldValue of(Object value){
+    FieldValue of(Object value) {
         if (value == null) {
             return NullValue.getInstance();
-        }
-        if (value instanceof String string) {
+        } else if (value instanceof String string) {
             return new StringValue(string);
-        } else if(value instanceof UUID uuid) {
+        } else if (value instanceof UUID uuid) {
             return new StringValue(uuid.toString());
-        }
-        else if (value instanceof Integer integer) {
+        } else if (value instanceof Integer integer) {
             return new IntegerValue(integer);
         } else if (value instanceof Long longValue) {
             return new LongValue(longValue);
@@ -85,6 +83,7 @@ enum FieldValueConverter {
             default -> throw new UnsupportedOperationException("There is not support to: " + value.getType());
         };
     }
+
     private MapValue entries(Map<String, ?> value) {
         MapValue mapValue = new MapValue();
         for (Map.Entry<String, ?> entry : value.entrySet()) {
@@ -96,7 +95,7 @@ enum FieldValueConverter {
     private ArrayValue createArray(Object value) {
         var arrayValue = new ArrayValue();
         int length = Array.getLength(value);
-        for (int i = 0; i < length; i ++) {
+        for (int i = 0; i < length; i++) {
             arrayValue.add(of(Array.get(value, i)));
         }
         return arrayValue;
