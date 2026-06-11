@@ -35,6 +35,7 @@ class FieldValueConverter {
     private static final List<FieldValueMapper> MAPPERS = List.of(
             new FieldValuePassthroughMapper(),
             new StringValueMapper(),
+            new UUIDValueMapper(),
             new IntegerValueMapper(),
             new LongValueMapper(),
             new DoubleValueMapper(),
