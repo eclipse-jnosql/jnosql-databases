@@ -28,18 +28,22 @@ import oracle.nosql.driver.values.StringValue;
 
 import java.lang.reflect.Array;
 import java.util.Map;
+import java.util.UUID;
 
 enum FieldValueConverter {
 
     INSTANCE;
 
     FieldValue of(Object value){
-        if(value == null){
+        if (value == null) {
             return NullValue.getInstance();
         }
         if (value instanceof String string) {
             return new StringValue(string);
-        } else if (value instanceof Integer integer) {
+        } else if(value instanceof UUID uuid) {
+            return new StringValue(uuid.toString());
+        }
+        else if (value instanceof Integer integer) {
             return new IntegerValue(integer);
         } else if (value instanceof Long longValue) {
             return new LongValue(longValue);
@@ -49,15 +53,15 @@ enum FieldValueConverter {
             return Boolean.TRUE.equals(booleanValue) ? BooleanValue.trueInstance() : BooleanValue.falseInstance();
         } else if (value instanceof Number) {
             return new NumberValue(value.toString());
-        }  else if (value instanceof byte[]) {
+        } else if (value instanceof byte[]) {
             return new BinaryValue((byte[]) value);
         } else if (value instanceof Iterable<?> values) {
             return createList(values);
         } else if (value.getClass().isArray()) {
             return createArray(value);
-        } else if (value instanceof Map<?,?>) {
+        } else if (value instanceof Map<?, ?>) {
             return entries((Map<String, ?>) value);
-        }else if (value instanceof FieldValue) {
+        } else if (value instanceof FieldValue) {
             return (FieldValue) value;
         } else {
             throw new UnsupportedOperationException("There is not support to: " + value.getClass());
