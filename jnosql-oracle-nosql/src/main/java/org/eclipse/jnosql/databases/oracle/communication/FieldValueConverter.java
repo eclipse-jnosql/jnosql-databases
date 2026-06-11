@@ -29,6 +29,7 @@ import oracle.nosql.driver.values.StringValue;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 class FieldValueConverter {
     private static final List<FieldValueMapper> MAPPERS = List.of(
@@ -105,6 +106,17 @@ class FieldValueConverter {
 
         public FieldValue toFieldValue(Object value) {
             return new StringValue((String) value);
+        }
+    }
+
+    private static final class UUIDValueMapper implements FieldValueMapper {
+        public boolean supports(Object value) {
+            return value instanceof UUID;
+        }
+
+        public FieldValue toFieldValue(Object value) {
+            var uuid = (UUID) value;
+            return new StringValue(uuid.toString());
         }
     }
 
