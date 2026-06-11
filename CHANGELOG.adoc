@@ -40,6 +40,10 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Add update query tests for ArangoDB, Neo4J, Couchbase, Cassandra, and MongoDB
 - Update jakarta data engine
 
+=== Fixed
+
+- Include support to UUID at Oracle NoSQL database
+
 
 == [1.1.14] - 2026-06-01
 

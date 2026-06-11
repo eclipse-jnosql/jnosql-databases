@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Contributors to the Eclipse Foundation
+ *  Copyright (c) 2026 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
  *   are made available under the terms of the Eclipse Public License v1.0
  *   and Apache License v2.0 which accompanies this distribution.
@@ -12,16 +12,16 @@
  *
  *   Otavio Santana
  */
-package org.eclipse.jnosql.databases.mongodb.communication;
+package org.eclipse.jnosql.databases.oracle.communication;
 
 import org.eclipse.jnosql.communication.ValueWriter;
 import org.eclipse.jnosql.communication.driver.CompositeValueWriter;
 import org.eclipse.jnosql.communication.driver.UUIDValueWriter;
 
-final class MongoDBValueWriteDecorator<T, S> implements ValueWriter<T, S> {
+final class OracleNoSQLValueWriteDecorator<T, S> implements ValueWriter<T, S> {
 
     @SuppressWarnings("rawtypes")
-    static final ValueWriter MONGO_DB_VALUE_WRITER = new MongoDBValueWriteDecorator();
+    static final ValueWriter ORACLE_NO_SQL_VALUE_WRITE_DECORATOR = new OracleNoSQLValueWriteDecorator();
 
     @SuppressWarnings("rawtypes")
     private final ValueWriter delegate = new CompositeValueWriter(

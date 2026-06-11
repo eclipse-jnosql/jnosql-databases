@@ -15,9 +15,8 @@
 package org.eclipse.jnosql.databases.arangodb.communication;
 
 import org.eclipse.jnosql.communication.ValueWriter;
-import org.eclipse.jnosql.communication.ValueWriterDecorator;
-
-import java.util.UUID;
+import org.eclipse.jnosql.communication.driver.CompositeValueWriter;
+import org.eclipse.jnosql.communication.driver.UUIDValueWriter;
 
 final class ArangoDBValueWriteDecorator<T, S> implements ValueWriter<T, S> {
 
@@ -25,24 +24,19 @@ final class ArangoDBValueWriteDecorator<T, S> implements ValueWriter<T, S> {
     static final ValueWriter ARANGO_DB_VALUE_WRITER = new ArangoDBValueWriteDecorator();
 
     @SuppressWarnings("rawtypes")
-    private static final ValueWriter DEFAULT = ValueWriterDecorator.getInstance();
+    private final ValueWriter delegate = new CompositeValueWriter(
+            new UUIDValueWriter()
+    );
 
-    private static final UUIDValueWriter UUID_VALUE_WRITER = new UUIDValueWriter();
-
-
+    @SuppressWarnings("unchecked")
     @Override
     public boolean test(Class<?> type) {
-        return UUID_VALUE_WRITER.test(type) || DEFAULT.test(type);
+        return delegate.test(type);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public S write(T type) {
-        if(type != null && UUID_VALUE_WRITER.test(type.getClass())) {
-            return (S) UUID_VALUE_WRITER.write((UUID) type);
-        } else {
-            return (S) DEFAULT.write(type);
-        }
+        return (S) delegate.write(type);
     }
-
 }

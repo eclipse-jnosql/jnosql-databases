@@ -29,11 +29,13 @@ import oracle.nosql.driver.values.StringValue;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 class FieldValueConverter {
     private static final List<FieldValueMapper> MAPPERS = List.of(
             new FieldValuePassthroughMapper(),
             new StringValueMapper(),
+            new UUIDValueMapper(),
             new IntegerValueMapper(),
             new LongValueMapper(),
             new DoubleValueMapper(),
@@ -64,25 +66,6 @@ class FieldValueConverter {
         throw new UnsupportedOperationException("Unsupported value type: " + value.getClass());
     }
 
-    public static Object toJavaObject(FieldValue value) {
-        if (value == null || value.isNull()) {
-            return null;
-        }
-
-        return switch (value.getType()) {
-            case STRING -> value.asString();
-            case INTEGER -> value.asInteger();
-            case LONG -> value.asLong();
-            case DOUBLE -> value.asDouble();
-            case BOOLEAN -> value.asBoolean();
-            case NUMBER -> value.asNumber();
-            case BINARY -> value.asBinary();
-            case ARRAY -> value.asArray();
-            case MAP -> value.asMap();
-            default -> throw new UnsupportedOperationException("Unsupported FieldValue type: " + value.getType());
-        };
-    }
-
     private interface FieldValueMapper {
         boolean supports(Object value);
         FieldValue toFieldValue(Object value);
@@ -105,6 +88,17 @@ class FieldValueConverter {
 
         public FieldValue toFieldValue(Object value) {
             return new StringValue((String) value);
+        }
+    }
+
+    private static final class UUIDValueMapper implements FieldValueMapper {
+        public boolean supports(Object value) {
+            return value instanceof UUID;
+        }
+
+        public FieldValue toFieldValue(Object value) {
+            var uuid = (UUID) value;
+            return new StringValue(uuid.toString());
         }
     }
 
