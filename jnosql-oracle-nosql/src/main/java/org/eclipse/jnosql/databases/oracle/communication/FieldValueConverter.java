@@ -66,25 +66,6 @@ class FieldValueConverter {
         throw new UnsupportedOperationException("Unsupported value type: " + value.getClass());
     }
 
-    public static Object toJavaObject(FieldValue value) {
-        if (value == null || value.isNull()) {
-            return null;
-        }
-
-        return switch (value.getType()) {
-            case STRING -> value.asString();
-            case INTEGER -> value.asInteger();
-            case LONG -> value.asLong();
-            case DOUBLE -> value.asDouble();
-            case BOOLEAN -> value.asBoolean();
-            case NUMBER -> value.asNumber();
-            case BINARY -> value.asBinary();
-            case ARRAY -> value.asArray();
-            case MAP -> value.asMap();
-            default -> throw new UnsupportedOperationException("Unsupported FieldValue type: " + value.getType());
-        };
-    }
-
     private interface FieldValueMapper {
         boolean supports(Object value);
         FieldValue toFieldValue(Object value);
