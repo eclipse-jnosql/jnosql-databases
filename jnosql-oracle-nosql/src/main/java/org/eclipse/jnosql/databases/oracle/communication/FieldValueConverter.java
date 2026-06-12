@@ -28,17 +28,19 @@ import oracle.nosql.driver.values.StringValue;
 
 import java.lang.reflect.Array;
 import java.util.Map;
+import java.util.UUID;
 
 enum FieldValueConverter {
 
     INSTANCE;
 
-    FieldValue of(Object value){
-        if(value == null){
+    FieldValue of(Object value) {
+        if (value == null) {
             return NullValue.getInstance();
-        }
-        if (value instanceof String string) {
+        } else if (value instanceof String string) {
             return new StringValue(string);
+        } else if (value instanceof UUID uuid) {
+            return new StringValue(uuid.toString());
         } else if (value instanceof Integer integer) {
             return new IntegerValue(integer);
         } else if (value instanceof Long longValue) {
@@ -49,15 +51,15 @@ enum FieldValueConverter {
             return Boolean.TRUE.equals(booleanValue) ? BooleanValue.trueInstance() : BooleanValue.falseInstance();
         } else if (value instanceof Number) {
             return new NumberValue(value.toString());
-        }  else if (value instanceof byte[]) {
+        } else if (value instanceof byte[]) {
             return new BinaryValue((byte[]) value);
         } else if (value instanceof Iterable<?> values) {
             return createList(values);
         } else if (value.getClass().isArray()) {
             return createArray(value);
-        } else if (value instanceof Map<?,?>) {
+        } else if (value instanceof Map<?, ?>) {
             return entries((Map<String, ?>) value);
-        }else if (value instanceof FieldValue) {
+        } else if (value instanceof FieldValue) {
             return (FieldValue) value;
         } else {
             throw new UnsupportedOperationException("There is not support to: " + value.getClass());
@@ -81,6 +83,7 @@ enum FieldValueConverter {
             default -> throw new UnsupportedOperationException("There is not support to: " + value.getType());
         };
     }
+
     private MapValue entries(Map<String, ?> value) {
         MapValue mapValue = new MapValue();
         for (Map.Entry<String, ?> entry : value.entrySet()) {
@@ -92,7 +95,7 @@ enum FieldValueConverter {
     private ArrayValue createArray(Object value) {
         var arrayValue = new ArrayValue();
         int length = Array.getLength(value);
-        for (int i = 0; i < length; i ++) {
+        for (int i = 0; i < length; i++) {
             arrayValue.add(of(Array.get(value, i)));
         }
         return arrayValue;
