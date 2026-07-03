@@ -48,18 +48,8 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 === Changed
 
-- Upgraded ArangoDB Java driver to 7.26.0
-- Upgraded Couchbase Java client to 3.11.3
-- Upgraded DynamoDB SDK to 2.44.11
-- Upgraded Hazelcast client to 5.7.0
-- Upgraded Infinispan client to 16.1.4
-- Upgraded MongoDB Java driver to 5.7.0
-- Upgraded Neo4j Java driver to 6.1.0
-- Upgraded Oracle NoSQL SDK to 5.4.21
-- Upgraded OrientDB graphdb to 3.2.52
-- Upgraded Jedis (Redis client) to 7.5.0
-- Upgraded Apache Tinkerpop to 3.8.1
-- Upgraded Apache HttpClient5 Cache to 5.6.1
+- Upgraded Cassandra 4.19.3
+- Upgraded Couchbase 3.12.0
 
 == [1.1.13] - 2026-04-06
 
