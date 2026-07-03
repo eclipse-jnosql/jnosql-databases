@@ -37,7 +37,6 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Improve MongoDB document update tests
 - Validate required fields in N1QLUpdateQueryBuilder for Couchbase
 - Validate update query parameters in Couchbase driver
-- Add update query tests for ArangoDB, Neo4J, Couchbase, Cassandra, and MongoDB
 - Update jakarta data engine
 
 === Fixed
