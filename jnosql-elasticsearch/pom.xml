@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to Elasticsearch</description>
 
     <properties>
-        <elasticsearch-java.version>8.19.9</elasticsearch-java.version>
+        <elasticsearch-java.version>8.19.17</elasticsearch-java.version>
     </properties>
     <dependencies>
         <dependency>
