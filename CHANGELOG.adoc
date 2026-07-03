@@ -39,11 +39,6 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Validate update query parameters in Couchbase driver
 - Update jakarta data engine
 
-=== Fixed
-
-- Include support to UUID at Oracle NoSQL database
-
-
 == [1.1.15] - 2026-07-03
 
 === Changed
@@ -56,6 +51,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Upgraded Oracle NoSQL 5.4.23
 - Upgraded OrientDB 3.2.53
 
+=== Fixed
+
+- Include support to UUID at Oracle NoSQL database
 
 == [1.1.13] - 2026-04-06
 
