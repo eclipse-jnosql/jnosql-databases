@@ -37,7 +37,6 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Improve MongoDB document update tests
 - Validate required fields in N1QLUpdateQueryBuilder for Couchbase
 - Validate update query parameters in Couchbase driver
-- Add update query tests for ArangoDB, Neo4J, Couchbase, Cassandra, and MongoDB
 - Update jakarta data engine
 
 === Fixed
@@ -45,22 +44,18 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Include support to UUID at Oracle NoSQL database
 
 
-== [1.1.14] - 2026-06-01
+== [1.1.15] - 2026-07-03
 
 === Changed
 
-- Upgraded ArangoDB Java driver to 7.26.0
-- Upgraded Couchbase Java client to 3.11.3
-- Upgraded DynamoDB SDK to 2.44.11
-- Upgraded Hazelcast client to 5.7.0
-- Upgraded Infinispan client to 16.1.4
-- Upgraded MongoDB Java driver to 5.7.0
-- Upgraded Neo4j Java driver to 6.1.0
-- Upgraded Oracle NoSQL SDK to 5.4.21
-- Upgraded OrientDB graphdb to 3.2.52
-- Upgraded Jedis (Redis client) to 7.5.0
-- Upgraded Apache Tinkerpop to 3.8.1
-- Upgraded Apache HttpClient5 Cache to 5.6.1
+- Upgraded Cassandra 4.19.3
+- Upgraded Couchbase 3.12.0
+- Upgraded Dynamodb 2.46.21
+- Upgraded Infinispan 16.2.1
+- Upgraded Neo4J 6.2.0
+- Upgraded Oracle NoSQL 5.4.23
+- Upgraded OrientDB 3.2.53
+
 
 == [1.1.13] - 2026-04-06
 
