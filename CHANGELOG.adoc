@@ -44,12 +44,15 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Include support to UUID at Oracle NoSQL database
 
 
-== [1.1.14] - 2026-06-01
+== [1.1.15] - 2026-07-03
 
 === Changed
 
 - Upgraded Cassandra 4.19.3
 - Upgraded Couchbase 3.12.0
+- Upgraded Dynamodb 2.46.21
+- Upgraded Infinispan 16.2.1
+
 
 == [1.1.13] - 2026-04-06
 
