@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to Cassandra</description>
 
     <properties>
-        <casandra.driver.version>4.19.2</casandra.driver.version>
+        <casandra.driver.version>4.19.3</casandra.driver.version>
     </properties>
     <dependencies>
         <dependency>
