@@ -72,7 +72,7 @@ public class RedisListStringTest {
     @Test
     public void shouldSetList() {
         fruits.add("banana");
-        fruits.addFirst("orange");
+        fruits.add(0, "orange");
         assertEquals(2, fruits.size());
 
         assertEquals(fruits.get(0), "orange");
@@ -133,7 +133,7 @@ public class RedisListStringTest {
         fruits.remove(0);
         fruits.remove(0);
         count = 0;
-        for (String fruiCart : fruits) {
+        for (String fruit : fruits) {
             count++;
         }
         assertEquals(0, count);
