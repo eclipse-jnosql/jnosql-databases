@@ -63,11 +63,11 @@ public class ValkeyMapTest {
 
     @Test
     public void shouldPutAll() {
-        Map toPutAll = new HashMap<String, Species>();
-        toPutAll.put("mammals", mammals);
-        toPutAll.put("fishes", fishes);
+        var animalCategories = new HashMap<String, Species>();
+        animalCategories.put("mammals", mammals);
+        animalCategories.put("fishes", fishes);
 
-        vertebrates.putAll(toPutAll);
+        vertebrates.putAll(animalCategories);
         assertEquals(2, vertebrates.size());
     }
 
