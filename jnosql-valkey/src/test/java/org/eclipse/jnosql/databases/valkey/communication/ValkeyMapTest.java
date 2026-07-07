@@ -57,7 +57,7 @@ public class ValkeyMapTest {
         assertNotNull(vertebrates.put("mammals", mammals));
         Species species = vertebrates.get("mammals");
         assertNotNull(species);
-        assertEquals(species.getAnimals().getFirst(), mammals.getAnimals().getFirst());
+        assertEquals(species.getAnimals().get(0), mammals.getAnimals().get(0));
         assertEquals(1, vertebrates.size());
     }
 

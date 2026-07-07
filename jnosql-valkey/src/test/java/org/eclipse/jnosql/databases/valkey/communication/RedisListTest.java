@@ -65,7 +65,7 @@ public class RedisListTest {
         assertTrue(fruits.isEmpty());
         fruits.add(banana);
         assertFalse(fruits.isEmpty());
-        ProductCart banana = fruits.getFirst();
+        ProductCart banana = fruits.get(0);
         assertNotNull(banana);
         assertEquals(banana.name(), "banana");
     }
@@ -111,7 +111,7 @@ public class RedisListTest {
         fruits.add(banana);
         fruits.add(waterMelon);
 
-        fruits.removeFirst();
+        fruits.remove(0);
         assertThat(fruits).hasSize(2).isNotIn(orange);
     }
 
@@ -150,8 +150,8 @@ public class RedisListTest {
             count++;
         }
         assertEquals(2, count);
-        fruits.removeFirst();
-        fruits.removeFirst();
+        fruits.remove(0);
+        fruits.remove(0);
         count = 0;
         for (ProductCart fruiCart : fruits) {
             count++;
