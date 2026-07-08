@@ -73,7 +73,7 @@ public class RedisListTest {
     @Test
     public void shouldSetList() {
         fruits.add(banana);
-        fruits.addFirst(orange);
+        fruits.add(0, orange);
         assertEquals(2, fruits.size());
 
         assertEquals(fruits.get(0).name(), "orange");
