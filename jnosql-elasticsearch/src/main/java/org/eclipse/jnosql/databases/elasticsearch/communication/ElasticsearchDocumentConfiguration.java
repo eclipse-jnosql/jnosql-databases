@@ -85,12 +85,15 @@ public class ElasticsearchDocumentConfiguration implements DatabaseConfiguration
     public ElasticsearchClient buildElasticsearchClient(Settings settings) {
         requireNonNull(settings, "settings is required");
 
-        settings.prefixSupplier(asList(ElasticsearchConfigurations.HOST, Configurations.HOST))
+        List<HttpHost> configuredHosts = settings
+                .prefixSupplier(asList(ElasticsearchConfigurations.HOST, Configurations.HOST))
                 .stream()
                 .map(Object::toString)
                 .map(host -> ElasticsearchAddress.of(host, DEFAULT_PORT))
                 .map(ElasticsearchAddress::toHttpHost)
-                .forEach(httpHosts::add);
+                .toList();
+
+        this.httpHosts.addAll(configuredHosts);
 
         Rest5ClientBuilder builder = Rest5Client.builder(httpHosts.toArray(HttpHost[]::new));
 
