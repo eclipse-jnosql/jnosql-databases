@@ -40,7 +40,14 @@ import java.util.stream.StreamSupport;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The Default implementation of {@link ElasticsearchDocumentManager}
+ * Default Elasticsearch implementation of {@link ElasticsearchDocumentManager}.
+ * <p>
+ * This manager delegates document operations to the Elasticsearch Java client.
+ * Standard JNoSQL operations such as insert, update, delete, select, and count
+ * are translated into Elasticsearch requests executed against the configured
+ * index. Native Elasticsearch searches are supported through
+ * {@link #search(SearchRequest)}.
+ * </p>
  */
 class DefaultElasticsearchDocumentManager implements ElasticsearchDocumentManager {
 
