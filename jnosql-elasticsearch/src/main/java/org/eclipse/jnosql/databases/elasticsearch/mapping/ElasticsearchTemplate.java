@@ -62,15 +62,43 @@ import java.util.stream.Stream;
 public interface ElasticsearchTemplate extends DocumentTemplate {
 
     /**
-     * Executes a search query using the provided {@link SearchRequest}.
-     * The search query should be built using Elasticsearch's client API and passed
-     * to this method. The results will be mapped to the specified entity type
-     * and returned as a stream.
+     * Executes a native Elasticsearch search request and maps the returned
+     * documents to entity instances.
+     * <p>
+     * This method should be used when the standard JNoSQL mapping operations are
+     * not expressive enough for the required Elasticsearch query. The provided
+     * {@link SearchRequest} is passed to the Elasticsearch Java client through the
+     * communication layer, and each returned document is converted to the mapped
+     * entity type.
+     * </p>
+     * <p>
+     * The request must not be {@code null}. The target index should normally be
+     * consistent with the entity mapping or with the index explicitly defined in
+     * the request.
+     * </p>
      *
-     * @param <T>   the entity type
-     * @param query the Elasticsearch query request
-     * @return a stream of entities resulting from the search query
-     * @throws NullPointerException if the query is null
+     * <pre>{@code
+     * @Inject
+     * private ElasticsearchTemplate elasticsearchTemplate;
+     *
+     * SearchRequest request = SearchRequest.of(search -> search
+     *         .index("documents")
+     *         .query(query -> query
+     *                 .match(match -> match
+     *                         .field("title")
+     *                         .query("Eclipse JNoSQL"))));
+     *
+     * Stream<Document> documents = elasticsearchTemplate.search(request);
+     *
+     * documents.forEach(document -> {
+     *     System.out.println(document);
+     * });
+     * }</pre>
+     *
+     * @param <T> the entity type returned by the search operation
+     * @param request the native Elasticsearch search request
+     * @return a stream of mapped entities returned by the Elasticsearch search operation
+     * @throws NullPointerException when the search request is {@code null}
      */
-    <T> Stream<T> search(SearchRequest query);
+    <T> Stream<T> search(SearchRequest request);
 }
