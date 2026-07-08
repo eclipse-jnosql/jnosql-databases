@@ -23,7 +23,29 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 import java.util.stream.Stream;
 
 /**
- * The ES implementation of {@link DatabaseManager}
+ * Elasticsearch-specific {@link DatabaseManager} contract for document communication.
+ * <p>
+ * This interface extends the standard JNoSQL {@link DatabaseManager} operations
+ * with Elasticsearch-native search support. The inherited methods provide the
+ * regular document operations such as insert, update, delete, select, count, and
+ * close, while {@link #search(SearchRequest)} allows callers to execute a native
+ * Elasticsearch {@link SearchRequest}.
+ * </p>
+ * <p>
+ * The native search method is useful when an application needs Elasticsearch
+ * features that are not directly represented by the JNoSQL communication API,
+ * such as custom query DSL structures, aggregations, highlighting, sorting,
+ * pagination, or other Elasticsearch-specific search capabilities.
+ * </p>
+ * <p>
+ * Implementations are expected to execute the request against the index managed
+ * by this {@link DatabaseManager} and convert the Elasticsearch search hits back
+ * into {@link CommunicationEntity} instances.
+ * </p>
+ *
+ * @see DatabaseManager
+ * @see SearchRequest
+ * @see CommunicationEntity
  */
 public interface ElasticsearchDocumentManager extends DatabaseManager {
 
