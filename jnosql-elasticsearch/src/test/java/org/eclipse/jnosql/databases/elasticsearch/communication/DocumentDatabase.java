@@ -42,8 +42,8 @@ public enum DocumentDatabase implements Supplier<ElasticsearchDocumentManagerFac
 
     INSTANCE;
 
-    private final GenericContainer es =
-            new GenericContainer("docker.io/elastic/elasticsearch:8.15.0")
+    private final GenericContainer<?> container =
+            new GenericContainer("docker.io/elastic/elasticsearch:9.4.3")
                     .withReuse(true)
                     .withExposedPorts(9200, 9300)
                     .withEnv("discovery.type", "single-node")
@@ -54,7 +54,7 @@ public enum DocumentDatabase implements Supplier<ElasticsearchDocumentManagerFac
                             .forStatusCode(200));
 
     {
-        es.start();
+        container.start();
     }
 
     public static void clearDatabase(String index) {
@@ -149,7 +149,7 @@ public enum DocumentDatabase implements Supplier<ElasticsearchDocumentManagerFac
     }
 
     public String host() {
-        return es.getHost() + ':' + es.getFirstMappedPort();
+        return container.getHost() + ':' + container.getFirstMappedPort();
     }
 
 }

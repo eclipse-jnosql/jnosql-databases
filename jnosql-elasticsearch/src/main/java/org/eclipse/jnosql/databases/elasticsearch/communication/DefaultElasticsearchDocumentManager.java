@@ -40,7 +40,14 @@ import java.util.stream.StreamSupport;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The Default implementation of {@link ElasticsearchDocumentManager}
+ * Default Elasticsearch implementation of {@link ElasticsearchDocumentManager}.
+ * <p>
+ * This manager delegates document operations to the Elasticsearch Java client.
+ * Standard JNoSQL operations such as insert, update, delete, select, and count
+ * are translated into Elasticsearch requests executed against the configured
+ * index. Native Elasticsearch searches are supported through
+ * {@link #search(SearchRequest)}.
+ * </p>
  */
 class DefaultElasticsearchDocumentManager implements ElasticsearchDocumentManager {
 
@@ -160,13 +167,13 @@ class DefaultElasticsearchDocumentManager implements ElasticsearchDocumentManage
     }
 
     @Override
-    public Stream<CommunicationEntity> search(SearchRequest query) {
-        Objects.requireNonNull(query, "query is required");
+    public Stream<CommunicationEntity> search(SearchRequest request) {
+        Objects.requireNonNull(request, "request is required");
         try {
-            var responses = elasticsearchClient.search(query, Map.class);
+            var responses = elasticsearchClient.search(request, Map.class);
             return EntityConverter.getDocumentEntityStream(elasticsearchClient, responses);
         } catch (IOException e) {
-            throw new ElasticsearchException("An error when do search from QueryBuilder on elasticsearch", e);
+            throw new ElasticsearchException("An error occurred while executing a native Elasticsearch search request", e);
         }
     }
 
