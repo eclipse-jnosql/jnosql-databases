@@ -18,6 +18,7 @@ package org.eclipse.jnosql.databases.elasticsearch.communication;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.elasticsearch.indices.ExistsRequest;
+import co.elastic.clients.elasticsearch.indices.GetIndexRequest;
 import co.elastic.clients.elasticsearch.indices.OpenRequest;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 
@@ -110,18 +111,26 @@ public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFacto
 
     private boolean indexExists(String database) {
         try {
-            boolean exists = elasticsearchClient.indices()
-                    .exists(ExistsRequest.of(builder -> builder.index(database)))
-                    .value();
+            elasticsearchClient.indices().get(GetIndexRequest.of(builder -> builder.index(database)));
+            LOGGER.log(Level.FINE, "Elasticsearch index exists: {0}", database);
+            return true;
 
-            LOGGER.log(Level.FINE, "Elasticsearch index existence check completed. index={0}, exists={1}",
-                    new Object[]{database, exists});
-
-            return exists;
-        } catch (IOException exception) {
-            throw new ElasticsearchException("Error while checking whether Elasticsearch index exists: " + database, exception);
         } catch (co.elastic.clients.elasticsearch._types.ElasticsearchException exception) {
-            throw new ElasticsearchException("Elasticsearch rejected the index existence check for index: " + database, exception);
+            if (exception.status() == 404) {
+                LOGGER.log(Level.FINE, "Elasticsearch index does not exist: {0}", database);
+                return false;
+            }
+
+            throw new ElasticsearchException(
+                    "Elasticsearch rejected the index existence check for index: " + database,
+                    exception
+            );
+
+        } catch (IOException exception) {
+            throw new ElasticsearchException(
+                    "Error while checking whether Elasticsearch index exists: " + database,
+                    exception
+            );
         }
     }
 
