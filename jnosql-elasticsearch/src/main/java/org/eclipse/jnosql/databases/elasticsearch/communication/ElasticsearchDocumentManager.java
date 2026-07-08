@@ -63,11 +63,11 @@ public interface ElasticsearchDocumentManager extends DatabaseManager {
      * consistent with the manager's configured index.
      * </p>
      *
-     * @param query the native Elasticsearch search request
+     * @param request the native Elasticsearch search request
      * @return a stream of entities returned by the Elasticsearch search operation
      * @throws NullPointerException when the search request is {@code null}
      * @throws ElasticsearchException when Elasticsearch cannot execute the search
      */
-    Stream<CommunicationEntity> search(SearchRequest query) throws NullPointerException;
+    Stream<CommunicationEntity> search(SearchRequest request) throws NullPointerException;
 
 }
