@@ -8,7 +8,13 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+=== Changed
+
+- Upgraded Elasticsearch to 9.4.3
+
 == [1.1.15] - 2026-07-03
+
+=== Changed
 
 - Upgraded Cassandra 4.19.3
 - Upgraded Couchbase 3.12.0
