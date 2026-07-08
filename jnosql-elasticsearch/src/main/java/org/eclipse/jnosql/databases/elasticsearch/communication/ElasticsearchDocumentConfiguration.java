@@ -1,3 +1,4 @@
+
 /*
  *  Copyright (c) 2022 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
@@ -15,23 +16,21 @@
  */
 package org.eclipse.jnosql.databases.elasticsearch.communication;
 
-
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jsonb.JsonbJsonpMapper;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.client.BasicCredentialsProvider;
+import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
+import co.elastic.clients.transport.rest5_client.low_level.Rest5ClientBuilder;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.eclipse.jnosql.communication.Configurations;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,17 +48,15 @@ public class ElasticsearchDocumentConfiguration implements DatabaseConfiguration
 
     private static final int DEFAULT_PORT = 9200;
 
-    private List<HttpHost> httpHosts = new ArrayList<>();
+    private final List<HttpHost> httpHosts = new ArrayList<>();
 
-    private List<Header> headers = new ArrayList<>();
-
+    private final List<Header> headers = new ArrayList<>();
 
     public ElasticsearchDocumentConfiguration() {
-
     }
 
     /**
-     * Adds a host in the configuration
+     * Adds a host in the configuration.
      *
      * @param host the host
      * @throws NullPointerException when host is null
@@ -69,7 +66,7 @@ public class ElasticsearchDocumentConfiguration implements DatabaseConfiguration
     }
 
     /**
-     * Adds a header in the configuration
+     * Adds a header in the configuration.
      *
      * @param header the header
      * @throws NullPointerException when header is null
@@ -91,36 +88,36 @@ public class ElasticsearchDocumentConfiguration implements DatabaseConfiguration
         settings.prefixSupplier(asList(ElasticsearchConfigurations.HOST, Configurations.HOST))
                 .stream()
                 .map(Object::toString)
-                .map(h -> ElasticsearchAddress.of(h, DEFAULT_PORT))
+                .map(host -> ElasticsearchAddress.of(host, DEFAULT_PORT))
                 .map(ElasticsearchAddress::toHttpHost)
                 .forEach(httpHosts::add);
 
-        RestClientBuilder builder = RestClient.builder(httpHosts.toArray(new HttpHost[0]));
-        builder.setDefaultHeaders(headers.toArray(Header[]::new));
+        Rest5ClientBuilder builder = Rest5Client.builder(httpHosts.toArray(HttpHost[]::new));
 
         final Optional<String> username = settings
-                .getSupplier(asList(Configurations.USER,
-                        ElasticsearchConfigurations.USER))
+                .getSupplier(asList(Configurations.USER, ElasticsearchConfigurations.USER))
                 .map(Object::toString);
+
         final Optional<String> password = settings
-                .getSupplier(asList(Configurations.PASSWORD,
-                        ElasticsearchConfigurations.PASSWORD))
+                .getSupplier(asList(Configurations.PASSWORD, ElasticsearchConfigurations.PASSWORD))
                 .map(Object::toString);
 
-        if (username.isPresent()) {
-            final CredentialsProvider credentialsProvider =
-                    new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY,
-                    new UsernamePasswordCredentials(username.orElse(null), password.orElse(null)));
-            builder.setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder
-                    .setDefaultCredentialsProvider(credentialsProvider));
-        }
+        username.ifPresent(user -> addBasicAuthenticationHeader(user, password.orElse("")));
 
-        RestClient httpClient = builder.build();
+        builder.setDefaultHeaders(headers.toArray(Header[]::new));
 
-        var transport = new RestClientTransport(httpClient, new JsonbJsonpMapper());
+        Rest5Client httpClient = builder.build();
+
+        var transport = new Rest5ClientTransport(httpClient, new JsonbJsonpMapper());
 
         return new ElasticsearchClient(transport);
     }
 
+    private void addBasicAuthenticationHeader(String username, String password) {
+        String credentials = username + ":" + password;
+        String encodedCredentials = Base64.getEncoder()
+                .encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+
+        this.headers.add(new BasicHeader("Authorization", "Basic " + encodedCredentials));
+    }
 }
