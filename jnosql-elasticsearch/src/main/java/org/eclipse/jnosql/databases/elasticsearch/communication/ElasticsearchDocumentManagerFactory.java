@@ -17,9 +17,7 @@ package org.eclipse.jnosql.databases.elasticsearch.communication;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
-import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import co.elastic.clients.elasticsearch.indices.GetIndexRequest;
-import co.elastic.clients.elasticsearch.indices.OpenRequest;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 
 import java.io.IOException;
