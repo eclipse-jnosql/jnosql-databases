@@ -111,7 +111,9 @@ public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFacto
 
     private boolean indexExists(String database) {
         try {
-            elasticsearchClient.indices().get(GetIndexRequest.of(builder -> builder.index(database)));
+            elasticsearchClient.indices()
+                    .get(GetIndexRequest.of(builder -> builder.index(database)));
+
             LOGGER.log(Level.FINE, "Elasticsearch index exists: {0}", database);
             return true;
 
@@ -123,6 +125,14 @@ public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFacto
 
             throw new ElasticsearchException(
                     "Elasticsearch rejected the index existence check for index: " + database,
+                    exception
+            );
+
+        } catch (co.elastic.clients.transport.TransportException exception) {
+            throw new ElasticsearchException(
+                    "Elasticsearch transport error while checking whether index exists: " + database +
+                            ". This is not an index-not-found case. Check Elasticsearch client/server version compatibility " +
+                            "and default HTTP headers, especially Content-Type and Accept.",
                     exception
             );
 
