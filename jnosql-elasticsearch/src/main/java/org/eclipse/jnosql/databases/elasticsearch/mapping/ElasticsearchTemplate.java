@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  *
  * <pre>{@code
  * @Inject
- * ElasticsearchTemplate elasticsearchTemplate;
+ * private ElasticsearchTemplate elasticsearchTemplate;
  *
  * SearchRequest request = new SearchRequest.Builder()
  *         .index("documents")
