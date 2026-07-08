@@ -42,6 +42,7 @@ import java.util.logging.Logger;
  * </p>
  */
 public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFactory {
+
     private static final Logger LOGGER = Logger.getLogger(ElasticsearchDocumentManagerFactory.class.getName());
 
     private static final String MAPPING_EXTENSION = ".json";
