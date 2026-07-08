@@ -15,7 +15,7 @@
  */
 package org.eclipse.jnosql.databases.elasticsearch.communication;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,22 +23,19 @@ import java.util.Objects;
 
 final class ElasticsearchAddress {
 
-    private HttpHost host;
+    private final HttpHost host;
 
     private ElasticsearchAddress(String address, int defaultPort) {
         try {
-            URL tmp = new URL(address);
-            this.host = new HttpHost(
-                    tmp.getHost(),
-                    Objects.equals(tmp.getPort(), -1) ? defaultPort : tmp.getPort(),
-                    tmp.getProtocol()
-            );
+            URL url = new URL(address);
+            int port = Objects.equals(url.getPort(), -1) ? defaultPort : url.getPort();
+
+            this.host = new HttpHost(url.getProtocol(), url.getHost(), port);
         } catch (MalformedURLException ex) {
             String[] values = address.split(":");
-            this.host = new HttpHost(
-                    values[0],
-                    values.length == 2 ? Integer.parseInt(values[1]) : defaultPort
-            );
+            int port = values.length == 2 ? Integer.parseInt(values[1]) : defaultPort;
+
+            this.host = new HttpHost(values[0], port);
         }
     }
 
@@ -48,7 +45,8 @@ final class ElasticsearchAddress {
 
     @Override
     public String toString() {
-        return "ElasticsearchAddress{" + "host='" + host.getHostName() + '\'' +
+        return "ElasticsearchAddress{" +
+                "host='" + host.getHostName() + '\'' +
                 ", port=" + host.getPort() +
                 '}';
     }
