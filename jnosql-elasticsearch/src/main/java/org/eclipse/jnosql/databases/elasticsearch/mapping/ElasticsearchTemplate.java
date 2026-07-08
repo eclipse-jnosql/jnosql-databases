@@ -20,12 +20,6 @@ import org.eclipse.jnosql.mapping.document.DocumentTemplate;
 
 import java.util.stream.Stream;
 
-
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import org.eclipse.jnosql.mapping.document.DocumentTemplate;
-
-import java.util.stream.Stream;
-
 /**
  * Elasticsearch-specific {@link DocumentTemplate} contract for the mapping layer.
  * <p>

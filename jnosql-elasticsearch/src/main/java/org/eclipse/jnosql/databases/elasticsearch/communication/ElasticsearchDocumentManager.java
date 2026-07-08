@@ -22,14 +22,6 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 
 import java.util.stream.Stream;
 
-
-
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
-import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
-
-import java.util.stream.Stream;
-
 /**
  * Elasticsearch-specific {@link DatabaseManager} contract for document communication.
  * <p>
