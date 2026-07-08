@@ -17,87 +17,121 @@ package org.eclipse.jnosql.databases.elasticsearch.communication;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
+import co.elastic.clients.elasticsearch.indices.ExistsRequest;
 import co.elastic.clients.elasticsearch.indices.OpenRequest;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * The elasticsearch implementation to {@link DatabaseManagerFactory} that returns:
- * {@link ElasticsearchDocumentManager}
- * If the database does not exist, it tries to read a json mapping from the database name.
- * Eg: {@link ElasticsearchDocumentManagerFactory#apply(String)}} with database, if does not exist it tries to
- * read a "/database.json" file. The file must have the mapping to elasticsearch.
+ * The Elasticsearch implementation of {@link DatabaseManagerFactory} that returns
+ * {@link ElasticsearchDocumentManager}.
+ * <p>
+ * If the index does not exist, this factory tries to load a JSON mapping file
+ * from the classpath using the database name.
+ * </p>
+ * <p>
+ * For example, calling {@link ElasticsearchDocumentManagerFactory#apply(String)}
+ * with {@code "users"} will try to load {@code /users.json}. If the file exists,
+ * it is used as the index creation request body. Otherwise, the index is created
+ * with Elasticsearch defaults.
+ * </p>
  */
 public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFactory {
-
     private static final Logger LOGGER = Logger.getLogger(ElasticsearchDocumentManagerFactory.class.getName());
+
+    private static final String MAPPING_EXTENSION = ".json";
 
     private final ElasticsearchClient elasticsearchClient;
 
     ElasticsearchDocumentManagerFactory(ElasticsearchClient elasticsearchClient) {
-        this.elasticsearchClient = elasticsearchClient;
+        this.elasticsearchClient = Objects.requireNonNull(elasticsearchClient, "elasticsearchClient is required");
     }
-
 
     @Override
     public ElasticsearchDocumentManager apply(String database) throws UnsupportedOperationException, NullPointerException {
         Objects.requireNonNull(database, "database is required");
 
+        LOGGER.log(Level.FINE, "Initializing Elasticsearch document manager for index: {0}", database);
+
         initDatabase(database);
+
+        LOGGER.log(Level.FINE, "Elasticsearch document manager initialized for index: {0}", database);
+
         return new DefaultElasticsearchDocumentManager(elasticsearchClient, database);
     }
 
     private void initDatabase(String database) {
-        boolean exists = isExists(database);
-        if (!exists) {
-            createIndex(database);
+        if (indexExists(database)) {
+            LOGGER.log(Level.FINE, "Elasticsearch index already exists: {0}", database);
+            return;
         }
+
+        LOGGER.log(Level.INFO, "Elasticsearch index does not exist and will be created: {0}", database);
+        createIndex(database);
     }
 
     private void createIndex(String database) {
-        InputStream stream = ElasticsearchDocumentManagerFactory.class.getResourceAsStream('/' + database + ".json");
-        if (Objects.nonNull(stream)) {
-            try {
-                CreateIndexRequest request = CreateIndexRequest.of(
-                        b -> b.index(database).withJson(stream)
-                );
-                elasticsearchClient.indices().create(request);
-            } catch (Exception ex) {
-                throw new ElasticsearchException("Error when create a new mapping", ex);
-            }
-        } else {
-            try {
-                CreateIndexRequest request = CreateIndexRequest.of(
-                        b -> b.index(database)
-                );
-                elasticsearchClient.indices().create(request);
-            } catch (Exception ex) {
-                throw new ElasticsearchException("Error when create a new mapping", ex);
-            }
+        String mappingResource = "/" + database + MAPPING_EXTENSION;
+
+        try (InputStream stream = ElasticsearchDocumentManagerFactory.class.getResourceAsStream(mappingResource)) {
+            CreateIndexRequest request = createIndexRequest(database, mappingResource, stream);
+
+            elasticsearchClient.indices().create(request);
+
+            LOGGER.log(Level.INFO, "Elasticsearch index created successfully: {0}", database);
+        } catch (IOException exception) {
+            throw new ElasticsearchException("Error while reading Elasticsearch mapping resource: " + mappingResource, exception);
+        } catch (Exception exception) {
+            throw new ElasticsearchException("Error while creating Elasticsearch index: " + database, exception);
         }
     }
 
-    private boolean isExists(String database) {
+    private CreateIndexRequest createIndexRequest(String database, String mappingResource, InputStream stream) {
+        if (Objects.nonNull(stream)) {
+            LOGGER.log(Level.INFO, "Creating Elasticsearch index {0} using mapping resource: {1}",
+                    new Object[]{database, mappingResource});
+
+            return CreateIndexRequest.of(builder -> builder
+                    .index(database)
+                    .withJson(stream));
+        }
+
+        LOGGER.log(Level.INFO, "No mapping resource found for Elasticsearch index {0}. Creating index with default settings.",
+                database);
+
+        return CreateIndexRequest.of(builder -> builder.index(database));
+    }
+
+    private boolean indexExists(String database) {
         try {
-            elasticsearchClient.indices().open(OpenRequest.of(b -> b.index(database)));
-            return true;
-        } catch (IOException e) {
-            throw new ElasticsearchException("And error on admin access to verify if the database exists", e);
-        } catch (co.elastic.clients.elasticsearch._types.ElasticsearchException e) {
-            return false;
+            boolean exists = elasticsearchClient.indices()
+                    .exists(ExistsRequest.of(builder -> builder.index(database)))
+                    .value();
+
+            LOGGER.log(Level.FINE, "Elasticsearch index existence check completed. index={0}, exists={1}",
+                    new Object[]{database, exists});
+
+            return exists;
+        } catch (IOException exception) {
+            throw new ElasticsearchException("Error while checking whether Elasticsearch index exists: " + database, exception);
+        } catch (co.elastic.clients.elasticsearch._types.ElasticsearchException exception) {
+            throw new ElasticsearchException("Elasticsearch rejected the index existence check for index: " + database, exception);
         }
     }
 
     @Override
     public void close() {
         try {
+            LOGGER.log(Level.FINE, "Closing Elasticsearch transport");
             elasticsearchClient._transport().close();
-        } catch (IOException e) {
-            throw new ElasticsearchException("An error when close the elasticsearchClient client", e);
+            LOGGER.log(Level.FINE, "Elasticsearch transport closed successfully");
+        } catch (IOException exception) {
+            throw new ElasticsearchException("Error while closing Elasticsearch transport", exception);
         }
     }
 }
