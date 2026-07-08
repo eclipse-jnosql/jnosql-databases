@@ -167,13 +167,13 @@ class DefaultElasticsearchDocumentManager implements ElasticsearchDocumentManage
     }
 
     @Override
-    public Stream<CommunicationEntity> search(SearchRequest query) {
-        Objects.requireNonNull(query, "query is required");
+    public Stream<CommunicationEntity> search(SearchRequest request) {
+        Objects.requireNonNull(request, "request is required");
         try {
-            var responses = elasticsearchClient.search(query, Map.class);
+            var responses = elasticsearchClient.search(request, Map.class);
             return EntityConverter.getDocumentEntityStream(elasticsearchClient, responses);
         } catch (IOException e) {
-            throw new ElasticsearchException("An error when do search from QueryBuilder on elasticsearch", e);
+            throw new ElasticsearchException("An error occurred while executing a native Elasticsearch search request", e);
         }
     }
 
