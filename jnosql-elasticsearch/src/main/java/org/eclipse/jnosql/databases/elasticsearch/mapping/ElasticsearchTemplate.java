@@ -20,43 +20,91 @@ import org.eclipse.jnosql.mapping.document.DocumentTemplate;
 
 import java.util.stream.Stream;
 
+
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import org.eclipse.jnosql.mapping.document.DocumentTemplate;
+
+import java.util.stream.Stream;
+
 /**
- * An Elasticsearch-specific extension of {@link DocumentTemplate},
- * providing a method to perform search queries using {@link SearchRequest}.
+ * Elasticsearch-specific {@link DocumentTemplate} contract for the mapping layer.
+ * <p>
+ * This interface extends the standard Eclipse JNoSQL {@link DocumentTemplate}
+ * operations with support for native Elasticsearch search requests. The inherited
+ * template methods provide the regular mapped document operations, while
+ * {@link #search(SearchRequest)} allows callers to execute an Elasticsearch
+ * {@link SearchRequest} and receive mapped entity instances.
+ * </p>
+ * <p>
+ * The native search method is useful when an application needs Elasticsearch
+ * features that are not directly represented by the standard JNoSQL mapping API,
+ * such as custom query DSL structures, aggregations, highlighting, sorting,
+ * pagination, or other Elasticsearch-specific search capabilities.
+ * </p>
+ * <p>
+ * Implementations are expected to delegate the native request to the underlying
+ * Elasticsearch communication layer and map the returned documents back to the
+ * corresponding entity type managed by Eclipse JNoSQL.
+ * </p>
  *
- * This template allows executing Elasticsearch queries and retrieving results
- * as a stream of entities mapped by Eclipse JNoSQL.
- *
- * Example usage:
- * <pre>
- * {@code
+ * <pre>{@code
  * @Inject
  * private ElasticsearchTemplate elasticsearchTemplate;
  *
  * SearchRequest request = new SearchRequest.Builder()
  *         .index("documents")
- *         .query(q -> q.match(m -> m.field("title").query("Eclipse JNoSQL")))
+ *         .query(query -> query.match(match -> match
+ *                 .field("title")
+ *                 .query("Eclipse JNoSQL")))
  *         .build();
  *
- * Stream<Document> results = elasticsearchTemplate.search(request);
- * results.forEach(System.out::println);
- * }
- * </pre>
+ * Stream<Document> documents = elasticsearchTemplate.search(request);
+ * documents.forEach(System.out::println);
+ * }</pre>
  *
  * @see DocumentTemplate
+ * @see SearchRequest
  */
 public interface ElasticsearchTemplate extends DocumentTemplate {
 
     /**
-     * Executes a search query using the provided {@link SearchRequest}.
-     * The search query should be built using Elasticsearch's client API and passed
-     * to this method. The results will be mapped to the specified entity type
-     * and returned as a stream.
+     * Executes a native Elasticsearch search request and maps the returned
+     * documents to entity instances.
+     * <p>
+     * This method should be used when the standard JNoSQL mapping operations are
+     * not expressive enough for the required Elasticsearch query. The provided
+     * {@link SearchRequest} is passed to the Elasticsearch Java client through the
+     * communication layer, and each returned document is converted to the mapped
+     * entity type.
+     * </p>
+     * <p>
+     * The request must not be {@code null}. The target index should normally be
+     * consistent with the entity mapping or with the index explicitly defined in
+     * the request.
+     * </p>
      *
-     * @param <T>   the entity type
-     * @param query the Elasticsearch query request
-     * @return a stream of entities resulting from the search query
-     * @throws NullPointerException if the query is null
+     * <pre>{@code
+     * @Inject
+     * private ElasticsearchTemplate elasticsearchTemplate;
+     *
+     * SearchRequest request = SearchRequest.of(search -> search
+     *         .index("documents")
+     *         .query(query -> query
+     *                 .match(match -> match
+     *                         .field("title")
+     *                         .query("Eclipse JNoSQL"))));
+     *
+     * Stream<Document> documents = elasticsearchTemplate.search(request);
+     *
+     * documents.forEach(document -> {
+     *     System.out.println(document);
+     * });
+     * }</pre>
+     *
+     * @param <T> the entity type returned by the search operation
+     * @param request the native Elasticsearch search request
+     * @return a stream of mapped entities returned by the Elasticsearch search operation
+     * @throws NullPointerException when the search request is {@code null}
      */
-    <T> Stream<T> search(SearchRequest query);
+    <T> Stream<T> search(SearchRequest request);
 }
