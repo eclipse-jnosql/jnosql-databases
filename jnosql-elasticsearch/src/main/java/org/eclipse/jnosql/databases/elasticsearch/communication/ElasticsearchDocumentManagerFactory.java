@@ -23,6 +23,7 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * The elasticsearch implementation to {@link DatabaseManagerFactory} that returns:
@@ -33,6 +34,7 @@ import java.util.Objects;
  */
 public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFactory {
 
+    private static final Logger LOGGER = Logger.getLogger(ElasticsearchDocumentManagerFactory.class.getName());
 
     private final ElasticsearchClient elasticsearchClient;
 
