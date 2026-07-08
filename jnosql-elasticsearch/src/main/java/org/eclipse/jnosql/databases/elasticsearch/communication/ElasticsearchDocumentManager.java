@@ -50,11 +50,23 @@ import java.util.stream.Stream;
 public interface ElasticsearchDocumentManager extends DatabaseManager {
 
     /**
-     * Find entities from {@link SearchRequest}
+     * Executes a native Elasticsearch search request and returns the matching
+     * documents as {@link CommunicationEntity} instances.
+     * <p>
+     * This method should be used when the standard JNoSQL {@code select} API is
+     * not expressive enough for the required Elasticsearch query. The provided
+     * {@link SearchRequest} is passed to the Elasticsearch Java client and the
+     * resulting hits are converted to JNoSQL communication entities.
+     * </p>
+     * <p>
+     * The request must not be {@code null}. The target index should normally be
+     * consistent with the manager's configured index.
+     * </p>
      *
-     * @param query the search request builder
-     * @return the objects from search
-     * @throws NullPointerException when the search request builder is null
+     * @param query the native Elasticsearch search request
+     * @return a stream of entities returned by the Elasticsearch search operation
+     * @throws NullPointerException when the search request is {@code null}
+     * @throws ElasticsearchException when Elasticsearch cannot execute the search
      */
     Stream<CommunicationEntity> search(SearchRequest query) throws NullPointerException;
 
