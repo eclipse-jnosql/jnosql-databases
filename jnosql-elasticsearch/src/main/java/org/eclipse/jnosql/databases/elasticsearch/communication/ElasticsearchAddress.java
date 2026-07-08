@@ -19,24 +19,26 @@ import org.apache.hc.core5.http.HttpHost;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Objects;
 
 final class ElasticsearchAddress {
 
     private final HttpHost host;
 
     private ElasticsearchAddress(String address, int defaultPort) {
+        HttpHost parsedHost;
+
         try {
             URL url = new URL(address);
-            int port = Objects.equals(url.getPort(), -1) ? defaultPort : url.getPort();
+            int port = url.getPort() == -1 ? defaultPort : url.getPort();
 
-            this.host = new HttpHost(url.getProtocol(), url.getHost(), port);
+            parsedHost = new HttpHost(url.getProtocol(), url.getHost(), port);
         } catch (MalformedURLException ex) {
             String[] values = address.split(":");
             int port = values.length == 2 ? Integer.parseInt(values[1]) : defaultPort;
-
-            this.host = new HttpHost(values[0], port);
+            parsedHost = new HttpHost(values[0], port);
         }
+
+        this.host = parsedHost;
     }
 
     public HttpHost toHttpHost() {
