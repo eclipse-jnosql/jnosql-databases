@@ -111,8 +111,7 @@ public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFacto
 
     private boolean indexExists(String database) {
         try {
-            elasticsearchClient.indices()
-                    .get(GetIndexRequest.of(builder -> builder.index(database)));
+            elasticsearchClient.indices().get(GetIndexRequest.of(builder -> builder.index(database)));
 
             LOGGER.log(Level.FINE, "Elasticsearch index exists: {0}", database);
             return true;
