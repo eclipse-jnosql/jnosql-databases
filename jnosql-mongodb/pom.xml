@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to MongoDB</description>
 
     <properties>
-        <monbodb.driver>5.8.0</monbodb.driver>
+        <monbodb.driver>5.9.0</monbodb.driver>
     </properties>
     <dependencies>
         <dependency>
