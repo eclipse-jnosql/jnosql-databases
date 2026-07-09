@@ -40,6 +40,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Update jakarta data engine
 - Upgraded Elasticsearch to 9.4.3
 - Upgraded Jedis to 7.5.3
+- Updated orientdb to 3.2.54
 
 == [1.1.15] - 2026-07-03
 
