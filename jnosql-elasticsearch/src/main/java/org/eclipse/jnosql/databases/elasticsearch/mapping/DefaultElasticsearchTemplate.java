@@ -94,9 +94,9 @@ class DefaultElasticsearchTemplate extends AbstractSemiStructuredTemplate
     }
 
     @Override
-    public <T> Stream<T> search(SearchRequest query) {
-        Objects.requireNonNull(query, "query is required");
-        Stream<CommunicationEntity> entities = manager.get().search(query);
+    public <T> Stream<T> search(SearchRequest request) {
+        Objects.requireNonNull(request, "request is required");
+        Stream<CommunicationEntity> entities = manager.get().search(request);
         return entities.map(converter::toEntity).map(e -> (T) e);
     }
 }

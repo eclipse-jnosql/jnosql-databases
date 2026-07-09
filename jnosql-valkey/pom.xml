@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~  Copyright (c) 2022 Contributors to the Eclipse Foundation
+  ~  Copyright (c) 2026 Contributors to the Eclipse Foundation
   ~   All rights reserved. This program and the accompanying materials
   ~   are made available under the terms of the Eclipse Public License v1.0
   ~   and Apache License v2.0 which accompanies this distribution.
@@ -17,34 +17,34 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.eclipse.jnosql.databases</groupId>
         <artifactId>jnosql-databases-parent</artifactId>
         <version>1.1.16-SNAPSHOT</version>
     </parent>
 
-    <artifactId>jnosql-elasticsearch</artifactId>
-    <name>JNoSQL Elasticsearch Driver</name>
-    <description>The Eclipse JNoSQL layer to Elasticsearch</description>
+    <artifactId>jnosql-valkey</artifactId>
+    <name>JNoSQL Valkey Driver</name>
+    <description>The Eclipse JNoSQL layer implementation Valkey</description>
 
     <properties>
-        <elasticsearch-java.version>9.4.3</elasticsearch-java.version>
+
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.eclipse.jnosql.mapping</groupId>
+            <artifactId>jnosql-mapping-key-value</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.valkey</groupId>
+            <artifactId>valkey-java</artifactId>
+            <version>5.5.0</version>
+        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>jnosql-database-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>co.elastic.clients</groupId>
-            <artifactId>elasticsearch-java</artifactId>
-            <version>${elasticsearch-java.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jnosql.mapping</groupId>
-            <artifactId>jnosql-mapping-document</artifactId>
-        </dependency>
     </dependencies>
+
 </project>
