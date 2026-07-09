@@ -8,6 +8,15 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+=== Changed
+
+- Upgraded Jedis to 7.5.3
+- Updated orientdb to 3.2.54
+- Updated MongoDB to 5.9.0
+- Updated Hbase 2.6.6
+- Updated DynamoDB to 2.47.3
+- Updated Couchbase to 3.12.1
+
 == [1.1.15] - 2026-07-03
 
 - Upgraded Cassandra 4.19.3
