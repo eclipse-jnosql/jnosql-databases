@@ -42,6 +42,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Upgraded Jedis to 7.5.3
 - Updated orientdb to 3.2.54
 - Updated MongoDB to 5.9.0
+- Updated Hbase 2.6.6
 
 == [1.1.15] - 2026-07-03
 
