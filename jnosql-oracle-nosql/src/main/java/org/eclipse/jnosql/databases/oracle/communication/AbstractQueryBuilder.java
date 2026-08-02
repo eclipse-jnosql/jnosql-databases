@@ -15,6 +15,7 @@
 package org.eclipse.jnosql.databases.oracle.communication;
 
 import oracle.nosql.driver.values.FieldValue;
+import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
@@ -46,7 +47,9 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
         var document = condition.element();
         switch (condition.condition()) {
             case EQUALS:
-                if (!forCount && allowIdFastPath && document.name().equals(DefaultOracleNoSQLDocumentManager.ID)) {
+                if (document.value().isNull()) {
+                    predicateNull(query, document, false);
+                } else if (!forCount && allowIdFastPath && document.name().equals(DefaultOracleNoSQLDocumentManager.ID)) {
                     ids.add(document.get(String.class));
                 } else {
                     predicate(query, " = ", document, params);
@@ -84,10 +87,16 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
             case ENDS_WITH:
                 predicateEndsWith(query, document);
                 return;
-            case NOT:
-                query.append(" NOT ");
-                condition(document.get(CriteriaCondition.class), query, params, ids, forCount, allowIdFastPath);
+            case NOT: {
+                var negated = document.get(CriteriaCondition.class);
+                if (negated.condition() == Condition.EQUALS && negated.element().value().isNull()) {
+                    predicateNull(query, negated.element(), true);
+                } else {
+                    query.append(" NOT ");
+                    condition(negated, query, params, ids, forCount, allowIdFastPath);
+                }
                 return;
+            }
             case OR:
                 query.append("(");
                 appendCondition(query, params, document.get(new TypeReference<>() {
@@ -175,6 +184,10 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
             query.append(name).append(condition).append(" ? ");
         }
         params.add(fieldValue);
+    }
+
+    private void predicateNull(StringBuilder query, Element document, boolean negated) {
+        query.append(identifierOf(document.name())).append(negated ? "IS NOT NULL " : "IS NULL ");
     }
 
     protected void predicateLike(StringBuilder query,
