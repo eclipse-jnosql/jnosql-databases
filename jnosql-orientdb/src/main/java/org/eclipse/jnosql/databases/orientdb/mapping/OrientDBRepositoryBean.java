@@ -20,6 +20,7 @@ import jakarta.enterprise.util.AnnotationLiteral;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.AbstractBean;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
@@ -49,10 +50,11 @@ class OrientDBRepositoryBean<T, K> extends AbstractBean<OrientDBCrudRepository<T
     @SuppressWarnings("unchecked")
     @Override
     public OrientDBCrudRepository<T, K> create(CreationalContext<OrientDBCrudRepository<T, K>> creationalContext) {
-        OrientDBTemplate template = getInstance(OrientDBTemplate.class);
-        Converters converters = getInstance(Converters.class);
-        EntitiesMetadata entitiesMetadata = getInstance(EntitiesMetadata.class);
-        OrientDBDocumentRepositoryProxy<T, K> handler = new OrientDBDocumentRepositoryProxy<>(template, type, converters, entitiesMetadata);
+        var template = getInstance(OrientDBTemplate.class);
+        var converters = getInstance(Converters.class);
+        var entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var lifecycleEventHandler = getInstance(LifecycleEventHandler.class);
+        OrientDBDocumentRepositoryProxy<T, K> handler = new OrientDBDocumentRepositoryProxy<>(template, type, converters, entitiesMetadata, lifecycleEventHandler);
         return (OrientDBCrudRepository<T, K>) Proxy.newProxyInstance(type.getClassLoader(),
                 new Class[]{type},
                 handler);
