@@ -21,6 +21,7 @@ import jakarta.enterprise.util.AnnotationLiteral;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.AbstractBean;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
@@ -52,12 +53,13 @@ class DynamoDBRepositoryBean<T, K> extends AbstractBean<DynamoDBRepository<T, K>
     @SuppressWarnings("unchecked")
     public DynamoDBRepository<T, K> create(CreationalContext<DynamoDBRepository<T, K>> creationalContext) {
 
-        DynamoDBTemplate template = getInstance(DynamoDBTemplate.class);
-        Converters converters = getInstance(Converters.class);
-        EntitiesMetadata entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var template = getInstance(DynamoDBTemplate.class);
+        var converters = getInstance(Converters.class);
+        var entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var lifecycleEventHandler = getInstance(LifecycleEventHandler.class);
 
         DynamoDBRepositoryProxy<T, K> handler = new DynamoDBRepositoryProxy<>(
-                template, type, converters, entitiesMetadata);
+                template, type, converters, entitiesMetadata, lifecycleEventHandler);
 
         return (DynamoDBRepository<T, K>) Proxy.newProxyInstance(type.getClassLoader(),
                 new Class[]{type},
