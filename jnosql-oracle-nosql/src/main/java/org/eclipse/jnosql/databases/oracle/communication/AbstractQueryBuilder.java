@@ -16,6 +16,7 @@ package org.eclipse.jnosql.databases.oracle.communication;
 
 import oracle.nosql.driver.values.FieldValue;
 import org.eclipse.jnosql.communication.TypeReference;
+import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 
@@ -57,7 +58,7 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
                     ids.addAll(document.get(new TypeReference<List<String>>() {
                     }));
                 } else {
-                    predicate(query, " IN ", document, params);
+                    predicateIn(query, document, params);
                 }
                 return;
             case LESSER_THAN:
@@ -127,14 +128,23 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
     protected void predicateBetween(StringBuilder query,List<FieldValue> params, Element document) {
         String name = identifierOf(document.name());
 
-        List<Object> values = new ArrayList<>();
-        ((Iterable<?>) document.get()).forEach(values::add);
+        List<Object> values = ValueUtil.convertToList(document.value());
 
         query.append(name).append(" BETWEEN ? AND ? ");
         FieldValue fieldValue = FieldValueConverter.INSTANCE.of(values.get(ORIGIN));
         FieldValue fieldValue2 = FieldValueConverter.INSTANCE.of(values.get(1));
         params.add(fieldValue);
         params.add(fieldValue2);
+    }
+
+    protected void predicateIn(StringBuilder query,
+                               Element document,
+                               List<FieldValue> params) {
+        String name = identifierOf(document.name());
+        Object value = sqlValuesOf(document);
+        FieldValue fieldValue = FieldValueConverter.INSTANCE.of(value);
+        query.append(name).append(" IN ?[] ");
+        params.add(fieldValue);
     }
 
     protected void appendCondition(StringBuilder query, List<FieldValue> params,
@@ -216,17 +226,28 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
     }
 
     private Object sqlValueOf(Element document) {
+        Object value = ValueUtil.convert(document.value());
         if (!DefaultOracleNoSQLDocumentManager.ID.equals(document.name())) {
-            return document.get();
+            return value;
         }
 
-        Object value = document.get();
         if (value instanceof Iterable<?> iterable) {
             List<String> ids = new ArrayList<>();
             iterable.forEach(id -> ids.add(generateId(String.valueOf(id))));
             return ids;
         }
         return generateId(String.valueOf(value));
+    }
+
+    private Object sqlValuesOf(Element document) {
+        List<Object> values = ValueUtil.convertToList(document.value());
+        if (!DefaultOracleNoSQLDocumentManager.ID.equals(document.name())) {
+            return values;
+        }
+
+        return values.stream()
+                .map(value -> generateId(String.valueOf(value)))
+                .toList();
     }
 
     private String generateId(String id) {
