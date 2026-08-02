@@ -10,14 +10,69 @@
  */
 package org.eclipse.jnosql.databases.oracle.communication;
 
+import jakarta.data.Sort;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
+import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 
 class SelectBuilderTest {
+
+    @ParameterizedTest
+    @CsvSource({
+            "2B, 2b",
+            "2g, 2g",
+            "6A, 6a"
+    })
+    void shouldTranslateIgnoreCaseEquality(String value, String expectedBind) {
+        var condition = CriteriaCondition.ignoreCase(CriteriaCondition.eq("hexadecimal", value));
+        var query = SelectQuery.builder()
+                .from("AsciiCharacter")
+                .where(condition)
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "entity_data").get();
+
+        assertThat(normalize(oracleQuery.query()))
+                .contains("entity_data.entity= 'AsciiCharacter' AND")
+                .contains("lower( entity_data.content.hexadecimal ) = ?");
+        assertThat(oracleQuery.params()).hasSize(1);
+        assertThat(oracleQuery.params().get(0).asString().getValue()).isEqualTo(expectedBind);
+        assertThat(oracleQuery.ids()).isEmpty();
+    }
+
+    @Test
+    void shouldTranslateIgnoreCaseBetweenAndPreserveSurroundingQuery() {
+        var condition = CriteriaCondition.ignoreCase(
+                        CriteriaCondition.between("hexadecimal", List.of("4c", "5A")))
+                .and(CriteriaCondition.not(
+                        CriteriaCondition.in("hexadecimal", Set.of("5"))));
+        var query = SelectQuery.builder()
+                .from("AsciiCharacter")
+                .where(condition)
+                .sort(Sort.asc("hexadecimal"))
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "entity_data").get();
+
+        assertThat(normalize(oracleQuery.query())).isEqualTo(
+                "select * from entity_data WHERE entity_data.entity= 'AsciiCharacter' AND "
+                        + "(lower( entity_data.content.hexadecimal ) BETWEEN ? AND ? AND "
+                        + "NOT entity_data.content.hexadecimal IN ?[] ) "
+                        + "ORDER BY entity_data.content.hexadecimal ASC");
+        assertThat(oracleQuery.params()).hasSize(3);
+        assertThat(oracleQuery.params().get(0).asString().getValue()).isEqualTo("4c");
+        assertThat(oracleQuery.params().get(1).asString().getValue()).isEqualTo("5a");
+        assertThat(oracleQuery.params().get(2).asArray().get(0).asString().getValue()).isEqualTo("5");
+        assertThat(oracleQuery.ids()).isEmpty();
+    }
 
     @Test
     void shouldUseIdFastPathForEqualsQuery() {
@@ -90,5 +145,9 @@ class SelectBuilderTest {
             assertThat(value.isString()).isTrue();
             assertThat(value.asString().getValue()).isEqualTo("Q");
         });
+    }
+
+    private static String normalize(String query) {
+        return query.replaceAll("\\s+", " ").trim();
     }
 }
