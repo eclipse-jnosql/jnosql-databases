@@ -66,16 +66,16 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
                 }
                 return;
             case LESSER_THAN:
-                predicate(query, " < ", document, params);
+                predicateRelational(query, " < ", document, params);
                 return;
             case GREATER_THAN:
-                predicate(query, " > ", document, params);
+                predicateRelational(query, " > ", document, params);
                 return;
             case LESSER_EQUALS_THAN:
-                predicate(query, " <= ", document, params);
+                predicateRelational(query, " <= ", document, params);
                 return;
             case GREATER_EQUALS_THAN:
-                predicate(query, " >= ", document, params);
+                predicateRelational(query, " >= ", document, params);
                 return;
             case LIKE:
                 predicateLike(query, document);
@@ -154,7 +154,7 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
     }
 
     protected void predicateBetween(StringBuilder query,List<FieldValue> params, Element document) {
-        String name = identifierOf(document.name());
+        String name = relationalIdentifierOf(document.name());
 
         List<Object> values = ValueUtil.convertToList(document.value());
 
@@ -176,7 +176,7 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
     }
 
     private void predicateBetweenIgnoreCase(StringBuilder query, List<FieldValue> params, Element document) {
-        String name = identifierOf(document.name());
+        String name = relationalIdentifierOf(document.name());
 
         List<Object> values = ValueUtil.convertToList(document.value());
 
@@ -247,16 +247,27 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
         return value;
     }
 
+    private void predicateRelational(StringBuilder query,
+                                     String condition,
+                                     Element document,
+                                     List<FieldValue> params) {
+        String name = relationalIdentifierOf(document.name());
+        Object value = ValueUtil.convert(document.value());
+        FieldValue fieldValue = FieldValueConverter.INSTANCE.of(value);
+        query.append(name).append(condition).append(" ? ");
+        params.add(fieldValue);
+    }
+
     protected void predicateLike(StringBuilder query,
                                  Element document) {
-        String name = identifierOf(document.name());
+        String name = relationalIdentifierOf(document.name());
         Object value = OracleNoSqlLikeConverter.INSTANCE.convert(document.get());
         query.append("regex_like(").append(name).append(", \"").append(value).append("\")");
     }
 
     protected void predicateStartsWith(StringBuilder query,
                                        Element document) {
-        String name = identifierOf(document.name());
+        String name = relationalIdentifierOf(document.name());
         var value = document.get() == null ? "" : document.get(String.class);
         query.append("regex_like(").append(name).append(", \"").append(OracleNoSqlLikeConverter.INSTANCE.startsWith(value)).append(
                 "\")");
@@ -264,7 +275,7 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
 
     protected void predicateEndsWith(StringBuilder query,
                                      Element document) {
-        String name = identifierOf(document.name());
+        String name = relationalIdentifierOf(document.name());
         var value = document.get() == null ? "" : document.get(String.class);
         query.append("regex_like(").append(name).append(", \"").append(OracleNoSqlLikeConverter.INSTANCE.endsWith(value)).append(
                 "\")");
@@ -272,7 +283,7 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
 
     protected void predicateContains(StringBuilder query,
                                      Element document) {
-        String name = identifierOf(document.name());
+        String name = relationalIdentifierOf(document.name());
         var value = document.get() == null ? "" : document.get(String.class);
         query.append("regex_like(").append(name).append(", \"").append(OracleNoSqlLikeConverter.INSTANCE.contains(value)).append(
                 "\")");
@@ -282,7 +293,16 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
         if (DefaultOracleNoSQLDocumentManager.ID.equals(name)) {
             return ' ' + table + "." + ID_FIELD + ' ';
         }
-        return ' ' + table + "." + JSON_FIELD + "." + name + ' ';
+        return relationalIdentifierOf(name);
+    }
+
+    protected String sortIdentifierOf(String name) {
+        return relationalIdentifierOf(name);
+    }
+
+    private String relationalIdentifierOf(String name) {
+        String field = DefaultOracleNoSQLDocumentManager.ID.equals(name) ? '"' + name + '"' : name;
+        return ' ' + table + "." + JSON_FIELD + "." + field + ' ';
     }
 
     private Object sqlValueOf(Element document) {
