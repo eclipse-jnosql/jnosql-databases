@@ -10,14 +10,68 @@
  */
 package org.eclipse.jnosql.databases.oracle.communication;
 
+import jakarta.data.Sort;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
+import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 
 class SelectBuilderTest {
+
+    @ParameterizedTest
+    @CsvSource({
+            "2B, 2b",
+            "2g, 2g",
+            "6A, 6a"
+    })
+    void shouldTranslateIgnoreCaseEquality(String value, String expectedBind) {
+        var condition = CriteriaCondition.ignoreCase(CriteriaCondition.eq("hexadecimal", value));
+        var query = SelectQuery.builder().from("AsciiCharacter")
+                .where(condition)
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "entity_data").get();
+
+        assertThat(oracleQuery.query())
+                .contains("entity_data.entity= 'AsciiCharacter'")
+                .containsPattern("lower\\(\\s*entity_data\\.content\\.hexadecimal\\s*\\)\\s*=\\s*\\?");
+        assertThat(oracleQuery.params()).hasSize(1);
+        assertThat(oracleQuery.params().get(0).asString().getValue()).isEqualTo(expectedBind);
+        assertThat(oracleQuery.ids()).isEmpty();
+    }
+
+    @Test
+    void shouldTranslateIgnoreCaseBetweenAndPreserveSurroundingQuery() {
+        var condition = CriteriaCondition.ignoreCase(
+                        CriteriaCondition.between("hexadecimal", List.of("4c", "5A")))
+                .and(CriteriaCondition.not(
+                        CriteriaCondition.in("hexadecimal", Set.of("5"))));
+        var query = SelectQuery.builder().from("AsciiCharacter")
+                .where(condition)
+                .sort(Sort.asc("hexadecimal"))
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "entity_data").get();
+
+        assertThat(oracleQuery.query())
+                .contains("entity_data.entity= 'AsciiCharacter' AND (")
+                .containsPattern("lower\\(\\s*entity_data\\.content\\.hexadecimal\\s*\\)"
+                        + "\\s+BETWEEN\\s+\\?\\s+AND\\s+\\?")
+                .containsPattern("NOT\\s+entity_data\\.content\\.hexadecimal\\s+IN\\s+\\?\\[\\]")
+                .containsPattern("ORDER\\s+BY\\s+entity_data\\.content\\.hexadecimal\\s+ASC");
+        assertThat(oracleQuery.params()).hasSize(3);
+        assertThat(oracleQuery.params().get(0).asString().getValue()).isEqualTo("4c");
+        assertThat(oracleQuery.params().get(1).asString().getValue()).isEqualTo("5a");
+        assertThat(oracleQuery.params().get(2).asArray().get(0).asString().getValue()).isEqualTo("5");
+        assertThat(oracleQuery.ids()).isEmpty();
+    }
 
     @Test
     void shouldUseIdFastPathForEqualsQuery() {
