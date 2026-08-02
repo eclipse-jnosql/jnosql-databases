@@ -118,6 +118,89 @@ class SelectBuilderTest {
     }
 
     @Test
+    void shouldUseTypedJsonIdForRelationalQuery() {
+        var query = select().from("person")
+                .where("_id").gte(54L)
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "people").get();
+
+        assertThat(oracleQuery.ids()).isEmpty();
+        assertThat(oracleQuery.query())
+                .contains("people.content.\"_id\"")
+                .doesNotContain("people.id");
+        assertThat(oracleQuery.params()).singleElement().satisfies(value -> {
+            assertThat(value.isLong()).isTrue();
+            assertThat(value.toJson()).isEqualTo("54");
+        });
+    }
+
+    @Test
+    void shouldUseTypedJsonIdForBetweenQuery() {
+        var query = select().from("person")
+                .where("_id").between(52L, 57L)
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "people").get();
+
+        assertThat(oracleQuery.ids()).isEmpty();
+        assertThat(oracleQuery.query())
+                .contains("people.content.\"_id\"")
+                .contains("BETWEEN ? AND ?")
+                .doesNotContain("people.id");
+        assertThat(oracleQuery.params())
+                .extracting(value -> value.toJson())
+                .containsExactly("52", "57");
+    }
+
+    @Test
+    void shouldUseTypedJsonIdForIgnoreCaseBetweenQuery() {
+        var condition = CriteriaCondition.ignoreCase(
+                CriteriaCondition.between("_id", List.of("Alpha", "Zulu")));
+        var query = SelectQuery.builder().from("person")
+                .where(condition)
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "people").get();
+
+        assertThat(oracleQuery.ids()).isEmpty();
+        assertThat(oracleQuery.query())
+                .contains("lower(")
+                .contains("people.content.\"_id\"")
+                .contains("BETWEEN ? AND ?")
+                .doesNotContain("people.id");
+        assertThat(oracleQuery.params())
+                .extracting(value -> value.asString().getValue())
+                .containsExactly("alpha", "zulu");
+    }
+
+    @Test
+    void shouldUseTypedJsonIdForOrdering() {
+        var query = select().from("person")
+                .orderBy("_id").desc()
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "people").get();
+
+        assertThat(oracleQuery.query())
+                .contains("ORDER BY  people.content.\"_id\"  DESC")
+                .doesNotContain("people.id");
+        assertThat(oracleQuery.params()).isEmpty();
+        assertThat(oracleQuery.ids()).isEmpty();
+    }
+
+    @Test
+    void shouldKeepIdProjectionOnPrimaryKey() {
+        var query = select("_id").from("person").build();
+
+        var oracleQuery = new SelectBuilder(query, "people").get();
+
+        assertThat(oracleQuery.query())
+                .contains("id, entity, people.id")
+                .doesNotContain("people.content.\"_id\"");
+    }
+
+    @Test
     void shouldWrapCompositeOrConditionsToPreserveEntityFilter() {
         var query = select().from("person")
                 .where("age").not().gt(42)
