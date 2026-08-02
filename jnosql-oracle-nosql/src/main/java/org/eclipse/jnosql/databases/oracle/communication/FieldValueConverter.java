@@ -83,11 +83,11 @@ class FieldValueConverter {
 
     private static final class StringValueMapper implements FieldValueMapper {
         public boolean supports(Object value) {
-            return value instanceof String;
+            return value instanceof String || value instanceof Character;
         }
 
         public FieldValue toFieldValue(Object value) {
-            return new StringValue((String) value);
+            return new StringValue(value.toString());
         }
     }
 
