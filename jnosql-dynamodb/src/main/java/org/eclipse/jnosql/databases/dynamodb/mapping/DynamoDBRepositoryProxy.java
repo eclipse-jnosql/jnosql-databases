@@ -22,6 +22,7 @@ import org.eclipse.jnosql.mapping.core.query.AbstractRepository;
 import org.eclipse.jnosql.mapping.core.repository.DynamicReturn;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.metadata.EntityMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 import org.eclipse.jnosql.mapping.semistructured.SemiStructuredTemplate;
 import org.eclipse.jnosql.mapping.semistructured.query.AbstractSemiStructuredRepositoryProxy;
 import org.eclipse.jnosql.mapping.semistructured.query.SemiStructuredRepositoryProxy;
@@ -59,7 +60,8 @@ class DynamoDBRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProx
     DynamoDBRepositoryProxy(DynamoDBTemplate template,
                             Class<?> type,
                             Converters converters,
-                            EntitiesMetadata entitiesMetadata) {
+                            EntitiesMetadata entitiesMetadata,
+                            LifecycleEventHandler lifecycleEventHandler) {
 
         this.template = template;
         this.type = type;
@@ -67,7 +69,7 @@ class DynamoDBRepositoryProxy<T, K> extends AbstractSemiStructuredRepositoryProx
         this.converters = converters;
         this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
-        this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
+        this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata, lifecycleEventHandler);
     }
 
     /**
