@@ -20,6 +20,7 @@ import jakarta.enterprise.util.AnnotationLiteral;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.AbstractBean;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
@@ -50,11 +51,12 @@ class Neo4JRepositoryBean<T, K> extends AbstractBean<Neo4JRepository<T, K>> {
     @SuppressWarnings("unchecked")
     @Override
     public Neo4JRepository<T, K> create(CreationalContext<Neo4JRepository<T, K>> creationalContext) {
-        Neo4JTemplate template = getInstance(Neo4JTemplate.class);
-        Converters converters = getInstance(Converters.class);
-        EntitiesMetadata entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var template = getInstance(Neo4JTemplate.class);
+        var converters = getInstance(Converters.class);
+        var entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var lifecycleEventHandler = getInstance(LifecycleEventHandler.class);
         Neo4JRepositoryProxy<T, K> handler = new Neo4JRepositoryProxy<>(template, type,
-                converters, entitiesMetadata);
+                converters, entitiesMetadata, lifecycleEventHandler);
         return (Neo4JRepository<T, K>) Proxy.newProxyInstance(type.getClassLoader(),
                 new Class[]{type},
                 handler);
