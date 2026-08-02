@@ -22,6 +22,7 @@ import org.eclipse.jnosql.databases.tinkerpop.mapping.TinkerpopTemplate;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.AbstractBean;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
@@ -63,11 +64,12 @@ public class TinkerpopRepositoryBean<T, K> extends AbstractBean<TinkerPopReposit
     @SuppressWarnings("unchecked")
     @Override
     public TinkerPopRepository<T, K> create(CreationalContext<TinkerPopRepository<T, K>> creationalContext) {
-        TinkerpopTemplate template = getInstance(TinkerpopTemplate.class);
-        Converters converters = getInstance(Converters.class);
-        EntitiesMetadata entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var template = getInstance(TinkerpopTemplate.class);
+        var converters = getInstance(Converters.class);
+        var entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var lifecycleEventHandler = getInstance(LifecycleEventHandler.class);
         TinkerpopRepositoryProxy<T, K> handler = new TinkerpopRepositoryProxy<>(template, type,
-                converters, entitiesMetadata);
+                converters, entitiesMetadata, lifecycleEventHandler);
         return (TinkerPopRepository<T, K>) Proxy.newProxyInstance(type.getClassLoader(),
                 new Class[]{type},
                 handler);
