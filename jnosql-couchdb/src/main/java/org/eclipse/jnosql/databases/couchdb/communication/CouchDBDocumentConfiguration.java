@@ -40,8 +40,6 @@ import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigur
  */
 public class CouchDBDocumentConfiguration implements DatabaseConfiguration {
 
-
-
     @Override
     public CouchDBDocumentManagerFactory apply(Settings settings) {
         Objects.requireNonNull(settings, "settings is required");
