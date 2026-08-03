@@ -15,7 +15,17 @@
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
+/**
+ * Defines the orient dblive update callback contract.
+ *
+ * @param <T> the type
+ */
 @FunctionalInterface
 public interface OrientDBLiveUpdateCallback<T> {
+/**
+ * Performs the accept operation.
+ *
+ * @param t the t
+ */
     void accept(T t);
 }
