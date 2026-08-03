@@ -34,7 +34,6 @@ import static java.util.Objects.requireNonNull;
  */
 public class RiakKeyValueConfiguration implements KeyValueConfiguration {
 
-
     private static final String SERVER_PREFIX = "jnosql.riak.host";
 
     private static final RiakNode DEFAULT_NODE = new RiakNode.Builder()
