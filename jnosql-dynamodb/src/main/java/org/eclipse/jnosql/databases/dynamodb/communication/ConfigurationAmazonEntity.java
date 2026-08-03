@@ -14,8 +14,17 @@
  */
 package org.eclipse.jnosql.databases.dynamodb.communication;
 
+/**
+ * Provides configuration amazon entity support.
+ */
 public final class ConfigurationAmazonEntity {
+/**
+ * The key configuration key.
+ */
     public static final String KEY = "key";
+/**
+ * The value configuration key.
+ */
     public static final String VALUE = "value";
 
     private ConfigurationAmazonEntity() {
