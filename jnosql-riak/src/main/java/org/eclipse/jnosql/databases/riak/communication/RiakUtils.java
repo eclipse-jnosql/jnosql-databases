@@ -24,11 +24,25 @@ import com.basho.riak.client.core.query.Namespace;
 import java.time.Duration;
 import java.util.Objects;
 
+/**
+ * Provides riak utils helper methods.
+ */
 public final class RiakUtils {
 
     private RiakUtils() {
     }
 
+/**
+ * Returns the create store value.
+ *
+ * @param <K> the type
+ * @param <V> the type
+ * @param key the key
+ * @param value the value
+ * @param namespace the namespace
+ * @param ttl the ttl
+ * @return the result
+ */
     public static <K, V> StoreValue createStoreValue(K key, V value, Namespace namespace, Duration ttl) {
 
         Objects.requireNonNull(value, "Value is required");
@@ -45,6 +59,14 @@ public final class RiakUtils {
         return builder.build();
     }
 
+/**
+ * Returns the create location.
+ *
+ * @param <K> the type
+ * @param namespace the namespace
+ * @param key the key
+ * @return the result
+ */
     public static <K> Location createLocation(Namespace namespace, K key) {
 
         Objects.requireNonNull(namespace, "Namespace is required");
@@ -53,12 +75,28 @@ public final class RiakUtils {
         return new Location(namespace, key.toString());
     }
 
+/**
+ * Returns the create fetch value.
+ *
+ * @param <K> the type
+ * @param namespace the namespace
+ * @param key the key
+ * @return the result
+ */
     public static <K> FetchValue createFetchValue(Namespace namespace, K key) {
 
         Location location = createLocation(namespace, key);
         return new FetchValue.Builder(location).build();
     }
 
+/**
+ * Returns the create delete value.
+ *
+ * @param <K> the type
+ * @param namespace the namespace
+ * @param key the key
+ * @return the result
+ */
     public static <K> DeleteValue createDeleteValue(Namespace namespace, K key) {
 
         Location location = createLocation(namespace, key);
