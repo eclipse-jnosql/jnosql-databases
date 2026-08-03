@@ -28,8 +28,6 @@ import java.lang.annotation.Target;
  * <p>DynamoDB supports a limited subset of
  * <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html">PartiQL</a>.
  * </p>
- * <p>
- * <p>
  * When applied to a method, field, or other element, this annotation provides a convenient
  * way to specify an PartiQL query that should be associated with that element.
  * </p>
