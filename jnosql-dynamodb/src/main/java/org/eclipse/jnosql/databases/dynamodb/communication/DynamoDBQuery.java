@@ -21,12 +21,22 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/**
+ * Represents a dynamo dbquery.
+ */
 public record DynamoDBQuery(String table,
                             String projectionExpression,
                             String filterExpression,
                             Map<String,String> expressionAttributeNames,
                             Map<String, AttributeValue> expressionAttributeValues) {
 
+/**
+ * Returns the builder of.
+ *
+ * @param table the table
+ * @param query the query
+ * @return the result
+ */
     public static Supplier<DynamoDBQuery> builderOf(String table,
                                                     SelectQuery query) {
         return new DynamoDBQuerySelectBuilder(table, query);
