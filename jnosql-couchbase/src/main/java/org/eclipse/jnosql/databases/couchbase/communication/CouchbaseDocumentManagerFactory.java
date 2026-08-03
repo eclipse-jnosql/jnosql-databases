@@ -20,6 +20,9 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 
 import java.util.Objects;
 
+/**
+ * Provides the couchbase document manager factory implementation.
+ */
 public class CouchbaseDocumentManagerFactory implements DatabaseManagerFactory {
 
 
