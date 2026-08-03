@@ -14,15 +14,43 @@
  */
 package org.eclipse.jnosql.databases.dynamodb.communication;
 
+/**
+ * Defines the dynamo dbbuilder contract.
+ */
 public interface DynamoDBBuilder {
+/**
+ * Performs the endpoint operation.
+ *
+ * @param endpoint the endpoint
+ */
     void endpoint(String endpoint);
 
+/**
+ * Performs the region operation.
+ *
+ * @param region the region
+ */
     void region(String region);
 
+/**
+ * Performs the profile operation.
+ *
+ * @param profile the profile
+ */
     void profile(String profile);
 
+/**
+ * Performs the aws access key operation.
+ *
+ * @param awsAccessKey the aws access key
+ */
     void awsAccessKey(String awsAccessKey);
 
+/**
+ * Performs the aws secret access operation.
+ *
+ * @param awsSecretAccess the aws secret access
+ */
     void awsSecretAccess(String awsSecretAccess);
 
 }
