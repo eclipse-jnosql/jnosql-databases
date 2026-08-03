@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 
 class SelectBuilderTest {
@@ -149,5 +150,114 @@ class SelectBuilderTest {
 
     private static String normalize(String query) {
         return query.replaceAll("\\s+", " ").trim();
+    }
+
+    @Test
+    void shouldUseTypedJsonIdForRelationalPredicates() {
+        var queries = List.of(
+                select().from("naturalNumber").where("_id").lt(54L).build(),
+                select().from("naturalNumber").where("_id").lte(54L).build(),
+                select().from("naturalNumber").where("_id").gt(54L).build(),
+                select().from("naturalNumber").where("_id").gte(54L).build());
+
+        assertThat(queries).allSatisfy(query -> {
+            var oracleQuery = new SelectBuilder(query, "entities").get();
+
+            assertThat(oracleQuery.query())
+                    .contains("entities.content.\"_id\"")
+                    .doesNotContain("entities.id");
+            assertThat(oracleQuery.params()).singleElement()
+                    .satisfies(value -> assertThat(value.asLong().getValue()).isEqualTo(54L));
+        });
+    }
+
+    @Test
+    void shouldUseTypedJsonIdForBetweenInEverySqlBuilder() {
+        var selectQuery = select().from("naturalNumber")
+                .where("_id").between(49L, 54L)
+                .build();
+        var deleteQuery = delete().from("naturalNumber")
+                .where("_id").between(49L, 54L)
+                .build();
+
+        var oracleQueries = List.of(
+                new SelectBuilder(selectQuery, "entities").get(),
+                new SelectCountBuilder(selectQuery, "entities").get(),
+                new DeleteBuilder(deleteQuery, "entities").get());
+
+        assertThat(oracleQueries).allSatisfy(oracleQuery -> {
+            assertThat(oracleQuery.query())
+                    .contains("entities.content.\"_id\"")
+                    .contains("BETWEEN ? AND ?")
+                    .doesNotContain("entities.id");
+            assertThat(oracleQuery.params()).hasSize(2);
+            assertThat(oracleQuery.params().get(0).asLong().getValue()).isEqualTo(49L);
+            assertThat(oracleQuery.params().get(1).asLong().getValue()).isEqualTo(54L);
+        });
+    }
+
+    @Test
+    void shouldUseTypedJsonIdForIgnoreCaseBetweenQuery() {
+        var condition = CriteriaCondition.ignoreCase(
+                CriteriaCondition.between("_id", List.of("Alpha", "Zulu")));
+        var query = SelectQuery.builder().from("person")
+                .where(condition)
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "people").get();
+
+        assertThat(oracleQuery.ids()).isEmpty();
+        assertThat(oracleQuery.query())
+                .contains("lower(")
+                .contains("people.content.\"_id\"")
+                .contains("BETWEEN ? AND ?")
+                .doesNotContain("people.id");
+        assertThat(oracleQuery.params())
+                .extracting(value -> value.asString().getValue())
+                .containsExactly("alpha", "zulu");
+    }
+
+    @Test
+    void shouldUseTypedJsonIdForSorting() {
+        var query = select().from("naturalNumber")
+                .orderBy("_id").asc()
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "entities").get();
+
+        assertThat(oracleQuery.query())
+                .contains("ORDER BY")
+                .contains("entities.content.\"_id\"")
+                .contains("ASC")
+                .doesNotContain("ORDER BY  entities.id");
+    }
+
+    @Test
+    void shouldKeepPrimaryKeyIdForProjection() {
+        var query = select("_id").from("naturalNumber").build();
+
+        var oracleQuery = new SelectBuilder(query, "entities").get();
+
+        assertThat(oracleQuery.query())
+                .contains("select id, entity, entities.id")
+                .doesNotContain("entities.content.\"_id\"");
+    }
+
+    @Test
+    void shouldKeepPrefixedPrimaryKeyIdForDirectInPredicate() {
+        var query = select().from("naturalNumber")
+                .where("_id").in(List.of(54L, 55L))
+                .build();
+
+        var oracleQuery = new SelectCountBuilder(query, "entities").get();
+
+        assertThat(oracleQuery.query())
+                .contains("entities.id")
+                .contains("IN")
+                .doesNotContain("entities.content.\"_id\"");
+        assertThat(oracleQuery.params()).singleElement().satisfies(value -> {
+            assertThat(value.asArray().get(0).asString().getValue()).isEqualTo("naturalNumber:54");
+            assertThat(value.asArray().get(1).asString().getValue()).isEqualTo("naturalNumber:55");
+        });
     }
 }

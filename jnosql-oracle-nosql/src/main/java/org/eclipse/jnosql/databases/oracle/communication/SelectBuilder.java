@@ -54,7 +54,7 @@ final class SelectBuilder extends AbstractQueryBuilder {
             query.append(" ORDER BY ");
 
             String order = this.documentQuery.sorts().stream()
-                    .map(s -> identifierOf(s.property()) + " " + (s.isAscending() ? Direction.ASC : Direction.DESC))
+                    .map(s -> sortIdentifierOf(s.property()) + " " + (s.isAscending() ? Direction.ASC : Direction.DESC))
                     .collect(Collectors.joining(", "));
             query.append(order);
         }
