@@ -22,6 +22,9 @@ import org.eclipse.jnosql.mapping.metadata.ClassScanner;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Provides the oracle extension CDI extension.
+ */
 public class OracleExtension implements Extension {
 
     private static final Logger LOGGER = Logger.getLogger(OracleExtension.class.getName());
