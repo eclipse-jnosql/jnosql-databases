@@ -62,6 +62,9 @@ import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBConver
 import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBConverter.toItem;
 import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBConverter.toItemUpdate;
 
+/**
+ * Provides default dynamo dbdatabase manager support.
+ */
 public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
 
     private final String database;
@@ -74,6 +77,13 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
 
     private final ConcurrentHashMap<String, DescribeTableResponse> tables = new ConcurrentHashMap<>();
 
+/**
+ * Returns the default dynamo dbdatabase manager.
+ *
+ * @param database the database
+ * @param dynamoDbClient the dynamo db client
+ * @param settings the settings
+ */
     public DefaultDynamoDBDatabaseManager(String database, DynamoDbClient dynamoDbClient, Settings settings) {
         this.settings = settings;
         this.database = database;
