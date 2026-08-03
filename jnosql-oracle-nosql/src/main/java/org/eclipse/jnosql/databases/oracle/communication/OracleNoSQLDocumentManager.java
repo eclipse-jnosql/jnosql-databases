@@ -16,6 +16,7 @@ package org.eclipse.jnosql.databases.oracle.communication;
 
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
+import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 
 import java.util.stream.Stream;
 
@@ -24,6 +25,13 @@ import java.util.stream.Stream;
  */
 public interface OracleNoSQLDocumentManager extends DatabaseManager {
 
+    /**
+     * Deletes documents matching the query and returns the number of affected documents.
+     *
+     * @param query the delete query
+     * @return the number of deleted documents
+     */
+    long deleteAndCount(DeleteQuery query);
 
     /**
      * Executes an Oracle query using the Oracle Query Language (SQL).
