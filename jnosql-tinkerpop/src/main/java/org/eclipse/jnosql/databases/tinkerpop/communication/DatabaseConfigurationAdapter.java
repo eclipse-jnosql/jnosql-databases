@@ -30,8 +30,10 @@ import java.util.logging.Logger;
  */
 public class DatabaseConfigurationAdapter implements DatabaseConfiguration {
 
-
     private static final Logger LOGGER = Logger.getLogger(DatabaseConfigurationAdapter.class.getName());
+/**
+ * The tinkerpop provider configuration key.
+ */
     public static final String TINKERPOP_PROVIDER = "jnosql.graph.tinkerpop.provider";
 
     @SuppressWarnings("unchecked")
