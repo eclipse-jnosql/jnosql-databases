@@ -52,6 +52,9 @@ public class ElasticsearchDocumentConfiguration implements DatabaseConfiguration
 
     private final List<Header> headers = new ArrayList<>();
 
+/**
+ * Returns the elasticsearch document configuration.
+ */
     public ElasticsearchDocumentConfiguration() {
     }
 
@@ -82,6 +85,12 @@ public class ElasticsearchDocumentConfiguration implements DatabaseConfiguration
         return new ElasticsearchDocumentManagerFactory(elasticsearchClient);
     }
 
+/**
+ * Returns the build elasticsearch client.
+ *
+ * @param settings the settings
+ * @return the result
+ */
     public ElasticsearchClient buildElasticsearchClient(Settings settings) {
         requireNonNull(settings, "settings is required");
 
