@@ -22,6 +22,9 @@ import org.eclipse.jnosql.mapping.metadata.ClassScanner;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Provides the couchbase extension CDI extension.
+ */
 public class CouchbaseExtension implements Extension {
 
     private static final Logger LOGGER = Logger.getLogger(CouchbaseExtension.class.getName());
