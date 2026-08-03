@@ -30,7 +30,16 @@ import static java.util.Objects.requireNonNull;
  */
 public abstract class ArangoDBConfiguration {
 
+    /**
+     * The underlying ArangoDB builder.
+     */
     protected ArangoDB.Builder builder = new ArangoDB.Builder();
+
+    /**
+     * Creates an ArangoDB configuration.
+     */
+    protected ArangoDBConfiguration() {
+    }
 
     /**
      * Adds a host in the arangodb builder
@@ -100,6 +109,12 @@ public abstract class ArangoDBConfiguration {
         builder.serde(serde);
     }
 
+    /**
+     * Creates an ArangoDB builder initialized with the provided settings.
+     *
+     * @param settings the configuration settings
+     * @return the initialized ArangoDB builder
+     */
     protected ArangoDBBuilder getArangoDBBuilder(Settings settings) {
         ArangoDBBuilder aragonDB = new ArangoDBBuilder(builder);
         ArangoDBBuilders.load(settings, aragonDB);
