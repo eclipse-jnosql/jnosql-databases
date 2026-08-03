@@ -34,6 +34,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Provides dynamo dbbucket manager support.
+ */
 public class DynamoDBBucketManager implements BucketManager {
 
 
@@ -41,6 +44,12 @@ public class DynamoDBBucketManager implements BucketManager {
     private String tableName;
     private static final Function<AttributeValue, String> TO_JSON = AttributeValue::s;
 
+/**
+ * Returns the dynamo dbbucket manager.
+ *
+ * @param client the client
+ * @param tableName the table name
+ */
     public DynamoDBBucketManager(DynamoDbClient client, String tableName) {
         this.client = client;
         this.tableName = tableName;
