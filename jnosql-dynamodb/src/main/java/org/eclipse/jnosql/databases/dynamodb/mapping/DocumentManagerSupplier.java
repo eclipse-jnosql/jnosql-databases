@@ -32,6 +32,9 @@ import java.util.logging.Logger;
 
 import static org.eclipse.jnosql.mapping.core.config.MappingConfigurations.DOCUMENT_DATABASE;
 
+/**
+ * Provides document manager supplier support.
+ */
 @ApplicationScoped
 public class DocumentManagerSupplier implements Supplier<DynamoDBDatabaseManager> {
 
@@ -58,6 +61,11 @@ public class DocumentManagerSupplier implements Supplier<DynamoDBDatabaseManager
         return manager;
     }
 
+/**
+ * Performs the close operation.
+ *
+ * @param manager the manager
+ */
     public void close(@Disposes DynamoDBDatabaseManager manager) {
         if (LOGGER.isLoggable(Level.FINEST)) {
             LOGGER.log(Level.FINEST, "Closing OracleDocumentManager resource, database name: %s".formatted(manager.name()));
