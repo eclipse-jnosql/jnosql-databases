@@ -90,6 +90,7 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
         this.dynamoDbClient = dynamoDbClient;
     }
 
+    @Override
     public DynamoDbClient dynamoDbClient() {
         return dynamoDbClient;
     }
