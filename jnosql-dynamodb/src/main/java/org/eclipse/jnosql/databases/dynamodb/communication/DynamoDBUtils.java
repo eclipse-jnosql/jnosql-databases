@@ -53,7 +53,6 @@ public class DynamoDBUtils {
  *
  * @param <K> the type
  * @param <V> the type
- * @param <AttributeValue> the type
  * @param key the key
  * @param value the value
  * @return the result
@@ -72,8 +71,6 @@ public class DynamoDBUtils {
  * Returns the create key attribute values.
  *
  * @param <K> the type
- * @param <V> the type
- * @param <AttributeValue> the type
  * @param key the key
  * @return the result
  */
@@ -89,8 +86,6 @@ public class DynamoDBUtils {
  * Returns the create key attribute values.
  *
  * @param <K> the type
- * @param <V> the type
- * @param <AttributeValue> the type
  * @param keys the keys
  * @return the result
  */
@@ -105,7 +100,6 @@ public class DynamoDBUtils {
  *
  * @param <K> the type
  * @param <V> the type
- * @param <AttributeValue> the type
  * @param entity the entity
  * @return the result
  */
@@ -117,8 +111,6 @@ public class DynamoDBUtils {
  * Returns the create attribute values.
  *
  * @param <K> the type
- * @param <AttributeValue> the type
- * @param <KeyValueEntity> the type
  * @param entities the entities
  * @return the result
  */
@@ -147,8 +139,6 @@ public class DynamoDBUtils {
  * Returns the create map write request.
  *
  * @param <K> the type
- * @param <WriteRequest> the type
- * @param <KeyValueEntity> the type
  * @param entities the entities
  * @param tableName the table name
  * @return the result
@@ -163,7 +153,6 @@ public class DynamoDBUtils {
  * Returns the create.
  *
  * @param <K> the type
- * @param <AttributeValue> the type
  * @param keys the keys
  * @return the result
  */
