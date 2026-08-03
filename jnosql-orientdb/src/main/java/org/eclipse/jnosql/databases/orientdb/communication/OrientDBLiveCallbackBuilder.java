@@ -42,7 +42,6 @@ public final class OrientDBLiveCallbackBuilder {
 /**
  * Returns the on create.
  *
- * @param <CommunicationEntity> the type
  * @param createCallback the create callback
  * @return the result
  */
@@ -55,7 +54,6 @@ public final class OrientDBLiveCallbackBuilder {
 /**
  * Returns the on update.
  *
- * @param <CommunicationEntity> the type
  * @param updateCallback the update callback
  * @return the result
  */
@@ -68,7 +66,6 @@ public final class OrientDBLiveCallbackBuilder {
 /**
  * Returns the on delete.
  *
- * @param <CommunicationEntity> the type
  * @param deleteCallback the delete callback
  * @return the result
  */
@@ -81,7 +78,6 @@ public final class OrientDBLiveCallbackBuilder {
 /**
  * Returns the build.
  *
- * @param <CommunicationEntity> the type
  * @return the result
  */
     public OrientDBLiveCallback<CommunicationEntity> build() {
