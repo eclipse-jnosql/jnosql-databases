@@ -74,11 +74,15 @@ public interface SortedSet {
     void remove(String member) throws NullPointerException;
 
     /**
+     * Returns the number of members in this sorted set.
+     *
      * @return the number of members on this
      */
     int size();
 
     /**
+     * Indicates whether this sorted set has no members.
+     *
      * @return Returns true if this SortedSet contains no elements.
      */
     boolean isEmpty();
