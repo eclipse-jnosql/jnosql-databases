@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+/**
+ * Provides the dynamo dbbucket manager factory implementation.
+ */
 public class DynamoDBBucketManagerFactory implements BucketManagerFactory {
 
     private DynamoDbClient client;
@@ -36,6 +39,14 @@ public class DynamoDBBucketManagerFactory implements BucketManagerFactory {
         return getBucketManager(bucketName, null, null);
     }
 
+/**
+ * Returns the get bucket manager.
+ *
+ * @param bucketName the bucket name
+ * @param readCapacityUnits the read capacity units
+ * @param writeCapacityUnit the write capacity unit
+ * @return the result
+ */
     public DynamoDBBucketManager getBucketManager(String bucketName, Long readCapacityUnits, Long writeCapacityUnit) {
 
         DynamoTableUtils.manageTables(bucketName, client, readCapacityUnits, writeCapacityUnit);
