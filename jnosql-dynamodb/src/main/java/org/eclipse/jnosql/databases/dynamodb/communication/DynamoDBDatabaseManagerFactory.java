@@ -21,11 +21,20 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.Optional;
 
+/**
+ * Provides the dynamo dbdatabase manager factory implementation.
+ */
 public class DynamoDBDatabaseManagerFactory implements DatabaseManagerFactory {
 
     private final DynamoDbClient dynamoDB;
     private final Settings settings;
 
+/**
+ * Returns the dynamo dbdatabase manager factory.
+ *
+ * @param dynamoDB the dynamo db
+ * @param settings the settings
+ */
     public DynamoDBDatabaseManagerFactory(DynamoDbClient dynamoDB, Settings settings) {
         this.dynamoDB = dynamoDB;
         this.settings = settings;

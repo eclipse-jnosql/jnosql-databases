@@ -16,16 +16,46 @@ package org.eclipse.jnosql.databases.dynamodb.communication;
 
 import java.util.function.Supplier;
 
+/**
+ * Defines the dynamo dbconfigurations options.
+ */
 public enum  DynamoDBConfigurations implements Supplier<String> {
 
+/**
+ * Performs the endpoint operation.
+ */
     ENDPOINT("jnosql.dynamodb.endpoint"),
+/**
+ * Performs the region operation.
+ */
     REGION("jnosql.dynamodb.region"),
+/**
+ * Performs the profile operation.
+ */
     PROFILE("jnosql.dynamodb.profile"),
+/**
+ * Performs the aws accesskey operation.
+ */
     AWS_ACCESSKEY("jnosql.dynamodb.awsaccesskey"),
+/**
+ * Performs the aws secret access operation.
+ */
     AWS_SECRET_ACCESS("jnosql.dynamodb.secretaccess"),
+/**
+ * Performs the create tables operation.
+ */
     CREATE_TABLES("jnosql.dynamodb.create.tables"),
+/**
+ * Performs the entity partition key operation.
+ */
     ENTITY_PARTITION_KEY("jnosql.dynamodb.%s.pk"),
+/**
+ * Performs the entity read capacity units operation.
+ */
     ENTITY_READ_CAPACITY_UNITS("jnosql.dynamodb.%s.read.capacity.units"),
+/**
+ * Performs the entity write capacity units operation.
+ */
     ENTITY_WRITE_CAPACITY_UNITS("jnosql.dynamodb.%s.write.capacity.units"),
     ;
 

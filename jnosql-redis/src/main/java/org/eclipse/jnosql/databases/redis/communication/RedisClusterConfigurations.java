@@ -109,9 +109,15 @@ public enum RedisClusterConfigurations implements Supplier<String> {
         return configuration;
     }
 
+/**
+ * Defines the cluster configurations resolver options.
+ */
     public static enum ClusterConfigurationsResolver implements
             RedisConfigurationsResolver {
 
+/**
+ * Singleton instance.
+ */
         INSTANCE;
 
         @Override

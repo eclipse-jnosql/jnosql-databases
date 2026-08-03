@@ -22,6 +22,7 @@ import org.eclipse.jnosql.mapping.document.DocumentTemplate;
 import org.eclipse.jnosql.mapping.driver.ParamUtil;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.metadata.EntityMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 import org.eclipse.jnosql.mapping.semistructured.query.AbstractSemiStructuredRepositoryProxy;
 import org.eclipse.jnosql.mapping.semistructured.query.SemiStructuredRepositoryProxy;
 
@@ -53,7 +54,8 @@ class OrientDBDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposi
 
     OrientDBDocumentRepositoryProxy(OrientDBTemplate template, Class<?> repositoryType,
                                     Converters converters,
-                                    EntitiesMetadata entitiesMetadata) {
+                                    EntitiesMetadata entitiesMetadata,
+                                    LifecycleEventHandler lifecycleEventHandler) {
         this.template = template;
         this.typeClass = Class.class.cast(ParameterizedType.class.cast(repositoryType.getGenericInterfaces()[0])
                 .getActualTypeArguments()[0]);
@@ -61,7 +63,7 @@ class OrientDBDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposi
         this.converters = converters;
         this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
-        this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
+        this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata, lifecycleEventHandler);
     }
 
 

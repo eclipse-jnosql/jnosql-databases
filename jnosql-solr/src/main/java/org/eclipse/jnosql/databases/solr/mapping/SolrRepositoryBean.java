@@ -20,6 +20,7 @@ import jakarta.enterprise.util.AnnotationLiteral;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.AbstractBean;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
@@ -52,10 +53,11 @@ class SolrRepositoryBean<T, K> extends AbstractBean<SolrRepository<T, K>> {
     @SuppressWarnings("unchecked")
     @Override
     public SolrRepository<T, K> create(CreationalContext<SolrRepository<T, K>> creationalContext) {
-        SolrTemplate template = getInstance(SolrTemplate.class);
-        Converters converters = getInstance(Converters.class);
-        EntitiesMetadata entitiesMetadata = getInstance(EntitiesMetadata.class);
-        SolrRepositoryProxy<T, K> handler = new SolrRepositoryProxy<>(template, type, converters, entitiesMetadata);
+        var template = getInstance(SolrTemplate.class);
+        var converters = getInstance(Converters.class);
+        var entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var lifecycleEventHandler = getInstance(LifecycleEventHandler.class);
+        SolrRepositoryProxy<T, K> handler = new SolrRepositoryProxy<>(template, type, converters, entitiesMetadata, lifecycleEventHandler);
         return (SolrRepository<T, K>) Proxy.newProxyInstance(type.getClassLoader(),
                 new Class[]{type},
                 handler);

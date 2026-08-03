@@ -33,7 +33,6 @@ import static org.eclipse.jnosql.databases.solr.communication.SolrDocumentConfig
  */
 public class SolrDocumentConfiguration implements DatabaseConfiguration {
 
-
     private static final String DEFAULT_HOST = "http://localhost:8983/solr/";
 
     /**

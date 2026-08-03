@@ -130,6 +130,7 @@ public interface MongoDBTemplate extends DocumentTemplate {
     /**
      * Returns the number of items in the collection that match the given query filter.
      *
+     * @param <T> the entity type
      * @param entity the entity type
      * @param filter the filter
      * @return the number of documents founded.

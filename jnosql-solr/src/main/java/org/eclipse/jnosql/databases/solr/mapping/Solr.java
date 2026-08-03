@@ -26,5 +26,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Solr {
 
+/**
+ * Returns the value.
+ *
+ * @return the result
+ */
     String value();
 }

@@ -16,6 +16,9 @@ package org.eclipse.jnosql.databases.arangodb.communication;
 
 import com.arangodb.ArangoDB;
 
+/**
+ * Provides access to the underlying ArangoDB driver instance.
+ */
 public interface ArangoDBAccessor {
 
     /**

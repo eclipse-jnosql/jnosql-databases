@@ -17,29 +17,82 @@ package org.eclipse.jnosql.databases.redis.communication;
 
 import java.util.function.Supplier;
 
+/**
+ * Defines the redis configurations resolver contract.
+ */
 public sealed interface RedisConfigurationsResolver permits
         RedisConfigurations.SingleRedisConfigurationsResolver,
         RedisClusterConfigurations.ClusterConfigurationsResolver,
         RedisSentinelConfigurations.SentinelMasterConfigurationsResolver,
         RedisSentinelConfigurations.SentinelSlaveConfigurationsResolver {
 
+/**
+ * Returns the connection timeout supplier.
+ *
+ * @return the result
+ */
     Supplier<String> connectionTimeoutSupplier();
 
+/**
+ * Returns the socket timeout supplier.
+ *
+ * @return the result
+ */
     Supplier<String> socketTimeoutSupplier();
 
+/**
+ * Returns the client name supplier.
+ *
+ * @return the result
+ */
     Supplier<String> clientNameSupplier();
 
+/**
+ * Returns the user supplier.
+ *
+ * @return the result
+ */
     Supplier<String> userSupplier();
 
+/**
+ * Returns the password supplier.
+ *
+ * @return the result
+ */
     Supplier<String> passwordSupplier();
 
+/**
+ * Returns the timeout supplier.
+ *
+ * @return the result
+ */
     Supplier<String> timeoutSupplier();
 
+/**
+ * Returns the ssl supplier.
+ *
+ * @return the result
+ */
     Supplier<String> sslSupplier();
 
+/**
+ * Returns the redis protocol supplier.
+ *
+ * @return the result
+ */
     Supplier<String> redisProtocolSupplier();
 
+/**
+ * Returns the clientset info config lib name suffix supplier.
+ *
+ * @return the result
+ */
     Supplier<String> clientsetInfoConfigLibNameSuffixSupplier();
 
+/**
+ * Returns the clientset info config disabled.
+ *
+ * @return the result
+ */
     Supplier<String> clientsetInfoConfigDisabled();
 }

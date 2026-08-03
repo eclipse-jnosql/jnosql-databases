@@ -32,6 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Provides dynamo table utils helper methods.
+ */
 public final class DynamoTableUtils {
 
     private static final long READ_CAPACITY_UNITS = 5L;
@@ -39,6 +42,12 @@ public final class DynamoTableUtils {
     private DynamoTableUtils() {
     }
 
+/**
+ * Returns the create key element schema.
+ *
+ * @param keys the keys
+ * @return the result
+ */
     public static KeySchemaElement createKeyElementSchema(Map<String, KeyType> keys) {
 
         KeySchemaElement.Builder keySchemaElementBuilder = KeySchemaElement.builder();
@@ -52,6 +61,12 @@ public final class DynamoTableUtils {
         return keySchemaElementBuilder.build();
     }
 
+/**
+ * Returns the create attribute definition.
+ *
+ * @param attributes the attributes
+ * @return the result
+ */
     public static AttributeDefinition createAttributeDefinition(Map<String, ScalarAttributeType> attributes) {
 
         AttributeDefinition.Builder attributeDefinitionBuilder = AttributeDefinition.builder();
@@ -65,6 +80,13 @@ public final class DynamoTableUtils {
         return attributeDefinitionBuilder.build();
     }
 
+/**
+ * Returns the create provisioned throughput.
+ *
+ * @param readCapacityUnits the read capacity units
+ * @param writeCapacityUnit the write capacity unit
+ * @return the result
+ */
     public static ProvisionedThroughput createProvisionedThroughput(Long readCapacityUnits, Long writeCapacityUnit) {
 
         ProvisionedThroughput.Builder provisionedThroughputBuilder = ProvisionedThroughput.builder();
@@ -84,14 +106,32 @@ public final class DynamoTableUtils {
         return provisionedThroughputBuilder.build();
     }
 
+/**
+ * Returns the create key definition.
+ *
+ * @return the result
+ */
     public static Map<String, KeyType> createKeyDefinition() {
         return Collections.singletonMap(ConfigurationAmazonEntity.KEY, KeyType.HASH);
     }
 
+/**
+ * Returns the create attributes type.
+ *
+ * @return the result
+ */
     public static Map<String, ScalarAttributeType> createAttributesType() {
         return Collections.singletonMap(ConfigurationAmazonEntity.KEY, ScalarAttributeType.S);
     }
 
+/**
+ * Performs the manage tables operation.
+ *
+ * @param tableName the table name
+ * @param client the client
+ * @param readCapacityUnits the read capacity units
+ * @param writeCapacityUnit the write capacity unit
+ */
     public static void manageTables(String tableName, DynamoDbClient client, Long readCapacityUnits, Long writeCapacityUnit) {
 
         boolean hasTable = false;

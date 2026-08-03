@@ -20,6 +20,7 @@ import jakarta.enterprise.util.AnnotationLiteral;
 import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.core.spi.AbstractBean;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
@@ -51,11 +52,12 @@ class OracleRepositoryBean<T, K> extends AbstractBean<OracleNoSQLRepository<T, K
     @SuppressWarnings("unchecked")
     @Override
     public OracleNoSQLRepository<T, K> create(CreationalContext<OracleNoSQLRepository<T, K>> creationalContext) {
-        OracleNoSQLTemplate template = getInstance(OracleNoSQLTemplate.class);
-        Converters converters = getInstance(Converters.class);
-        EntitiesMetadata entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var template = getInstance(OracleNoSQLTemplate.class);
+        var converters = getInstance(Converters.class);
+        var entitiesMetadata = getInstance(EntitiesMetadata.class);
+        var lifecycleEventHandler = getInstance(LifecycleEventHandler.class);
 
-        OracleDocumentRepositoryProxy<T, K> handler = new OracleDocumentRepositoryProxy<>(template, type, converters, entitiesMetadata);
+        OracleDocumentRepositoryProxy<T, K> handler = new OracleDocumentRepositoryProxy<>(template, type, converters, entitiesMetadata, lifecycleEventHandler);
         return (OracleNoSQLRepository<T,K>) Proxy.newProxyInstance(type.getClassLoader(),
                 new Class[]{type},
                 handler);

@@ -31,7 +31,9 @@ import static java.util.Objects.requireNonNull;
  */
 public class RavenDBDocumentConfiguration implements DatabaseConfiguration {
 
-
+/**
+ * The host configuration key.
+ */
     public static final String HOST = "jnosql.ravendb.host";
 
     @Override

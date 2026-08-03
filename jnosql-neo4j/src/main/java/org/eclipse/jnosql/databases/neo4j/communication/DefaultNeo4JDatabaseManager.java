@@ -57,6 +57,7 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
         return database;
     }
 
+    @Override
     public CommunicationEntity insert(CommunicationEntity entity) {
         Objects.requireNonNull(entity, "entity is required");
         return insertEntities(Collections.singletonList(entity)).iterator().next();
@@ -165,6 +166,7 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
         }
     }
 
+    @Override
     public long count(SelectQuery query) {
         Objects.requireNonNull(query, "query is required");
         Map<String, Object> parameters = new HashMap<>();

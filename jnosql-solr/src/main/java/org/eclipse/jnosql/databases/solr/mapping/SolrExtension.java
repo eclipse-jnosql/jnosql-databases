@@ -22,6 +22,9 @@ import org.eclipse.jnosql.mapping.metadata.ClassScanner;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Provides the solr extension CDI extension.
+ */
 public class SolrExtension implements Extension {
 
     private static final Logger LOGGER = Logger.getLogger(SolrExtension.class.getName());

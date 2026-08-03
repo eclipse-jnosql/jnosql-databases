@@ -15,7 +15,17 @@
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
+/**
+ * Defines the orient dblive delete callback contract.
+ *
+ * @param <T> the type
+ */
 @FunctionalInterface
 public interface OrientDBLiveDeleteCallback<T> {
+/**
+ * Performs the accept operation.
+ *
+ * @param t the t
+ */
     void accept(T t);
 }

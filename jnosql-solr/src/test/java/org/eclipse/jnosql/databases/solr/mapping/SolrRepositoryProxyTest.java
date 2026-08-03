@@ -21,6 +21,7 @@ import org.eclipse.jnosql.mapping.document.spi.DocumentExtension;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
 import org.eclipse.jnosql.mapping.reflection.spi.ReflectionEntityMetadataExtension;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
@@ -60,6 +61,9 @@ public class SolrRepositoryProxyTest {
     @Inject
     private EntitiesMetadata entitiesMetadata;
 
+    @Inject
+    private LifecycleEventHandler lifecycleEventHandler;
+
     private HumanRepository humanRepository;
 
     @BeforeEach
@@ -67,7 +71,7 @@ public class SolrRepositoryProxyTest {
         this.template = Mockito.mock(SolrTemplate.class);
 
         SolrRepositoryProxy handler = new SolrRepositoryProxy(template,
-                HumanRepository.class, converters, entitiesMetadata);
+                HumanRepository.class, converters, entitiesMetadata, lifecycleEventHandler);
 
         when(template.insert(any(Human.class))).thenReturn(new Human());
         when(template.insert(any(Human.class), any(Duration.class))).thenReturn(new Human());

@@ -21,6 +21,9 @@ import org.eclipse.jnosql.mapping.metadata.ClassScanner;
 
 import java.util.logging.Logger;
 
+/**
+ * CDI extension that registers ArangoDB repositories.
+ */
 public class ArangoDBExtension implements Extension {
 
     private static final Logger LOGGER = Logger.getLogger(ArangoDBExtension.class.getName());

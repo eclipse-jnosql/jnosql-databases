@@ -40,7 +40,6 @@ import static java.util.Objects.requireNonNull;
  */
 public class InfinispanKeyValueConfiguration implements KeyValueConfiguration {
 
-
     /**
      * Creates a {@link InfinispanBucketManagerFactory} from configuration map
      * @param configurations the configuration map

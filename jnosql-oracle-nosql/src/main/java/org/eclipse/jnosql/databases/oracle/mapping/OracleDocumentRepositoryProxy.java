@@ -22,6 +22,7 @@ import org.eclipse.jnosql.mapping.core.repository.DynamicReturn;
 import org.eclipse.jnosql.mapping.document.DocumentTemplate;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.metadata.EntityMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 import org.eclipse.jnosql.mapping.semistructured.query.AbstractSemiStructuredRepositoryProxy;
 import org.eclipse.jnosql.mapping.semistructured.query.SemiStructuredRepositoryProxy;
 
@@ -53,7 +54,8 @@ class OracleDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposito
     OracleDocumentRepositoryProxy(OracleNoSQLTemplate template,
                                   Class<?> type,
                                   Converters converters,
-                                  EntitiesMetadata entitiesMetadata) {
+                                  EntitiesMetadata entitiesMetadata,
+                                  LifecycleEventHandler lifecycleEventHandler) {
         this.template = template;
         this.typeClass = Class.class.cast(ParameterizedType.class.cast(type.getGenericInterfaces()[0])
                 .getActualTypeArguments()[0]);
@@ -61,7 +63,7 @@ class OracleDocumentRepositoryProxy<T, K> extends AbstractSemiStructuredReposito
         this.converters = converters;
         this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
-        this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
+        this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata, lifecycleEventHandler);
     }
 
     OracleDocumentRepositoryProxy() {

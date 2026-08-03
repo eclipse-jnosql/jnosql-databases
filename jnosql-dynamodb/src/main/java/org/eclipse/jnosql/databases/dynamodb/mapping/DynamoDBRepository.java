@@ -17,5 +17,11 @@ package org.eclipse.jnosql.databases.dynamodb.mapping;
 
 import org.eclipse.jnosql.mapping.NoSQLRepository;
 
+/**
+ * Defines the dynamo dbrepository contract.
+ *
+ * @param <T> the type
+ * @param <K> the type
+ */
 public interface DynamoDBRepository<T, K> extends NoSQLRepository<T, K> {
 }

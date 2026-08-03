@@ -18,8 +18,17 @@ package org.eclipse.jnosql.databases.dynamodb.communication;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 
+/**
+ * Provides dynamo dbdocument configuration settings.
+ */
 public class DynamoDBDocumentConfiguration extends DynamoDBConfiguration
         implements DatabaseConfiguration {
+
+            /**
+             * Creates a new dynamo dbdocument configuration instance.
+             */
+            public DynamoDBDocumentConfiguration() {
+            }
     @Override
     public DynamoDBDatabaseManagerFactory apply(Settings settings) {
         var dynamoDB = getDynamoDB(settings);

@@ -23,6 +23,7 @@ import org.eclipse.jnosql.mapping.document.spi.DocumentExtension;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
 import org.eclipse.jnosql.mapping.reflection.spi.ReflectionEntityMetadataExtension;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
@@ -62,6 +63,9 @@ public class OrientDBDocumentRepositoryProxyTest {
     @Inject
     private Converters converters;
 
+    @Inject
+    private LifecycleEventHandler lifecycleEventHandler;
+
     private HumanRepository humanRepository;
 
 
@@ -69,7 +73,7 @@ public class OrientDBDocumentRepositoryProxyTest {
     public void setUp() {
         this.template = Mockito.mock(OrientDBTemplate.class);
         OrientDBDocumentRepositoryProxy handler = new OrientDBDocumentRepositoryProxy(template,
-                HumanRepository.class, converters, entitiesMetadata);
+                HumanRepository.class, converters, entitiesMetadata, lifecycleEventHandler);
 
         when(template.insert(any(Person.class))).thenReturn(new Person());
         when(template.insert(any(Person.class), any(Duration.class))).thenReturn(new Person());

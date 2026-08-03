@@ -24,6 +24,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Provides the dynamo dbextension CDI extension.
+ */
 public class DynamoDBExtension implements Extension {
 
     private static final Logger LOGGER = Logger.getLogger(DynamoDBExtension.class.getName());

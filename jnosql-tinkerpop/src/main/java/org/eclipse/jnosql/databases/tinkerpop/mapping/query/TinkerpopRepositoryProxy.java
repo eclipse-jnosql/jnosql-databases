@@ -21,6 +21,7 @@ import org.eclipse.jnosql.mapping.core.query.AbstractRepository;
 import org.eclipse.jnosql.mapping.core.repository.DynamicReturn;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.metadata.EntityMetadata;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 import org.eclipse.jnosql.mapping.semistructured.query.AbstractSemiStructuredRepositoryProxy;
 import org.eclipse.jnosql.mapping.semistructured.query.SemiStructuredRepositoryProxy;
 
@@ -50,7 +51,7 @@ class TinkerpopRepositoryProxy <T, K> extends AbstractSemiStructuredRepositoryPr
     private final Class<?> repositoryType;
 
     TinkerpopRepositoryProxy(TinkerpopTemplate template, Class<?> repositoryType,
-                         Converters converters, EntitiesMetadata entitiesMetadata) {
+                         Converters converters, EntitiesMetadata entitiesMetadata, LifecycleEventHandler lifecycleEventHandler) {
 
         this.template = template;
         this.typeClass = Class.class.cast(ParameterizedType.class.cast(repositoryType.getGenericInterfaces()[0])
@@ -60,7 +61,7 @@ class TinkerpopRepositoryProxy <T, K> extends AbstractSemiStructuredRepositoryPr
         this.entitiesMetadata = entitiesMetadata;
         this.entityMetadata = entitiesMetadata.get(typeClass);
         this.repositoryType = repositoryType;
-        this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata);
+        this.repository = SemiStructuredRepositoryProxy.SemiStructuredRepository.of(template, entityMetadata, lifecycleEventHandler);
     }
 
     @Override

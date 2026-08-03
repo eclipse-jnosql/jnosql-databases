@@ -28,7 +28,15 @@ public class ByteArrayEntityAttachment implements EntityAttachment {
     private final String contentType;
     private final long lastModified;
     private final byte[] data;
-    
+
+    /**
+     * Creates an in-memory attachment.
+     *
+     * @param name the attachment name
+     * @param contentType the attachment content type
+     * @param lastModified the last modification date, in ms since the epoch
+     * @param data the attachment data
+     */
     public ByteArrayEntityAttachment(String name, String contentType, long lastModified, byte[] data) {
         this.name = name;
         this.contentType = contentType;

@@ -47,6 +47,9 @@ import java.util.stream.Stream;
  */
 public enum ParamUtil {
 
+    /**
+     * Singleton instance.
+     */
     INSTANCE;
 
     /**

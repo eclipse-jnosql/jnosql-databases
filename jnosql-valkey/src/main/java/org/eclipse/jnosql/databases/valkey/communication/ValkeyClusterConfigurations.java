@@ -109,9 +109,15 @@ public enum ValkeyClusterConfigurations implements Supplier<String> {
         return configuration;
     }
 
-    public static enum ClusterConfigurationsResolver implements
+/**
+ * Defines the cluster configurations resolver options.
+ */
+    public enum ClusterConfigurationsResolver implements
             ValkeyConfigurationsResolver {
 
+/**
+ * Singleton instance.
+ */
         INSTANCE;
 
         @Override

@@ -44,18 +44,38 @@ public class OrientDBDocumentConfiguration implements DatabaseConfiguration {
     private String storageType;
 
 
+/**
+ * Sets the host.
+ *
+ * @param host the host
+ */
     public void setHost(String host) {
         this.host = host;
     }
 
+/**
+ * Sets the user.
+ *
+ * @param user the user
+ */
     public void setUser(String user) {
         this.user = user;
     }
 
+/**
+ * Sets the password.
+ *
+ * @param password the password
+ */
     public void setPassword(String password) {
         this.password = password;
     }
 
+/**
+ * Sets the storage type.
+ *
+ * @param storageType the storage type
+ */
     public void setStorageType(String storageType) {
         this.storageType = storageType;
     }

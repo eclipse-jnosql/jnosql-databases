@@ -19,6 +19,9 @@ import com.arangodb.ArangoDB;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 
 
+/**
+ * Factory for ArangoDB document managers.
+ */
 public final class ArangoDBDocumentManagerFactory implements DatabaseManagerFactory {
 
 

@@ -51,10 +51,25 @@ import static java.util.stream.StreamSupport.stream;
  */
 public final class ArangoDBUtil {
 
+    /**
+     * ArangoDB document key field.
+     */
     public static final String KEY = "_key";
+    /**
+     * ArangoDB document identifier field.
+     */
     public static final String ID = "_id";
+    /**
+     * ArangoDB document revision field.
+     */
     public static final String REV = "_rev";
+    /**
+     * ArangoDB edge source field.
+     */
     public static final String FROM = "_from";
+    /**
+     * ArangoDB edge target field.
+     */
     public static final String TO = "_to";
     private static final Set<String> META_FIELDS =Set.of(ID, KEY, REV, FROM, TO);
 
@@ -75,6 +90,13 @@ public final class ArangoDBUtil {
         }
     }
 
+    /**
+     * Ensures that a document collection exists.
+     *
+     * @param dbName the database name
+     * @param arangoDB the ArangoDB driver
+     * @param collectionName the collection name
+     */
     public static void checkCollection(String dbName, ArangoDB arangoDB, String collectionName) {
         checkDatabase(dbName, arangoDB);
         ArangoCollection collection = arangoDB.db(dbName).collection(collectionName);
@@ -83,6 +105,13 @@ public final class ArangoDBUtil {
         }
     }
 
+    /**
+     * Ensures that an edge collection exists.
+     *
+     * @param dbName the database name
+     * @param arangoDB the ArangoDB driver
+     * @param collectionName the collection name
+     */
     public static void checkEdgeCollection(String dbName, ArangoDB arangoDB, String collectionName) {
         checkDatabase(dbName, arangoDB);
         ArangoCollection collection = arangoDB.db(dbName).collection(collectionName);

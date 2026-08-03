@@ -27,12 +27,16 @@ import java.util.UUID;
  * This custom writer allows Eclipse JNoSQL to seamlessly serialize UUID fields
  * into standard strings before persisting them to the underlying NoSQL database.
  * </p>
- *
- * @author YourName
  * @see ValueWriter
  * @see UUID
  */
 public class UUIDValueWriter implements ValueWriter<UUID, String> {
+
+    /**
+     * Creates a UUID value writer.
+     */
+    public UUIDValueWriter() {
+    }
 
     @Override
     public boolean test(Class<?> type) {

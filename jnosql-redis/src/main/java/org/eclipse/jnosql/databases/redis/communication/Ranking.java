@@ -20,11 +20,15 @@ package org.eclipse.jnosql.databases.redis.communication;
 public interface Ranking {
 
     /**
+     * Returns the score associated with this ranking.
+     *
      * @return the point
      */
     Number getPoints();
 
     /**
+     * Returns the ranked member name.
+     *
      * @return the member name
      */
     String getMember();

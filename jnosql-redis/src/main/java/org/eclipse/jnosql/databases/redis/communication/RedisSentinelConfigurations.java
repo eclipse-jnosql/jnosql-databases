@@ -149,8 +149,14 @@ public enum RedisSentinelConfigurations implements Supplier<String> {
         return configuration;
     }
 
+/**
+ * Defines the sentinel master configurations resolver options.
+ */
     public static enum SentinelMasterConfigurationsResolver implements RedisConfigurationsResolver {
 
+/**
+ * Singleton instance.
+ */
         INSTANCE;
 
         @Override
@@ -204,8 +210,14 @@ public enum RedisSentinelConfigurations implements Supplier<String> {
         }
     }
 
+/**
+ * Defines the sentinel slave configurations resolver options.
+ */
     public static enum SentinelSlaveConfigurationsResolver implements RedisConfigurationsResolver {
 
+/**
+ * Singleton instance.
+ */
         INSTANCE;
 
         @Override

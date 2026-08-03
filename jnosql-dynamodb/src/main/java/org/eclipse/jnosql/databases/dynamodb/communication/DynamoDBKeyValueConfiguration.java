@@ -18,8 +18,17 @@ import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.keyvalue.KeyValueConfiguration;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
+/**
+ * Provides dynamo dbkey value configuration settings.
+ */
 public class DynamoDBKeyValueConfiguration extends DynamoDBConfiguration
         implements KeyValueConfiguration {
+
+            /**
+             * Creates a new dynamo dbkey value configuration instance.
+             */
+            public DynamoDBKeyValueConfiguration() {
+            }
 
     @Override
     public DynamoDBBucketManagerFactory apply(Settings settings) {

@@ -30,20 +30,46 @@ import static java.util.Arrays.asList;
  */
 public abstract class CouchbaseConfiguration {
 
+/**
+ * The host value.
+ */
     protected String host;
 
+/**
+ * The user value.
+ */
     protected String user;
 
+/**
+ * The password value.
+ */
     protected String password;
 
+/**
+ * The scope value.
+ */
     protected String scope;
 
+/**
+ * The index value.
+ */
     protected String index;
 
+/**
+ * The collection value.
+ */
     protected String collection;
+/**
+ * The configured collections.
+ */
     protected Set<String> collections = new LinkedHashSet<>();
 
 
+/**
+ * Performs the update operation.
+ *
+ * @param settings the settings
+ */
     protected void update(Settings settings) {
         this.host = getHost(settings);
         this.user = getUser(settings);
@@ -54,6 +80,12 @@ public abstract class CouchbaseConfiguration {
         this.collection = getCollection(settings);
     }
 
+/**
+ * Returns the get user.
+ *
+ * @param settings the settings
+ * @return the result
+ */
     protected String getUser(Settings settings) {
         return settings.getSupplier(asList(Configurations.USER,
                         CouchbaseConfigurations.USER))
@@ -84,6 +116,12 @@ public abstract class CouchbaseConfiguration {
         return collections;
     }
 
+/**
+ * Returns the get password.
+ *
+ * @param settings the settings
+ * @return the result
+ */
     protected String getPassword(Settings settings) {
 
         return settings.getSupplier(asList(Configurations.PASSWORD,
@@ -91,6 +129,12 @@ public abstract class CouchbaseConfiguration {
                 .map(Object::toString).orElse(null);
     }
 
+/**
+ * Returns the get host.
+ *
+ * @param settings the settings
+ * @return the result
+ */
     protected String getHost(Settings settings) {
         return settings.getSupplier(asList(Configurations.HOST,
                         CouchbaseConfigurations.HOST))

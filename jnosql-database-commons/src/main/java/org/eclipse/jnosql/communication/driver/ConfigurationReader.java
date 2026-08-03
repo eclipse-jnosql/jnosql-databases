@@ -24,6 +24,9 @@ import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+/**
+ * Reads configuration properties from classpath resources.
+ */
 public final class ConfigurationReader {
 
     private static final Logger LOGGER = Logger.getLogger(ConfigurationReader.class.getName());
@@ -31,6 +34,13 @@ public final class ConfigurationReader {
     private ConfigurationReader() {
     }
 
+    /**
+     * Loads a properties resource into a map.
+     *
+     * @param resource the classpath resource name
+     * @return the resource properties, or an empty map when the resource cannot be loaded
+     * @throws NullPointerException if {@code resource} is {@code null}
+     */
     public static Map<String, String> from(String resource) throws NullPointerException {
         Objects.requireNonNull(resource, "Resource is required");
 

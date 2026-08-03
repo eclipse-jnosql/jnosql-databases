@@ -26,28 +26,40 @@ import java.util.Objects;
  */
 public interface EntityAttachment {
     /**
+     * Returns the file name of the attachment.
+     *
      * @return the file name of the attachment
      */
     String name();
     /**
+     * Returns the last modification date of the attachment.
+     *
      * @return the last modification date of the attachment, in ms since the epoch
      */
     long getLastModified();
     /**
+     * Returns the MIME type of the content.
+     *
      * @return the MIME type of the content
      */
     String getContentType();
     /**
+     * Returns a stream for reading the attachment data.
+     *
      * @return an {@link InputStream} representing the data of the attachment
      * @throws IOException if there is an I/O problem retrieving the attachment content
      */
     InputStream getData() throws IOException;
     /**
+     * Returns the size of the content.
+     *
      * @return the size of the content in bytes
      */
     long getLength();
     
     /**
+     * Returns an ETag value for the current version of the content.
+     *
      * @return an ETag value for the current version of the content
      */
     default String getETag() {

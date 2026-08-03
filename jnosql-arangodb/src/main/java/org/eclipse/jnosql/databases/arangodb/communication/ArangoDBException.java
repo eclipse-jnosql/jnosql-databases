@@ -21,6 +21,11 @@ import org.eclipse.jnosql.communication.CommunicationException;
  * The exception to ArangoDB
  */
 public class ArangoDBException extends CommunicationException {
+    /**
+     * Creates an ArangoDB exception with the provided message.
+     *
+     * @param message the exception message
+     */
     public ArangoDBException(String message) {
         super(message);
     }

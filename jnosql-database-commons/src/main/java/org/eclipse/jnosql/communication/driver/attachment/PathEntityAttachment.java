@@ -29,7 +29,13 @@ import java.util.Objects;
  */
 public class PathEntityAttachment implements EntityAttachment {
     private final Path path;
-    
+
+    /**
+     * Creates an attachment backed by the provided path.
+     *
+     * @param path a readable file path
+     * @throws IllegalArgumentException if the path does not point to a readable file
+     */
     public PathEntityAttachment(Path path) {
         Objects.requireNonNull(path, "path cannot be null");
         if(!Files.isRegularFile(path) || !Files.isReadable(path)) {

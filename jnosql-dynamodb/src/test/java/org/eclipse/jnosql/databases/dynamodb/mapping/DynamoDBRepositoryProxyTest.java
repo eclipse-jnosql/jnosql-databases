@@ -23,6 +23,7 @@ import org.eclipse.jnosql.mapping.document.spi.DocumentExtension;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
 import org.eclipse.jnosql.mapping.reflection.spi.ReflectionEntityMetadataExtension;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
@@ -57,15 +58,17 @@ class DynamoDBRepositoryProxyTest {
     @Inject
     private Converters converters;
 
+    @Inject
+    private LifecycleEventHandler lifecycleEventHandler;
+
     private HumanNoSQLRepository personRepository;
 
-    @SuppressWarnings("rawtypes")
     @BeforeEach
     void setUp() {
         this.template = Mockito.mock(DynamoDBTemplate.class);
 
-        DynamoDBRepositoryProxy handler = new DynamoDBRepositoryProxy<>(template,
-                HumanNoSQLRepository.class, converters, entitiesMetadata);
+        var handler = new DynamoDBRepositoryProxy<>(template,
+                HumanNoSQLRepository.class, converters, entitiesMetadata, lifecycleEventHandler);
 
         when(template.insert(any(Human.class))).thenReturn(new Human());
         when(template.insert(any(Human.class), any(Duration.class))).thenReturn(new Human());

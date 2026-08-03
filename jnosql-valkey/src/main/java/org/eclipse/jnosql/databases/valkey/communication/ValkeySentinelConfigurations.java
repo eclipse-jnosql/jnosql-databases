@@ -149,8 +149,14 @@ public enum ValkeySentinelConfigurations implements Supplier<String> {
         return configuration;
     }
 
+/**
+ * Defines the sentinel master configurations resolver options.
+ */
     public static enum SentinelMasterConfigurationsResolver implements ValkeyConfigurationsResolver {
 
+/**
+ * Singleton instance.
+ */
         INSTANCE;
 
         @Override
@@ -204,8 +210,14 @@ public enum ValkeySentinelConfigurations implements Supplier<String> {
         }
     }
 
+/**
+ * Defines the sentinel slave configurations resolver options.
+ */
     public enum SentinelSlaveConfigurationsResolver implements ValkeyConfigurationsResolver {
 
+/**
+ * Singleton instance.
+ */
         INSTANCE;
 
         @Override

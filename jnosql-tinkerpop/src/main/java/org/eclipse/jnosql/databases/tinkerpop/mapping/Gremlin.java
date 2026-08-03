@@ -40,6 +40,8 @@ public @interface Gremlin {
     /**
      * The Gremlin query to execute.
      * Supports parameter substitution using method parameters annotated with @Param.
+     *
+     * @return the Gremlin query
      */
     String value();
 }

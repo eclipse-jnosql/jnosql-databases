@@ -38,6 +38,7 @@ public interface DynamoDBTemplate extends DocumentTemplate {
      * Executes a DynamoDB query using
      * <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html">PartiQL</a>.
      *
+     * @param <T> the entity type
      * @param query the PartiQL query
      * @param entityType the class of the result entity type
      * @return a {@link Stream} of results representing the query result
@@ -52,8 +53,10 @@ public interface DynamoDBTemplate extends DocumentTemplate {
      * <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html">PartiQL</a> with parameters.
      * <p>Example query: {@code SELECT * FROM users WHERE status = ?}</p>
      *
+     * @param <T> the entity type
      * @param query the PartiQL query
      * @param entityType the class of the result entity type
+     * @param params the query parameters
      * @return a {@link Stream} of results representing the query result
      * @throws NullPointerException  when the query is null
      */

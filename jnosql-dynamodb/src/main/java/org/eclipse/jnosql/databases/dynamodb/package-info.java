@@ -13,4 +13,7 @@
  * Maximillian Arruda
  */
 
+/**
+ * Provides DynamoDB database integrations for Eclipse JNoSQL.
+ */
 package org.eclipse.jnosql.databases.dynamodb;

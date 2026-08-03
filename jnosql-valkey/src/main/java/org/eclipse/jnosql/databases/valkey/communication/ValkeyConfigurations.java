@@ -122,9 +122,15 @@ public enum ValkeyConfigurations implements Supplier<String> {
         return configuration;
     }
 
+/**
+ * Defines the single valkey configurations resolver options.
+ */
     public static enum SingleValkeyConfigurationsResolver
             implements ValkeyConfigurationsResolver {
 
+/**
+ * Singleton instance.
+ */
         INSTANCE;
 
         @Override

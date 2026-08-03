@@ -20,6 +20,7 @@ import org.eclipse.jnosql.mapping.core.Converters;
 import org.eclipse.jnosql.mapping.metadata.EntitiesMetadata;
 import org.eclipse.jnosql.mapping.reflection.Reflections;
 import org.eclipse.jnosql.mapping.reflection.spi.ReflectionEntityMetadataExtension;
+import org.eclipse.jnosql.mapping.repository.LifecycleEventHandler;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
@@ -56,6 +57,9 @@ public class Neo4jRepositoryProxyTest {
     @Inject
     private EntitiesMetadata entitiesMetadata;
 
+    @Inject
+    private LifecycleEventHandler lifecycleEventHandler;
+
     private HumanRepository personRepository;
 
     @SuppressWarnings("rawtypes")
@@ -63,7 +67,7 @@ public class Neo4jRepositoryProxyTest {
     public void setUp() {
         this.template = Mockito.mock(Neo4JTemplate.class);
         Neo4JRepositoryProxy handler = new Neo4JRepositoryProxy<>(template,
-                HumanRepository.class, converters, entitiesMetadata);
+                HumanRepository.class, converters, entitiesMetadata, lifecycleEventHandler);
 
         when(template.insert(any(Contact.class))).thenReturn(new Contact());
         when(template.insert(any(Contact.class), any(Duration.class))).thenReturn(new Contact());

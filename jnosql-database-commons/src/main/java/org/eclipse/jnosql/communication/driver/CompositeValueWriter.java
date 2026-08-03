@@ -23,6 +23,9 @@ import java.util.Objects;
 /**
  * A composite {@link ValueWriter} that delegates type checks and writing operations
  * to a chain of custom writers before falling back to the system default.
+ *
+ * @param <T> the source value type
+ * @param <S> the converted value type
  */
 @SuppressWarnings("rawtypes")
 public final class CompositeValueWriter<T, S> implements ValueWriter<T, S> {
@@ -32,6 +35,11 @@ public final class CompositeValueWriter<T, S> implements ValueWriter<T, S> {
 
     private final List<ValueWriter> customWriters;
 
+    /**
+     * Creates a composite writer backed by the provided custom writers.
+     *
+     * @param customWriters the custom writers to evaluate before the default writer
+     */
     public CompositeValueWriter(ValueWriter... customWriters) {
         this.customWriters = List.of(Objects.requireNonNull(customWriters));
     }
