@@ -69,6 +69,7 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
     static final String ENTITY = "entity";
     static final String ID = "_id";
     static final String ORACLE_ID = "id";
+    private static final String NUM_ROWS_DELETED = "numRowsDeleted";
     private final String table;
     private final NoSQLHandle serviceHandle;
 
@@ -131,15 +132,28 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
 
     @Override
     public void delete(DeleteQuery query) {
+        executeDelete(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) {
+        return executeDelete(query);
+    }
+
+    private long executeDelete(DeleteQuery query) {
         Objects.requireNonNull(query, "query is required");
 
         var selectBuilder = new DeleteBuilder(query, table);
         var oracleQuery = selectBuilder.get();
+        long deleted = 0L;
         if (oracleQuery.hasIds()) {
             for (String id : oracleQuery.ids()) {
                 var delRequest = new DeleteRequest().setKey(new MapValue().put(ORACLE_ID, generateId(id, query.name())))
                         .setTableName(table);
-                serviceHandle.delete(delRequest);
+                var result = serviceHandle.delete(delRequest);
+                if (result != null && result.getSuccess()) {
+                    deleted++;
+                }
             }
         }
         if (!oracleQuery.hasOnlyIds()) {
@@ -156,8 +170,14 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
                 QueryResult result = serviceHandle.query(queryRequest);
                 List<MapValue> results = result.getResults();
                 LOGGER.finest("The delete result: " +results);
+                deleted += results.stream()
+                        .map(row -> row.get(NUM_ROWS_DELETED))
+                        .filter(Objects::nonNull)
+                        .mapToLong(FieldValue::getLong)
+                        .sum();
             } while (!queryRequest.isDone());
         }
+        return deleted;
     }
 
 
