@@ -21,7 +21,13 @@ import java.util.function.Function;
 
 import static org.eclipse.jnosql.databases.tinkerpop.communication.TinkerpopGraphDatabaseManager.ID;
 
+/**
+ * Defines the communication entity converter options.
+ */
 public enum CommunicationEntityConverter implements Function<Vertex, CommunicationEntity> {
+/**
+ * Singleton instance.
+ */
     INSTANCE;
 
     @Override
