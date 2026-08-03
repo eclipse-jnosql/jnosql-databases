@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -310,11 +311,13 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
                     var json = result.get(JSON_FIELD).toJson();
                     entity.addAll(Elements.of(jsonB.fromJson(json, Map.class)));
                 }
+                Map<String, Object> projectedFields = new LinkedHashMap<>();
                 for (Map.Entry<String, FieldValue> entry : result) {
-                    if (isNotOracleField(entry)) {
-                        entity.add(Element.of(entry.getKey(), FieldValueConverter.INSTANCE.of(entry.getValue())));
+                    if (isNotOracleField(entry) && !entry.getValue().isEMPTY()) {
+                        projectedFields.put(entry.getKey(), FieldValueConverter.INSTANCE.toObject(entry.getValue()));
                     }
                 }
+                entity.addAll(toElements(projectedFields));
                 addPrimaryKeyIdWhenMissing(entity, result.get(ORACLE_ID).asString().getValue());
                 entities.add(entity);
             }
@@ -328,6 +331,26 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
             String id = separator < 0 ? primaryKey : primaryKey.substring(separator + 1);
             entity.add(Element.of(ID, id));
         }
+    }
+
+    private static List<Element> toElements(Map<String, ?> values) {
+        return values.entrySet().stream()
+                .map(entry -> Element.of(entry.getKey(), toElementValue(entry.getValue())))
+                .toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object toElementValue(Object value) {
+        if (value instanceof Map<?, ?> map) {
+            List<Element> elements = toElements((Map<String, ?>) map);
+            return elements.size() == 1 ? elements.get(0) : elements;
+        }
+        if (value instanceof Iterable<?> iterable) {
+            return StreamSupport.stream(iterable.spliterator(), false)
+                    .map(DefaultOracleNoSQLDocumentManager::toElementValue)
+                    .toList();
+        }
+        return value;
     }
 
     private void put(CommunicationEntity entity, TimeToLive ttl) {
