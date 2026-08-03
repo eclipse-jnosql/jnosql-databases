@@ -122,9 +122,15 @@ public enum RedisConfigurations implements Supplier<String> {
         return configuration;
     }
 
+/**
+ * Defines the single redis configurations resolver options.
+ */
     public static enum SingleRedisConfigurationsResolver
             implements RedisConfigurationsResolver {
 
+/**
+ * Singleton instance.
+ */
         INSTANCE;
 
         @Override
