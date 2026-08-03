@@ -27,8 +27,11 @@ import oracle.nosql.driver.values.NumberValue;
 import oracle.nosql.driver.values.StringValue;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 class FieldValueConverter {
@@ -64,6 +67,43 @@ class FieldValueConverter {
         }
 
         throw new UnsupportedOperationException("Unsupported value type: " + value.getClass());
+    }
+
+    static Object toObject(FieldValue value) {
+        Objects.requireNonNull(value, "value is required");
+
+        return switch (value.getType()) {
+            case STRING -> value.getString();
+            case INTEGER -> value.getInt();
+            case LONG -> value.getLong();
+            case DOUBLE -> value.getDouble();
+            case BOOLEAN -> value.getBoolean();
+            case NUMBER -> value.getNumber();
+            case BINARY -> value.getBinary();
+            case TIMESTAMP -> value.getTimestamp();
+            case NULL, JSON_NULL -> null;
+            case ARRAY -> toList(value.asArray());
+            case MAP -> toMap(value.asMap());
+            case EMPTY -> throw new UnsupportedOperationException("EMPTY represents a missing field");
+        };
+    }
+
+    private static List<Object> toList(ArrayValue value) {
+        List<Object> result = new ArrayList<>(value.size());
+        for (FieldValue fieldValue : value) {
+            result.add(toObject(fieldValue));
+        }
+        return result;
+    }
+
+    private static Map<String, Object> toMap(MapValue value) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (Map.Entry<String, FieldValue> entry : value) {
+            if (!entry.getValue().isEMPTY()) {
+                result.put(entry.getKey(), toObject(entry.getValue()));
+            }
+        }
+        return result;
     }
 
     private interface FieldValueMapper {
