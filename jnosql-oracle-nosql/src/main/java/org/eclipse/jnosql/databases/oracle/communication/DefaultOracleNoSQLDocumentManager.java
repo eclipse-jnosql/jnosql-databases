@@ -295,12 +295,19 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
                         entity.add(Element.of(entry.getKey(), FieldValueConverter.INSTANCE.of(entry.getValue())));
                     }
                 }
-                var id = result.get(ORACLE_ID).asString().getValue().split(":")[1];
-                entity.add(Element.of(ID, id));
+                addPrimaryKeyIdWhenMissing(entity, result.get(ORACLE_ID).asString().getValue());
                 entities.add(entity);
             }
         } while (!queryRequest.isDone());
         return entities;
+    }
+
+    static void addPrimaryKeyIdWhenMissing(CommunicationEntity entity, String primaryKey) {
+        if (entity.find(ID).isEmpty()) {
+            int separator = primaryKey.indexOf(':');
+            String id = separator < 0 ? primaryKey : primaryKey.substring(separator + 1);
+            entity.add(Element.of(ID, id));
+        }
     }
 
     private void put(CommunicationEntity entity, TimeToLive ttl) {
