@@ -27,6 +27,9 @@ import oracle.nosql.driver.values.NumberValue;
 import oracle.nosql.driver.values.StringValue;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -69,21 +72,38 @@ enum FieldValueConverter {
     }
 
     Object toObject(FieldValue value) {
-        if (value.isNull()) {
-            return null;
-        }
         return switch (value.getType()) {
-            case STRING -> value.asString();
-            case INTEGER -> value.asInteger();
-            case LONG -> value.asLong();
-            case DOUBLE -> value.asDouble();
-            case BOOLEAN -> value.asBoolean();
-            case NUMBER -> value.asNumber();
-            case BINARY -> value.asBinary();
-            case ARRAY -> value.asArray();
-            case MAP -> value.asMap();
-            default -> throw new UnsupportedOperationException("There is not support to: " + value.getType());
+            case STRING -> value.getString();
+            case INTEGER -> value.getInt();
+            case LONG -> value.getLong();
+            case DOUBLE -> value.getDouble();
+            case BOOLEAN -> value.getBoolean();
+            case NUMBER -> value.getNumber();
+            case BINARY -> value.getBinary();
+            case TIMESTAMP -> value.getTimestamp();
+            case NULL, JSON_NULL -> null;
+            case ARRAY -> toList(value.asArray());
+            case MAP -> toMap(value.asMap());
+            case EMPTY -> throw new UnsupportedOperationException("Oracle EMPTY represents a missing value");
         };
+    }
+
+    private List<Object> toList(ArrayValue value) {
+        List<Object> values = new ArrayList<>(value.size());
+        for (FieldValue element : value) {
+            values.add(toObject(element));
+        }
+        return values;
+    }
+
+    private Map<String, Object> toMap(MapValue value) {
+        Map<String, Object> values = new LinkedHashMap<>();
+        for (Map.Entry<String, FieldValue> entry : value) {
+            if (!entry.getValue().isEMPTY()) {
+                values.put(entry.getKey(), toObject(entry.getValue()));
+            }
+        }
+        return values;
     }
 
     private MapValue entries(Map<String, ?> value) {
