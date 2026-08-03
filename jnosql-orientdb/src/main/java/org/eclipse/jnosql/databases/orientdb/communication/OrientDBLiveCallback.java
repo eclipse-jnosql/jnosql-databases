@@ -48,7 +48,6 @@ public class OrientDBLiveCallback<T> {
 /**
  * Returns the get create callback.
  *
- * @param <T> the type
  * @return the result
  */
     public Optional<OrientDBLiveCreateCallback<T>> getCreateCallback() {
@@ -58,7 +57,6 @@ public class OrientDBLiveCallback<T> {
 /**
  * Returns the get update callback.
  *
- * @param <T> the type
  * @return the result
  */
     public Optional<OrientDBLiveUpdateCallback<T>> getUpdateCallback() {
@@ -68,7 +66,6 @@ public class OrientDBLiveCallback<T> {
 /**
  * Returns the get delete callback.
  *
- * @param <T> the type
  * @return the result
  */
     public Optional<OrientDBLiveDeleteCallback<T>> getDeleteCallback() {
