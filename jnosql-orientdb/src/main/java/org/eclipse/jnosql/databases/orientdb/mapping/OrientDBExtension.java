@@ -22,6 +22,9 @@ import org.eclipse.jnosql.mapping.metadata.ClassScanner;
 import java.util.Set;
 import java.util.logging.Logger;
 
+/**
+ * Provides the orient dbextension CDI extension.
+ */
 public class OrientDBExtension implements Extension {
 
     private static final Logger LOGGER = Logger.getLogger(OrientDBExtension.class.getName());
