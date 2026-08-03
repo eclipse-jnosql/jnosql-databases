@@ -23,6 +23,12 @@ import java.util.function.Supplier;
 
 /**
  * Represents a dynamo dbquery.
+ *
+ * @param table the table name
+ * @param projectionExpression the projection expression
+ * @param filterExpression the filter expression
+ * @param expressionAttributeNames the expression attribute names
+ * @param expressionAttributeValues the expression attribute values
  */
 public record DynamoDBQuery(String table,
                             String projectionExpression,
