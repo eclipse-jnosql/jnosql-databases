@@ -40,6 +40,7 @@ import java.util.Set;
  * </p>
  *
  * @param <T> the type of the repository
+ * @param <K> the key type
  * @see AbstractBean
  */
 public class TinkerpopRepositoryBean<T, K> extends AbstractBean<TinkerPopRepository<T, K>> {
