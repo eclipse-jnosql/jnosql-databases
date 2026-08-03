@@ -77,4 +77,18 @@ class SelectBuilderTest {
                 .contains(" OR ")
                 .endsWith(")");
     }
+
+    @Test
+    void shouldConvertCharacterPredicateToStringValue() {
+        var query = select().from("person")
+                .where("middleInitial").eq('Q')
+                .build();
+
+        var oracleQuery = new SelectBuilder(query, "people").get();
+
+        assertThat(oracleQuery.params()).singleElement().satisfies(value -> {
+            assertThat(value.isString()).isTrue();
+            assertThat(value.asString().getValue()).isEqualTo("Q");
+        });
+    }
 }

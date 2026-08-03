@@ -37,6 +37,8 @@ enum FieldValueConverter {
     FieldValue of(Object value) {
         if (value == null) {
             return NullValue.getInstance();
+        } else if (value instanceof Character character) {
+            return new StringValue(character.toString());
         } else if (value instanceof String string) {
             return new StringValue(string);
         } else if (value instanceof UUID uuid) {
