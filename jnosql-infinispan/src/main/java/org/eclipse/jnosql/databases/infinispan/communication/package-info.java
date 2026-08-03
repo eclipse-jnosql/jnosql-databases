@@ -13,4 +13,7 @@
  *   The Infinispan Team
  */
 
+/**
+ * Provides Infinispan key-value communication support.
+ */
 package org.eclipse.jnosql.databases.infinispan.communication;
