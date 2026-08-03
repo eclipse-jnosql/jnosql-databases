@@ -19,12 +19,24 @@ import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
+/**
+ * Provides orient dblive callback support.
+ *
+ * @param <T> the type
+ */
 public class OrientDBLiveCallback<T> {
 
     private final OrientDBLiveCreateCallback<T> createCallback;
     private final OrientDBLiveUpdateCallback<T> updateCallback;
     private final OrientDBLiveDeleteCallback<T> deleteCallback;
 
+/**
+ * Returns the orient dblive callback.
+ *
+ * @param createCallback the create callback
+ * @param updateCallback the update callback
+ * @param deleteCallback the delete callback
+ */
     public OrientDBLiveCallback(OrientDBLiveCreateCallback<T> createCallback,
                                 OrientDBLiveUpdateCallback<T> updateCallback,
                                 OrientDBLiveDeleteCallback<T> deleteCallback) {
@@ -33,14 +45,32 @@ public class OrientDBLiveCallback<T> {
         this.deleteCallback = deleteCallback;
     }
 
+/**
+ * Returns the get create callback.
+ *
+ * @param <T> the type
+ * @return the result
+ */
     public Optional<OrientDBLiveCreateCallback<T>> getCreateCallback() {
         return ofNullable(createCallback);
     }
 
+/**
+ * Returns the get update callback.
+ *
+ * @param <T> the type
+ * @return the result
+ */
     public Optional<OrientDBLiveUpdateCallback<T>> getUpdateCallback() {
         return ofNullable(updateCallback);
     }
 
+/**
+ * Returns the get delete callback.
+ *
+ * @param <T> the type
+ * @return the result
+ */
     public Optional<OrientDBLiveDeleteCallback<T>> getDeleteCallback() {
         return ofNullable(deleteCallback);
     }
