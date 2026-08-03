@@ -64,7 +64,6 @@ public final class DynamoTableUtils {
 /**
  * Returns the create attribute definition.
  *
- * @param <ScalarAttributeType> the type
  * @param attributes the attributes
  * @return the result
  */
@@ -110,7 +109,6 @@ public final class DynamoTableUtils {
 /**
  * Returns the create key definition.
  *
- * @param <KeyType> the type
  * @return the result
  */
     public static Map<String, KeyType> createKeyDefinition() {
@@ -120,7 +118,6 @@ public final class DynamoTableUtils {
 /**
  * Returns the create attributes type.
  *
- * @param <ScalarAttributeType> the type
  * @return the result
  */
     public static Map<String, ScalarAttributeType> createAttributesType() {
