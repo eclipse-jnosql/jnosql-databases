@@ -27,5 +27,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 public @interface Param {
 
+/**
+ * Returns the value.
+ *
+ * @return the result
+ */
     String value();
 }
