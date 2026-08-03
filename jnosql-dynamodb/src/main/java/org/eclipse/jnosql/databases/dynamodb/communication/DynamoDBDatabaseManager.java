@@ -32,6 +32,8 @@ public interface DynamoDBDatabaseManager extends DatabaseManager {
      * <p>Example query: {@code SELECT * FROM users WHERE status = ?}</p>
      *
      * @param query the PartiQL query
+     * @param entityName the entity name
+     * @param params the query parameters
      * @return a {@link Stream} of {@link CommunicationEntity} representing the query result
      * @throws NullPointerException  when the query is null
      */
@@ -39,6 +41,8 @@ public interface DynamoDBDatabaseManager extends DatabaseManager {
 
 
     /**
+     * Returns the DynamoDB client.
+     *
      * @return a {@link DynamoDbClient} instance for custom utilization
      */
     DynamoDbClient dynamoDbClient();
