@@ -23,6 +23,7 @@ import org.eclipse.jnosql.communication.semistructured.Element;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 import static org.eclipse.jnosql.databases.oracle.communication.TableCreationConfiguration.ID_FIELD;
@@ -114,8 +115,26 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
             case BETWEEN:
                 predicateBetween(query, params, document);
                 return;
+            case IGNORE_CASE:
+                predicateIgnoreCase(query, params, document.get(CriteriaCondition.class));
+                return;
             default:
                 throw new UnsupportedOperationException("There is not support condition for " + condition.condition());
+        }
+    }
+
+    private void predicateIgnoreCase(StringBuilder query, List<FieldValue> params, CriteriaCondition condition) {
+        Element document = condition.element();
+        switch (condition.condition()) {
+            case EQUALS:
+                predicateIgnoreCase(query, " = ", document, params);
+                return;
+            case BETWEEN:
+                predicateBetweenIgnoreCase(query, params, document);
+                return;
+            default:
+                throw new UnsupportedOperationException("There is not support condition for IGNORE_CASE "
+                        + condition.condition());
         }
     }
 
@@ -152,6 +171,16 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
         FieldValue fieldValue = FieldValueConverter.of(value);
         query.append(name).append(" IN ?[] ");
         params.add(fieldValue);
+    }
+
+    private void predicateBetweenIgnoreCase(StringBuilder query, List<FieldValue> params, Element document) {
+        String name = identifierOf(document.name());
+
+        List<Object> values = ValueUtil.convertToList(document.value());
+
+        query.append("lower(").append(name).append(") BETWEEN ? AND ? ");
+        params.add(FieldValueConverter.of(lowerCaseString(values.get(ORIGIN))));
+        params.add(FieldValueConverter.of(lowerCaseString(values.get(1))));
     }
 
     protected void appendCondition(StringBuilder query, List<FieldValue> params,
@@ -196,6 +225,24 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
 
     private void predicateNull(StringBuilder query, Element document, boolean negated) {
         query.append(identifierOf(document.name())).append(negated ? "IS NOT NULL " : "IS NULL ");
+    }
+
+    private void predicateIgnoreCase(StringBuilder query,
+                                     String condition,
+                                     Element document,
+                                     List<FieldValue> params) {
+        String name = identifierOf(document.name());
+        Object value = lowerCaseString(sqlValueOf(document));
+        FieldValue fieldValue = FieldValueConverter.of(value);
+        query.append("lower(").append(name).append(")").append(condition).append(" ? ");
+        params.add(fieldValue);
+    }
+
+    private Object lowerCaseString(Object value) {
+        if (value instanceof String string) {
+            return string.toLowerCase(Locale.ROOT);
+        }
+        return value;
     }
 
     protected void predicateLike(StringBuilder query,
