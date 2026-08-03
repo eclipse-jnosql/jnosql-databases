@@ -24,8 +24,10 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 
 import java.net.URI;
 
+/**
+ * Provides dynamo dbbuilder sync support.
+ */
 public class DynamoDBBuilderSync implements DynamoDBBuilder {
-
 
     private final DynamoDbClientBuilder dynamoDB = DynamoDbClient.builder();
 
@@ -51,6 +53,11 @@ public class DynamoDBBuilderSync implements DynamoDBBuilder {
 
     }
 
+/**
+ * Returns the build.
+ *
+ * @return the result
+ */
     public DynamoDbClient build() {
 
         boolean accessKey = awsAccessKey != null && !awsAccessKey.isEmpty();
