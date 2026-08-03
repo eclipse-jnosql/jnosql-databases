@@ -45,7 +45,6 @@ import static java.util.Optional.ofNullable;
  */
 public class MemcachedKeyValueConfiguration implements KeyValueConfiguration {
 
-
     @Override
     public MemcachedBucketManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");
