@@ -37,6 +37,9 @@ import java.util.stream.StreamSupport;
 import static org.eclipse.jnosql.databases.dynamodb.communication.ConfigurationAmazonEntity.KEY;
 import static org.eclipse.jnosql.databases.dynamodb.communication.ConfigurationAmazonEntity.VALUE;
 
+/**
+ * Provides dynamo dbutils helper methods.
+ */
 public class DynamoDBUtils {
 
     private static final AttributeValue.Builder attributeValueBuilder = AttributeValue.builder();
@@ -45,6 +48,16 @@ public class DynamoDBUtils {
     private DynamoDBUtils() {
     }
 
+/**
+ * Returns the create attribute values.
+ *
+ * @param <K> the type
+ * @param <V> the type
+ * @param <AttributeValue> the type
+ * @param key the key
+ * @param value the value
+ * @return the result
+ */
     public static <K, V> Map<String, AttributeValue> createAttributeValues(K key, V value) {
 
         Map<String, AttributeValue> createAttributeValues = createKeyAttributeValues(key);
@@ -55,6 +68,15 @@ public class DynamoDBUtils {
         return createAttributeValues;
     }
 
+/**
+ * Returns the create key attribute values.
+ *
+ * @param <K> the type
+ * @param <V> the type
+ * @param <AttributeValue> the type
+ * @param key the key
+ * @return the result
+ */
     public static <K, V> Map<String, AttributeValue> createKeyAttributeValues(K key) {
         Map<String, AttributeValue> map = new HashMap<>();
         AttributeValue keyAttributeValue = attributeValueBuilder.s(key.toString()).build();
@@ -63,16 +85,43 @@ public class DynamoDBUtils {
         return map;
     }
 
+/**
+ * Returns the create key attribute values.
+ *
+ * @param <K> the type
+ * @param <V> the type
+ * @param <AttributeValue> the type
+ * @param keys the keys
+ * @return the result
+ */
     public static <K, V> Collection<Map<String, AttributeValue>> createKeyAttributeValues(Iterable<K> keys) {
         return StreamSupport.stream(keys.spliterator(), false).map(
                 k -> Collections.singletonMap(KEY, attributeValueBuilder.s(k.toString()).build())
         ).collect(Collectors.toList());
     }
 
+/**
+ * Returns the create attribute values.
+ *
+ * @param <K> the type
+ * @param <V> the type
+ * @param <AttributeValue> the type
+ * @param entity the entity
+ * @return the result
+ */
     public static <K, V> Map<String, AttributeValue> createAttributeValues(KeyValueEntity entity) {
         return createAttributeValues(entity.key(), entity.value());
     }
 
+/**
+ * Returns the create attribute values.
+ *
+ * @param <K> the type
+ * @param <AttributeValue> the type
+ * @param <KeyValueEntity> the type
+ * @param entities the entities
+ * @return the result
+ */
     public static <K> Collection<Map<String, AttributeValue>> createAttributeValues(Iterable<KeyValueEntity> entities) {
 
         return StreamSupport.stream(entities.spliterator(), false)
@@ -94,12 +143,30 @@ public class DynamoDBUtils {
         );
     }
 
+/**
+ * Returns the create map write request.
+ *
+ * @param <K> the type
+ * @param <WriteRequest> the type
+ * @param <KeyValueEntity> the type
+ * @param entities the entities
+ * @param tableName the table name
+ * @return the result
+ */
     public static <K> Map<String, List<WriteRequest>> createMapWriteRequest(Iterable<KeyValueEntity> entities, String tableName) {
         Collection<Map<String, AttributeValue>> attributeValues = createAttributeValues(entities);
         createMapWriteRequest(attributeValues, tableName);
         return createMapWriteRequest(attributeValues, tableName);
     }
 
+/**
+ * Returns the create.
+ *
+ * @param <K> the type
+ * @param <AttributeValue> the type
+ * @param keys the keys
+ * @return the result
+ */
     public static <K> Map<String, AttributeValue> create(Iterable<K> keys) {
 
         Map<String, AttributeValue> map = StreamSupport.stream(keys.spliterator(), false)
@@ -119,16 +186,38 @@ public class DynamoDBUtils {
         );
     }
 
+/**
+ * Returns the create batch get item request.
+ *
+ * @param <K> the type
+ * @param keys the keys
+ * @param tableName the table name
+ * @return the result
+ */
     public static <K> BatchGetItemRequest createBatchGetItemRequest(Iterable<K> keys, String tableName) {
         BatchGetItemRequest.Builder batchGetItemRequestBuilder = BatchGetItemRequest.builder();
         return batchGetItemRequestBuilder.requestItems(createKeysAndAttribute(keys, tableName)).build();
     }
 
+/**
+ * Returns the create get item request.
+ *
+ * @param <K> the type
+ * @param key the key
+ * @param tableName the table name
+ * @return the result
+ */
     public static <K> GetItemRequest createGetItemRequest(K key, String tableName) {
         GetItemRequest.Builder getItemRequest = GetItemRequest.builder();
         return getItemRequest.tableName(tableName).key(createKeyAttributeValues(key)).build();
     }
 
+/**
+ * Returns the replace invalid characters for key.
+ *
+ * @param attributeName the attribute name
+ * @return the result
+ */
     public static String replaceInvalidCharactersForKey(String attributeName) {
         if (attributeName == null || attributeName.isEmpty())
             return attributeName;
