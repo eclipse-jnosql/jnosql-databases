@@ -26,6 +26,8 @@ import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -50,6 +52,7 @@ import static org.mockito.Mockito.when;
 @AddPackages(Reflections.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class,
         DocumentExtension.class, SolrExtension.class})
+@DisplayName("Solr Repository Proxy")
 public class SolrRepositoryProxyTest {
 
     private SolrTemplate template;
@@ -77,51 +80,70 @@ public class SolrRepositoryProxyTest {
                 handler);
     }
 
-    @Test
-    public void shouldFindAll() {
-        humanRepository.findAllQuery();
-        verify(template).solr("_entity:person");
+    @Nested
+    @DisplayName("When executing annotated Solr repository queries")
+    class WhenExecutingAnnotatedSolrRepositoryQueries {
+
+        @Test
+        @DisplayName("Should delegate a static annotated query to the template")
+        public void shouldFindAll() {
+            humanRepository.findAllQuery();
+            verify(template).solr("_entity:person");
+        }
+
+        @Test
+        @DisplayName("Should collect annotated query parameters by name")
+        public void shouldFindByNameN1ql() {
+            ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
+            humanRepository.findByName("Ada");
+            verify(template).solr(Mockito.eq("name:@name AND _entity:person"), captor.capture());
+
+            Map<String, Object> value = captor.getValue();
+
+            assertEquals("Ada", value.get("name"));
+        }
     }
 
-    @Test
-    public void shouldFindByNameN1ql() {
-        ArgumentCaptor<Map> captor = ArgumentCaptor.forClass(Map.class);
-        humanRepository.findByName("Ada");
-        verify(template).solr(Mockito.eq("name:@name AND _entity:person"), captor.capture());
+    @Nested
+    @DisplayName("When saving entities through the repository proxy")
+    class WhenSavingThroughRepositoryProxy {
 
-        Map<String, Object> value = captor.getValue();
+        @Test
+        @DisplayName("Should insert a new entity when it does not exist")
+        public void shouldSaveUsingInsert() {
+            Human human = Human.of("Ada", 10);
+            humanRepository.save(human);
+            verify(template).insert(eq(human));
+        }
 
-        assertEquals("Ada", value.get("name"));
+        @Test
+        @DisplayName("Should update an existing entity when it already exists")
+        public void shouldSaveUsingUpdate() {
+            Human human = Human.of("Ada-2", 10);
+            when(template.find(Human.class, "Ada-2")).thenReturn(Optional.of(human));
+            humanRepository.save(human);
+            verify(template).update(eq(human));
+        }
     }
 
-    @Test
-    public void shouldSaveUsingInsert() {
-        Human human = Human.of("Ada", 10);
-        humanRepository.save(human);
-        verify(template).insert(eq(human));
-    }
+    @Nested
+    @DisplayName("When deleting entities through the repository proxy")
+    class WhenDeletingThroughRepositoryProxy {
 
+        @Test
+        @DisplayName("Should delete an entity by id")
+        public void shouldDelete() {
+            humanRepository.deleteById("id");
+            verify(template).delete(Human.class, "id");
+        }
 
-    @Test
-    public void shouldSaveUsingUpdate() {
-        Human human = Human.of("Ada-2", 10);
-        when(template.find(Human.class, "Ada-2")).thenReturn(Optional.of(human));
-        humanRepository.save(human);
-        verify(template).update(eq(human));
-    }
-
-    @Test
-    public void shouldDelete(){
-        humanRepository.deleteById("id");
-        verify(template).delete(Human.class, "id");
-    }
-
-
-    @Test
-    public void shouldDeleteEntity(){
-        Human human = Human.of("Ada", 10);
-        humanRepository.delete(human);
-        verify(template).delete(Human.class, human.getName());
+        @Test
+        @DisplayName("Should delete an entity instance by its id value")
+        public void shouldDeleteEntity() {
+            Human human = Human.of("Ada", 10);
+            humanRepository.delete(human);
+            verify(template).delete(Human.class, human.getName());
+        }
     }
 
     interface HumanRepository extends SolrRepository<Human, String> {
