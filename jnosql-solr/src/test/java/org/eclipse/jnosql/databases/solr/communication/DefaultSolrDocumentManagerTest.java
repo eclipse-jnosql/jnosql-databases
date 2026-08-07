@@ -33,8 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -55,12 +54,14 @@ public class DefaultSolrDocumentManagerTest {
 
     public static final String COLLECTION_NAME = "person";
     public static final String ID = "_id";
+    private static final AtomicLong IDS = new AtomicLong(System.currentTimeMillis());
     private static SolrDocumentManager entityManager;
 
     @BeforeAll
     public static void setUp() {
         entityManager = DocumentDatabase.INSTANCE.get();
     }
+
 
     @Test
     void shouldInsert() {
@@ -411,7 +412,7 @@ public class DefaultSolrDocumentManagerTest {
         LocalDate now = LocalDate.now();
 
         var entity = CommunicationEntity.of("download");
-        long id = ThreadLocalRandom.current().nextLong(1, 10);
+        long id = nextId();
         entity.add(ID, id);
         entity.add("date", date);
         entity.add("now", now);
@@ -489,7 +490,7 @@ public class DefaultSolrDocumentManagerTest {
 
     private CommunicationEntity createSubdocumentList() {
         CommunicationEntity entity = CommunicationEntity.of("AppointmentBook");
-        entity.add(Element.of(ID, new Random().nextInt()));
+        entity.add(Element.of(ID, nextId()));
         List<List<Element>> documents = new ArrayList<>();
 
         documents.add(asList(Element.of("name", "Ada"), Element.of("type", ContactType.EMAIL),
@@ -510,7 +511,7 @@ public class DefaultSolrDocumentManagerTest {
         Map<String, Object> map = new HashMap<>();
         map.put("name", "Poliana");
         map.put("city", "Salvador");
-        map.put(ID, ThreadLocalRandom.current().nextLong(1, 10));
+        map.put(ID, nextId());
         List<Element> documents = Elements.of(map);
         documents.forEach(entity::add);
         return entity;
@@ -536,6 +537,10 @@ public class DefaultSolrDocumentManagerTest {
         luna.add(Element.of("type", "V"));
 
         return asList(lucas, otavio, luna);
+    }
+
+    private long nextId() {
+        return IDS.incrementAndGet();
     }
 
 }
