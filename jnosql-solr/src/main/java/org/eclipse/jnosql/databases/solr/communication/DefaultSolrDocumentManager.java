@@ -31,6 +31,7 @@ import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -183,7 +184,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
         Objects.requireNonNull(documentCollection, "documentCollection is required");
         try {
             SolrQuery solrQuery = new SolrQuery();
-            solrQuery.set("q", "_entity:" + documentCollection);
+            solrQuery.set("q", DocumentQueryConverter.entityCondition(documentCollection));
             solrQuery.setRows(0);
             final QueryResponse response = solrClient.query(solrQuery);
             return response.getResults().getNumFound();
@@ -254,10 +255,19 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
     public List<CommunicationEntity> solr(String query, Map<String, ?> params) {
         Objects.requireNonNull(query, "query is required");
         Objects.requireNonNull(params, "params is required");
+        return solr(bindNativeQuery(query, params));
+    }
+
+    static String bindNativeQuery(String query, Map<String, ?> params) {
         String nativeQuery = query;
-        for (Entry<String, ?> entry : params.entrySet()) {
-            nativeQuery = nativeQuery.replace('@' + entry.getKey(), entry.getValue().toString());
+        var entries = params.entrySet().stream()
+                .sorted(Comparator.comparingInt((Entry<String, ?> entry) -> entry.getKey().length()).reversed())
+                .toList();
+        for (Entry<String, ?> entry : entries) {
+            String name = Objects.requireNonNull(entry.getKey(), "parameter name is required");
+            Object value = Objects.requireNonNull(entry.getValue(), "parameter value is required");
+            nativeQuery = nativeQuery.replace('@' + name, DocumentQueryConverter.escape(value));
         }
-        return solr(nativeQuery);
+        return nativeQuery;
     }
 }
