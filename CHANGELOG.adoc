@@ -47,6 +47,11 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Updated Couchbase to 3.12.2
 - Updated CouchDB HttpClient to 5.6.3
 
+=== Fixed
+
+- Fix Solr Document Manager operations to target the configured collection and avoid random ID collisions in integration tests
+- Escape Solr query values and native query parameters to prevent Lucene query injection
+
 == [1.1.15] - 2026-07-03
 
 === Changed

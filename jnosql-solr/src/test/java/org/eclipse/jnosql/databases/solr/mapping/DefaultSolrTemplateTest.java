@@ -31,6 +31,8 @@ import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -47,6 +49,7 @@ import static org.mockito.Mockito.when;
 @AddPackages(Reflections.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class,
         DocumentExtension.class, SolrExtension.class})
+@DisplayName("Default Solr Template")
 public class DefaultSolrTemplateTest {
 
     @Inject
@@ -78,17 +81,24 @@ public class DefaultSolrTemplateTest {
         entity.add(Element.of("age", 10));
     }
 
-    @Test
-    public void shouldFindBySolr() {
-        Map<String, String> params = Collections.singletonMap("name", "ada");
-        template.solr("name:@name _entity:person", params);
-        Mockito.verify(manager).solr("name:@name _entity:person", params);
-    }
+    @Nested
+    @DisplayName("When executing native Solr queries")
+    class WhenExecutingNativeSolrQueries {
 
-    @Test
-    public void shouldFindBySolr2() {
-        template.solr("_entity:person");
-        Mockito.verify(manager).solr("_entity:person");
+        @Test
+        @DisplayName("Should delegate native Solr query with parameters to the manager")
+        public void shouldFindBySolr() {
+            Map<String, String> params = Collections.singletonMap("name", "ada");
+            template.solr("name:@name _entity:person", params);
+            Mockito.verify(manager).solr("name:@name _entity:person", params);
+        }
+
+        @Test
+        @DisplayName("Should delegate native Solr query without parameters to the manager")
+        public void shouldFindBySolr2() {
+            template.solr("_entity:person");
+            Mockito.verify(manager).solr("_entity:person");
+        }
     }
 
 

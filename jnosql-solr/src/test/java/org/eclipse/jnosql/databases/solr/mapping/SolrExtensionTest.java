@@ -25,6 +25,8 @@ import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @EnableAutoWeld
@@ -34,13 +36,20 @@ import org.junit.jupiter.api.Test;
 @AddPackages(Reflections.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class,
         DocumentExtension.class, SolrExtension.class})
+@DisplayName("Solr CDI extension")
 public class SolrExtensionTest {
 
     @Inject
     private HumannRepository repository;
 
-    @Test
-    public void shouldSaveOrientDB() {
-        Assertions.assertNotNull(repository);
+    @Nested
+    @DisplayName("When bootstrapping the Solr repository extension")
+    class WhenBootstrappingSolrRepositoryExtension {
+
+        @Test
+        @DisplayName("Should provide a Solr repository bean")
+        public void shouldSaveOrientDB() {
+            Assertions.assertNotNull(repository);
+        }
     }
 }
