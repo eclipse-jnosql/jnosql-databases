@@ -16,6 +16,7 @@
 package org.eclipse.jnosql.databases.solr.communication;
 
 
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
@@ -35,14 +36,14 @@ final class DocumentQueryConverter {
 
 
     static String convert(SelectQuery query) {
-        String rootCondition = SolrUtils.ENTITY + ':' + query.name();
+        String rootCondition = entityCondition(query.name());
         return rootCondition + query.condition()
                 .map(DocumentQueryConverter::convert)
                 .map(s -> " AND " + s).orElse("");
     }
 
     static String convert(DeleteQuery query) {
-        String rootCondition = SolrUtils.ENTITY + ':' + query.name();
+        String rootCondition = entityCondition(query.name());
         return rootCondition + query.condition()
                 .map(DocumentQueryConverter::convert)
                 .map(s -> " AND " + s).orElse("");
@@ -53,13 +54,14 @@ final class DocumentQueryConverter {
         Object value = ValueUtil.convert(document.value());
 
         return switch (condition.condition()) {
-            case EQUALS, LIKE -> document.name() + ':' + value;
-            case GREATER_EQUALS_THAN, GREATER_THAN -> document.name() + ":[" + value + " TO *]";
-            case LESSER_EQUALS_THAN, LESSER_THAN -> document.name() + ":[* TO " + value + "]";
+            case EQUALS -> document.name() + ':' + escape(value);
+            case LIKE -> document.name() + ':' + escapeLike(value);
+            case GREATER_EQUALS_THAN, GREATER_THAN -> document.name() + ":[" + escape(value) + " TO *]";
+            case LESSER_EQUALS_THAN, LESSER_THAN -> document.name() + ":[* TO " + escape(value) + "]";
             case IN -> {
                 final String inConditions = ValueUtil.convertToList(document.value())
                         .stream()
-                        .map(Object::toString).collect(Collectors.joining(" OR "));
+                        .map(DocumentQueryConverter::escape).collect(Collectors.joining(" OR "));
                 yield document.name() + ":(" + inConditions + ')';
             }
             case NOT -> " NOT " + convert(document.get(CriteriaCondition.class));
@@ -77,6 +79,20 @@ final class DocumentQueryConverter {
     private static List<CriteriaCondition> getDocumentConditions(CriteriaCondition condition) {
         return condition.element().value().get(new TypeReference<>() {
         });
+    }
+
+    static String escape(Object value) {
+        return ClientUtils.escapeQueryChars(String.valueOf(value));
+    }
+
+    static String entityCondition(String entity) {
+        return SolrUtils.ENTITY + ':' + escape(entity);
+    }
+
+    private static String escapeLike(Object value) {
+        return escape(value)
+                .replace("\\*", "*")
+                .replace("\\?", "?");
     }
 
 }
