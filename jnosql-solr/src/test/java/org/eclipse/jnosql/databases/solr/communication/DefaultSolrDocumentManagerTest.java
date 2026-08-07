@@ -22,6 +22,8 @@ import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -33,8 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -51,10 +52,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
+@DisplayName("Default Solr Document Manager")
 public class DefaultSolrDocumentManagerTest {
 
     public static final String COLLECTION_NAME = "person";
     public static final String ID = "_id";
+    private static final AtomicLong IDS = new AtomicLong(System.currentTimeMillis());
     private static SolrDocumentManager entityManager;
 
     @BeforeAll
@@ -62,446 +65,513 @@ public class DefaultSolrDocumentManagerTest {
         entityManager = DocumentDatabase.INSTANCE.get();
     }
 
-    @Test
-    void shouldInsert() {
-        var entity = getEntity();
-        var documentEntity = entityManager.insert(entity);
-        assertTrue(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals(ID)));
+
+    @Nested
+    @DisplayName("When inserting documents at the database")
+    class WhenInsertingAtDatabase {
+
+        @Test
+        @DisplayName("Should insert an entity and preserve its identifier field")
+        void shouldInsert() {
+            var entity = getEntity();
+            var documentEntity = entityManager.insert(entity);
+            assertTrue(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals(ID)));
+        }
+
+        @Test
+        @DisplayName("Should reject insert with TTL because Solr does not support TTL saves")
+        void shouldThrowExceptionWhenInsertWithTTL() {
+            assertThrows(UnsupportedOperationException.class,
+                    () -> entityManager.insert(getEntity(), Duration.ofSeconds(10)));
+        }
+
+        @Test
+        @DisplayName("Should reject null entity on insert")
+        void shouldThrowExceptionWhenInsertIsNull() {
+            assertThrows(NullPointerException.class, () -> entityManager.insert((CommunicationEntity) null));
+        }
+
+        @Test
+        @DisplayName("Should insert an entity with a null field value")
+        void shouldInsertNull() {
+            var entity = getEntity();
+            entity.add(Element.of("name", null));
+            var documentEntity = entityManager.insert(entity);
+            Optional<Element> name = documentEntity.find("name");
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(name).isPresent();
+                soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
+                soft.assertThat(name).get().extracting(Element::get).isNull();
+            });
+        }
+
+        @Test
+        @DisplayName("Should reject embedded sub-document fields during insert")
+        void shouldReturnErrorWhenSaveSubDocument() {
+            var entity = getEntity();
+            entity.add(Element.of("phones", Element.of("mobile", "1231231")));
+            Assertions.assertThrows(SolrException.class, () -> entityManager.insert(entity));
+        }
     }
 
-    @Test
-    void shouldThrowExceptionWhenInsertWithTTL() {
-        assertThrows(UnsupportedOperationException.class,
-                () -> entityManager.insert(getEntity(), Duration.ofSeconds(10)));
+    @Nested
+    @DisplayName("When updating documents at the database")
+    class WhenUpdatingAtDatabase {
+
+        @Test
+        @DisplayName("Should update an existing entity by deleting and reinserting the identifier")
+        void shouldUpdateSave() {
+            var entity = getEntity();
+            entityManager.insert(entity);
+            var newField = Elements.of("newField", "10");
+            entity.add(newField);
+            var updated = entityManager.update(entity);
+            assertEquals(newField, updated.find("newField").get());
+        }
+
+        @Test
+        @DisplayName("Should reject null entity on update")
+        void shouldThrowExceptionWhenUpdateIsNull() {
+            assertThrows(NullPointerException.class, () -> entityManager.update((CommunicationEntity) null));
+        }
+
+        @Test
+        @DisplayName("Should update an entity with a null field value")
+        void shouldUpdateNull() {
+            var entity = entityManager.insert(getEntity());
+            entity.add(Element.of("name", null));
+            var documentEntity = entityManager.update(entity);
+            Optional<Element> name = documentEntity.find("name");
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(name).isPresent();
+                soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
+                soft.assertThat(name).get().extracting(Element::get).isNull();
+            });
+        }
     }
 
-    @Test
-    void shouldUpdateSave() {
-        var entity = getEntity();
-        entityManager.insert(entity);
-        var newField = Elements.of("newField", "10");
-        entity.add(newField);
-        var updated = entityManager.update(entity);
-        assertEquals(newField, updated.find("newField").get());
+    @Nested
+    @DisplayName("When deleting documents from the database")
+    class WhenDeletingFromDatabase {
+
+        @Test
+        @DisplayName("Should remove an entity selected by its identifier")
+        void shouldRemoveEntity() {
+            var documentEntity = entityManager.insert(getEntity());
+
+            Optional<Element> id = documentEntity.find(ID);
+            var query = select().from(COLLECTION_NAME)
+                    .where(ID).eq(id.get().get())
+                    .build();
+            var deleteQuery = delete().from(COLLECTION_NAME).where(ID)
+                    .eq(id.get().get())
+                    .build();
+
+            entityManager.delete(deleteQuery);
+            assertTrue(entityManager.select(query).findAny().isEmpty());
+        }
+
+        @Test
+        @DisplayName("Should reject null delete query")
+        void shouldThrowExceptionWhenDeleteQueryIsNull() {
+            assertThrows(NullPointerException.class, () -> entityManager.delete(null));
+        }
     }
 
-    @Test
-    void shouldRemoveEntity() {
-        var documentEntity = entityManager.insert(getEntity());
+    @Nested
+    @DisplayName("When selecting documents from the database")
+    class WhenSelectingFromDatabase {
 
-        Optional<Element> id = documentEntity.find(ID);
-        var query = select().from(COLLECTION_NAME)
-                .where(ID).eq(id.get().get())
-                .build();
-        var deleteQuery = delete().from(COLLECTION_NAME).where(ID)
-                .eq(id.get().get())
-                .build();
+        @Test
+        @DisplayName("Should find a document by identifier")
+        void shouldFindDocument() {
+            CommunicationEntity entity = entityManager.insert(getEntity());
+            Optional<Element> id = entity.find(ID);
 
-        entityManager.delete(deleteQuery);
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+            var query = select().from(COLLECTION_NAME)
+                    .where(ID).eq(id.get().get())
+                    .build();
+
+            List<CommunicationEntity> entities = entityManager.select(query).toList();
+            assertFalse(entities.isEmpty());
+            final CommunicationEntity result = entities.get(0);
+
+            assertEquals(entity.find("name").get(), result.find("name").get());
+            assertEquals(entity.find("city").get(), result.find("city").get());
+        }
+
+        @Test
+        @DisplayName("Should find a document with multiple AND conditions")
+        void shouldFindDocument2() {
+            var entity = entityManager.insert(getEntity());
+            Optional<Element> id = entity.find(ID);
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("name").eq("Poliana")
+                    .and("city").eq("Salvador").and(ID).eq(id.get().get())
+                    .build();
+
+            List<CommunicationEntity> entities = entityManager.select(query).toList();
+            assertFalse(entities.isEmpty());
+            final CommunicationEntity result = entities.get(0);
+
+            assertEquals(entity.find("name").get(), result.find("name").get());
+            assertEquals(entity.find("city").get(), result.find("city").get());
+        }
+
+        @Test
+        @DisplayName("Should find a document with OR and AND conditions")
+        void shouldFindDocument3() {
+            var entity = entityManager.insert(getEntity());
+            Optional<Element> id = entity.find(ID);
+            var query = select().from(COLLECTION_NAME)
+                    .where("name").eq("Poliana")
+                    .or("city").eq("Salvador")
+                    .and(id.get().name()).eq(id.get().get())
+                    .build();
+
+            List<CommunicationEntity> entities = entityManager.select(query).toList();
+            assertFalse(entities.isEmpty());
+            final CommunicationEntity result = entities.get(0);
+            assertEquals(entity.find("name").get(), result.find("name").get());
+            assertEquals(entity.find("city").get(), result.find("city").get());
+        }
+
+        @Test
+        @DisplayName("Should find documents with a greater-than condition")
+        void shouldFindDocumentGreaterThan() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("age").gt(22)
+                    .and("type").eq("V")
+                    .build();
+
+            List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
+            assertEquals(3, entitiesFound.size());
+        }
+
+        @Test
+        @DisplayName("Should find documents that do not match a condition")
+        void shouldFindNot() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
+            var query = select().from(COLLECTION_NAME)
+                    .where("name").not().eq("Lucas").build();
+            List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
+            assertEquals(2, entitiesFound.size());
+        }
+
+        @Test
+        @DisplayName("Should find documents with a greater-than-or-equal condition")
+        void shouldFindDocumentGreaterEqualsThan() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
+            List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("age").gte(23)
+                    .and("type").eq("V")
+                    .build();
+
+            List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
+            assertEquals(2, entitiesFound.size());
+            assertThat(entitiesFound).isNotIn(entities.get(0));
+        }
+
+        @Test
+        @DisplayName("Should find documents with a less-than condition")
+        void shouldFindDocumentLesserThan() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("age").lt(23)
+                    .and("type").eq("V")
+                    .build();
+
+            List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
+            assertEquals(2, entitiesFound.size());
+        }
+
+        @Test
+        @DisplayName("Should find documents with a less-than-or-equal condition")
+        void shouldFindDocumentLesserEqualsThan() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("age").lte(23)
+                    .and("type").eq("V")
+                    .build();
+
+            List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
+            assertEquals(2, entitiesFound.size());
+        }
+
+        @Test
+        @DisplayName("Should find documents with LIKE wildcard matching")
+        void shouldFindDocumentLike() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("name").like("Lu*")
+                    .and("type").eq("V")
+                    .build();
+
+            List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
+            assertEquals(2, entitiesFound.size());
+        }
+
+        @Test
+        @DisplayName("Should find documents with IN matching")
+        void shouldFindDocumentIn() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("location").in(asList("BR", "US"))
+                    .and("type").eq("V")
+                    .build();
+
+            assertEquals(3, (int) entityManager.select(query).count());
+        }
+
+        @Test
+        @DisplayName("Should skip matching documents when start offset is set")
+        void shouldFindDocumentStart() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
+            List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("age").gt(22)
+                    .and("type").eq("V")
+                    .skip(1L)
+                    .build();
+
+            List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
+            assertEquals(2, entitiesFound.size());
+            assertThat(entitiesFound).isNotIn(entities.get(0));
+
+            query = select().from(COLLECTION_NAME)
+                    .where("age").gt(22)
+                    .and("type").eq("V")
+                    .skip(3L)
+                    .build();
+
+            entitiesFound = entityManager.select(query).collect(Collectors.toList());
+            assertTrue(entitiesFound.isEmpty());
+        }
+
+        @Test
+        @DisplayName("Should limit the number of matching documents")
+        void shouldFindDocumentLimit() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
+            List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("age").gt(22)
+                    .and("type").eq("V")
+                    .limit(1L)
+                    .build();
+
+            List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
+            assertEquals(1, entitiesFound.size());
+            assertThat(entitiesFound).isNotIn(entities.get(0));
+
+            query = select().from(COLLECTION_NAME)
+                    .where("age").gt(22)
+                    .and("type").eq("V")
+                    .limit(2L)
+                    .build();
+
+            entitiesFound = entityManager.select(query).collect(Collectors.toList());
+            assertEquals(2, entitiesFound.size());
+            entityManager.delete(deleteQuery);
+        }
+
+        @Test
+        @DisplayName("Should sort matching documents by age")
+        void shouldFindDocumentSort() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
+
+            var query = select().from(COLLECTION_NAME)
+                    .where("age").gt(22)
+                    .and("type").eq("V")
+                    .orderBy("age").asc()
+                    .build();
+
+            List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
+            List<Integer> ages = entitiesFound.stream()
+                    .map(e -> e.find("age").get().get(Integer.class))
+                    .collect(Collectors.toList());
+
+            assertThat(ages).contains(22, 23, 25);
+
+            query = select().from(COLLECTION_NAME)
+                    .where("age").gt(22)
+                    .and("type").eq("V")
+                    .orderBy("age").desc()
+                    .build();
+
+            entitiesFound = entityManager.select(query).toList();
+            ages = entitiesFound.stream()
+                    .map(e -> e.find("age").get().get(Integer.class))
+                    .collect(Collectors.toList());
+            assertThat(ages).contains(25, 23, 22);
+        }
+
+        @Test
+        @DisplayName("Should find all documents in the collection")
+        void shouldFindAll() {
+            entityManager.insert(getEntity());
+            var query = select().from(COLLECTION_NAME).build();
+            List<CommunicationEntity> entities = entityManager.select(query).toList();
+            assertFalse(entities.isEmpty());
+        }
+
+        @Test
+        @DisplayName("Should reject null select query")
+        void shouldThrowExceptionWhenSelectQueryIsNull() {
+            assertThrows(NullPointerException.class, () -> entityManager.select(null));
+        }
     }
 
-    @Test
-    void shouldFindDocument() {
-        CommunicationEntity entity = entityManager.insert(getEntity());
-        Optional<Element> id = entity.find(ID);
+    @Nested
+    @DisplayName("When executing native Solr queries")
+    class WhenExecutingNativeSolrQuery {
 
-        var query = select().from(COLLECTION_NAME)
-                .where(ID).eq(id.get().get())
-                .build();
+        @Test
+        @DisplayName("Should execute a native Solr query")
+        void shouldExecuteNativeQuery() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
 
-        List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
-        final CommunicationEntity result = entities.get(0);
+            List<CommunicationEntity> entitiesFound = entityManager.solr("age:22 AND type:V AND _entity:person");
+            assertEquals(1, entitiesFound.size());
+        }
 
-        assertEquals(entity.find("name").get(), result.find("name").get());
-        assertEquals(entity.find("city").get(), result.find("city").get());
+        @Test
+        @DisplayName("Should execute a native Solr query with parameters")
+        void shouldExecuteNativeQueryParams() {
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
 
+            Map<String, Object> params = new HashMap<>();
+            params.put("age", 22);
+            params.put("type", "V");
+            params.put("entity", "person");
+
+            List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND type:@type AND _entity:@entity",
+                    params);
+            assertEquals(1, entitiesFound.size());
+        }
+
+        @Test
+        @DisplayName("Should replace all occurrences of a native Solr query parameter")
+        void shouldExecuteNativeQueryParamsReplaceAll() {
+            entityManager.insert(getEntitiesWithValues());
+            var deleteQuery = delete().from(COLLECTION_NAME).build();
+            entityManager.delete(deleteQuery);
+            entityManager.insert(getEntitiesWithValues());
+
+            Map<String, Object> params = new HashMap<>();
+            params.put("age", 22);
+
+            List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND age:@age", params);
+            assertEquals(1, entitiesFound.size());
+        }
     }
 
-    @Test
-    void shouldFindDocument2() {
-        var entity = entityManager.insert(getEntity());
-        Optional<Element> id = entity.find(ID);
+    @Nested
+    @DisplayName("When counting documents in the database")
+    class WhenCountingDocuments {
 
-        var query = select().from(COLLECTION_NAME)
-                .where("name").eq("Poliana")
-                .and("city").eq("Salvador").and(ID).eq(id.get().get())
-                .build();
+        @Test
+        @DisplayName("Should count documents by collection name")
+        void shouldCount() {
+            entityManager.insert(getEntity());
+            assertSoftly(softly -> {
+                softly.assertThat(entityManager.count(COLLECTION_NAME))
+                        .as("should count collection")
+                        .isGreaterThan(0);
+                softly.assertThat(entityManager.count("unknown_collection"))
+                        .as("should count unknown collection")
+                        .isEqualTo(0);
+                softly.assertThatCode(() -> entityManager.count((String) null))
+                        .as("should throw exception when count with null collection name")
+                        .isInstanceOf(NullPointerException.class);
+            });
+        }
 
-        List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
-        final CommunicationEntity result = entities.get(0);
+        @Test
+        @DisplayName("Should count documents by select query")
+        void shouldCountWithSelectQuery() {
+            entityManager.insert(getEntity());
+            var query = SelectQuery.select()
+                    .from(COLLECTION_NAME)
+                    .where("name").eq("Poliana")
+                    .build();
 
-        assertEquals(entity.find("name").get(), result.find("name").get());
-        assertEquals(entity.find("city").get(), result.find("city").get());
+            assertSoftly(softly -> {
+                softly.assertThat(entityManager.count(query))
+                        .as("should count with select query")
+                        .isEqualTo(1);
+                softly.assertThatCode(() -> entityManager.count((SelectQuery) null))
+                        .as("should throw exception when count with null select query")
+                        .isInstanceOf(NullPointerException.class);
+            });
+        }
     }
 
-    @Test
-    void shouldFindDocument3() {
-        var entity = entityManager.insert(getEntity());
-        Optional<Element> id = entity.find(ID);
-        var query = select().from(COLLECTION_NAME)
-                .where("name").eq("Poliana")
-                .or("city").eq("Salvador")
-                .and(id.get().name()).eq(id.get().get())
-                .build();
+    @Nested
+    @DisplayName("When handling temporal fields")
+    class WhenHandlingTemporalFields {
 
-        List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
-        final CommunicationEntity result = entities.get(0);
-        assertEquals(entity.find("name").get(), result.find("name").get());
-        assertEquals(entity.find("city").get(), result.find("city").get());
-    }
+        @Test
+        @DisplayName("Should create and read date values")
+        void shouldCreateDate() {
+            Date date = new Date();
+            LocalDate now = LocalDate.now();
 
-    @Test
-    void shouldFindDocumentGreaterThan() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
-        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
+            var entity = CommunicationEntity.of("download");
+            long id = nextId();
+            entity.add(ID, id);
+            entity.add("date", date);
+            entity.add("now", now);
 
-        var query = select().from(COLLECTION_NAME)
-                .where("age").gt(22)
-                .and("type").eq("V")
-                .build();
+            entityManager.insert(entity);
 
-        List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-        assertEquals(3, entitiesFound.size());
-    }
+            List<CommunicationEntity> entities = entityManager.select(select().from("download")
+                    .where(ID).eq(id).build()).toList();
 
-    @Test
-    void shouldFindNot() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        entityManager.insert(getEntitiesWithValues());
-        var query = select().from(COLLECTION_NAME)
-                .where("name").not().eq("Lucas").build();
-        List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-        assertEquals(2, entitiesFound.size());
-    }
-
-    @Test
-    void shouldFindDocumentGreaterEqualsThan() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
-        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
-
-        var query = select().from(COLLECTION_NAME)
-                .where("age").gte(23)
-                .and("type").eq("V")
-                .build();
-
-        List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
-    }
-
-    @Test
-    void shouldFindDocumentLesserThan() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
-
-        var query = select().from(COLLECTION_NAME)
-                .where("age").lt(23)
-                .and("type").eq("V")
-                .build();
-
-        List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-        assertEquals(2, entitiesFound.size());
-    }
-
-    @Test
-    void shouldFindDocumentLesserEqualsThan() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
-        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
-
-        var query = select().from(COLLECTION_NAME)
-                .where("age").lte(23)
-                .and("type").eq("V")
-                .build();
-
-        List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-        assertEquals(2, entitiesFound.size());
-    }
-
-    @Test
-    void shouldFindDocumentLike() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        Iterable<CommunicationEntity> entities = entityManager.insert(getEntitiesWithValues());
-
-        var query = select().from(COLLECTION_NAME)
-                .where("name").like("Lu*")
-                .and("type").eq("V")
-                .build();
-
-        List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-        assertEquals(2, entitiesFound.size());
-    }
-
-    @Test
-    void shouldFindDocumentIn() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
-        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
-
-        var query = select().from(COLLECTION_NAME)
-                .where("location").in(asList("BR", "US"))
-                .and("type").eq("V")
-                .build();
-
-        assertEquals(3, (int) entityManager.select(query).count());
-    }
-
-    @Test
-    void shouldFindDocumentStart() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
-        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
-
-        var query = select().from(COLLECTION_NAME)
-                .where("age").gt(22)
-                .and("type").eq("V")
-                .skip(1L)
-                .build();
-
-        List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
-
-        query = select().from(COLLECTION_NAME)
-                .where("age").gt(22)
-                .and("type").eq("V")
-                .skip(3L)
-                .build();
-
-        entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertTrue(entitiesFound.isEmpty());
-
-    }
-
-    @Test
-    void shouldFindDocumentLimit() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
-        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
-
-        var query = select().from(COLLECTION_NAME)
-                .where("age").gt(22)
-                .and("type").eq("V")
-                .limit(1L)
-                .build();
-
-        List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(1, entitiesFound.size());
-        assertThat(entitiesFound).isNotIn(entities.get(0));
-
-        query = select().from(COLLECTION_NAME)
-                .where("age").gt(22)
-                .and("type").eq("V")
-                .limit(2L)
-                .build();
-
-        entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
-        entityManager.delete(deleteQuery);
-    }
-
-    @Test
-    void shouldFindDocumentSort() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        Iterable<CommunicationEntity> entitiesSaved = entityManager.insert(getEntitiesWithValues());
-        List<CommunicationEntity> entities = StreamSupport.stream(entitiesSaved.spliterator(), false).toList();
-
-        var query = select().from(COLLECTION_NAME)
-                .where("age").gt(22)
-                .and("type").eq("V")
-                .orderBy("age").asc()
-                .build();
-
-        List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        List<Integer> ages = entitiesFound.stream()
-                .map(e -> e.find("age").get().get(Integer.class))
-                .collect(Collectors.toList());
-
-        assertThat(ages).contains(22, 23, 25);
-
-        query = select().from(COLLECTION_NAME)
-                .where("age").gt(22)
-                .and("type").eq("V")
-                .orderBy("age").desc()
-                .build();
-
-        entitiesFound = entityManager.select(query).toList();
-        ages = entitiesFound.stream()
-                .map(e -> e.find("age").get().get(Integer.class))
-                .collect(Collectors.toList());
-        assertThat(ages).contains(25, 23, 22);
-
-    }
-
-    @Test
-    void shouldExecuteNativeQuery() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        entityManager.insert(getEntitiesWithValues());
-
-        List<CommunicationEntity> entitiesFound = entityManager.solr("age:22 AND type:V AND _entity:person");
-        assertEquals(1, entitiesFound.size());
-    }
-
-    @Test
-    void shouldExecuteNativeQueryParams() {
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        entityManager.insert(getEntitiesWithValues());
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("age", 22);
-        params.put("type", "V");
-        params.put("entity", "person");
-
-        List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND type:@type AND _entity:@entity",
-                params);
-        assertEquals(1, entitiesFound.size());
-    }
-
-    @Test
-    void shouldExecuteNativeQueryParamsReplaceAll() {
-        entityManager.insert(getEntitiesWithValues());
-        var deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        entityManager.insert(getEntitiesWithValues());
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("age", 22);
-
-        List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND age:@age", params);
-        assertEquals(1, entitiesFound.size());
-    }
-
-    @Test
-    void shouldFindAll() {
-        entityManager.insert(getEntity());
-        var query = select().from(COLLECTION_NAME).build();
-        List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
-    }
-
-    @Test
-    void shouldReturnErrorWhenSaveSubDocument() {
-        var entity = getEntity();
-        entity.add(Element.of("phones", Element.of("mobile", "1231231")));
-        Assertions.assertThrows(SolrException.class, () -> entityManager.insert(entity));
-
-    }
-
-    @Test
-    void shouldSaveSubDocument2() {
-        var entity = getEntity();
-        entity.add(Element.of("phones", asList(Element.of("mobile", "1231231"), Element.of("mobile2", "1231231"))));
-        Assertions.assertThrows(SolrException.class, () -> entityManager.insert(entity));
-    }
-
-    @Test
-    void shouldCreateDate() {
-        Date date = new Date();
-        LocalDate now = LocalDate.now();
-
-        var entity = CommunicationEntity.of("download");
-        long id = ThreadLocalRandom.current().nextLong(1, 10);
-        entity.add(ID, id);
-        entity.add("date", date);
-        entity.add("now", now);
-
-        entityManager.insert(entity);
-
-        List<CommunicationEntity> entities = entityManager.select(select().from("download")
-                .where(ID).eq(id).build()).toList();
-
-        assertEquals(1, entities.size());
-        var documentEntity = entities.get(0);
-        assertEquals(date, documentEntity.find("date").get().get(Date.class));
-        assertEquals(now, documentEntity.find("date").get().get(LocalDate.class));
-    }
-
-    @Test
-    void shouldRetrieveListSubdocumentList() {
-        Assertions.assertThrows(SolrException.class, () -> entityManager.insert(createSubdocumentList()));
-    }
-
-    @Test
-    void shouldCount() {
-        entityManager.insert(getEntity());
-        assertSoftly(softly -> {
-            softly.assertThat(entityManager.count(COLLECTION_NAME))
-                    .as("should count collection")
-                    .isGreaterThan(0);
-            softly.assertThat(entityManager.count("unknown_collection"))
-                    .as("should count unknown collection")
-                    .isEqualTo(0);
-            softly.assertThatCode(() -> entityManager.count((String) null))
-                    .as("should throw exception when count with null collection name")
-                    .isInstanceOf(NullPointerException.class);
-        });
-    }
-
-    @Test
-    void shouldCountWithSelectQuery() {
-        entityManager.insert(getEntity());
-        var query = SelectQuery.select()
-                .from(COLLECTION_NAME)
-                .where("name").eq("Poliana")
-                .build();
-
-        assertSoftly(softly -> {
-            softly.assertThat(entityManager.count(query))
-                    .as("should count with select query")
-                    .isEqualTo(1);
-            softly.assertThatCode(() -> entityManager.count((SelectQuery) null))
-                    .as("should throw exception when count with null select query")
-                    .isInstanceOf(NullPointerException.class);
-        });
-    }
-
-    @Test
-    void shouldInsertNull() {
-        var entity = getEntity();
-        entity.add(Element.of("name", null));
-        var documentEntity = entityManager.insert(entity);
-        Optional<Element> name = documentEntity.find("name");
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(name).isPresent();
-            soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
-            soft.assertThat(name).get().extracting(Element::get).isNull();
-        });
-    }
-
-    @Test
-    void shouldUpdateNull() {
-        var entity = entityManager.insert(getEntity());
-        entity.add(Element.of("name", null));
-        var documentEntity = entityManager.update(entity);
-        Optional<Element> name = documentEntity.find("name");
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(name).isPresent();
-            soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
-            soft.assertThat(name).get().extracting(Element::get).isNull();
-        });
+            assertEquals(1, entities.size());
+            var documentEntity = entities.get(0);
+            assertEquals(date, documentEntity.find("date").get().get(Date.class));
+            assertEquals(now, documentEntity.find("date").get().get(LocalDate.class));
+        }
     }
 
     private CommunicationEntity createSubdocumentList() {
         CommunicationEntity entity = CommunicationEntity.of("AppointmentBook");
-        entity.add(Element.of(ID, new Random().nextInt()));
+        entity.add(Element.of(ID, nextId()));
         List<List<Element>> documents = new ArrayList<>();
 
         documents.add(asList(Element.of("name", "Ada"), Element.of("type", ContactType.EMAIL),
@@ -522,7 +592,7 @@ public class DefaultSolrDocumentManagerTest {
         Map<String, Object> map = new HashMap<>();
         map.put("name", "Poliana");
         map.put("city", "Salvador");
-        map.put(ID, ThreadLocalRandom.current().nextLong(1, 10));
+        map.put(ID, nextId());
         List<Element> documents = Elements.of(map);
         documents.forEach(entity::add);
         return entity;
@@ -548,6 +618,10 @@ public class DefaultSolrDocumentManagerTest {
         luna.add(Element.of("type", "V"));
 
         return asList(lucas, otavio, luna);
+    }
+
+    private long nextId() {
+        return IDS.incrementAndGet();
     }
 
 }
