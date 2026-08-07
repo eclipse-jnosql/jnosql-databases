@@ -73,7 +73,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
         Objects.requireNonNull(entity, "entity is required");
 
         try {
-            solrClient.add(SolrUtils.getDocument(entity));
+            solrClient.add(database, SolrUtils.getDocument(entity));
             commit();
         } catch (SolrServerException | IOException e) {
             throw new SolrException("Error to insert/update a information", e);
@@ -92,7 +92,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
         final List<SolrInputDocument> documents = StreamSupport.stream(entities.spliterator(), false)
                 .map(SolrUtils::getDocument).collect(toList());
         try {
-            solrClient.add(documents);
+            solrClient.add(database, documents);
             commit();
         } catch (SolrServerException | IOException e) {
             throw new SolrException("Error to insert/update a information", e);
@@ -139,7 +139,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
     public void delete(DeleteQuery query) {
         Objects.requireNonNull(query, "query is required");
         try {
-            solrClient.deleteByQuery(DocumentQueryConverter.convert(query));
+            solrClient.deleteByQuery(database, DocumentQueryConverter.convert(query));
             commit();
         } catch (SolrServerException | IOException e) {
             throw new SolrException("Error to delete at Solr", e);
@@ -161,7 +161,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
                             .map(convertSortToClause())
                             .collect(toList());
             solrQuery.setSorts(sorts);
-            final QueryResponse response = solrClient.query(solrQuery);
+            final QueryResponse response = solrClient.query(database, solrQuery);
             final SolrDocumentList documents = response.getResults();
             return SolrUtils.of(documents).stream();
         } catch (SolrServerException | IOException e) {
@@ -184,7 +184,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.set("q", "_entity:" + documentCollection);
             solrQuery.setRows(0);
-            final QueryResponse response = solrClient.query(solrQuery);
+            final QueryResponse response = solrClient.query(database, solrQuery);
             return response.getResults().getNumFound();
         } catch (SolrServerException | IOException e) {
             throw new SolrException("Error to execute count at Solr", e);
@@ -197,7 +197,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
         try {
             SolrQuery solrQuery = buildSolrQuery(query);
             solrQuery.setRows(0);
-            final QueryResponse response = solrClient.query(solrQuery);
+            final QueryResponse response = solrClient.query(database, solrQuery);
             return response.getResults().getNumFound();
         } catch (SolrServerException | IOException e) {
             throw new SolrException("Error to execute count at Solr", e);
@@ -222,7 +222,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
     private void commit() {
         if (isAutomaticCommit()) {
             try {
-                solrClient.commit();
+                solrClient.commit(database);
             } catch (SolrServerException | IOException e) {
                 throw new SolrException("Error to commit at Solr", e);
             }
@@ -241,7 +241,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
         try {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.set("q", query);
-            final QueryResponse response = solrClient.query(solrQuery);
+            final QueryResponse response = solrClient.query(database, solrQuery);
             final SolrDocumentList documents = response.getResults();
             return SolrUtils.of(documents);
         } catch (SolrServerException | IOException e) {
