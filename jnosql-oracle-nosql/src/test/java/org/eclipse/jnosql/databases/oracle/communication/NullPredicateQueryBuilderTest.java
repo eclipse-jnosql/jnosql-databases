@@ -30,14 +30,19 @@ class NullPredicateQueryBuilderTest {
 
     private static final String ENTITY = "asciiCharacter";
     private static final String FIELD = "hexadecimal";
+    private static final String ID = "_id";
     private static final String TABLE = "entities";
+    private static final String JSON_PATH = TABLE + ".content." + FIELD;
+    private static final String ID_PATH = TABLE + ".id";
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("queryCases")
     void shouldTranslateNullEqualityWithoutBindParameter(QueryCase queryCase) {
-        var generated = queryCase.build(CriteriaCondition.eq(nullElement()));
+        var generated = queryCase.build(CriteriaCondition.eq(nullElement(FIELD)));
 
-        assertThat(generated.query()).contains("content." + FIELD, " IS NULL")
+        assertThat(normalize(generated.query()))
+                .contains("(" + JSON_PATH + " = null OR NOT EXISTS " + JSON_PATH
+                        + " OR " + JSON_PATH + " IS NULL)")
                 .doesNotContain("?");
         assertThat(generated.params()).isEmpty();
     }
@@ -45,10 +50,32 @@ class NullPredicateQueryBuilderTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("queryCases")
     void shouldTranslateNegatedNullEqualityWithoutBindParameter(QueryCase queryCase) {
-        var generated = queryCase.build(CriteriaCondition.eq(nullElement()).negate());
+        var generated = queryCase.build(CriteriaCondition.eq(nullElement(FIELD)).negate());
 
-        assertThat(generated.query()).contains("content." + FIELD, " IS NOT NULL")
+        assertThat(normalize(generated.query()))
+                .contains("(" + JSON_PATH + " != null AND EXISTS " + JSON_PATH
+                        + " AND " + JSON_PATH + " IS NOT NULL)")
                 .doesNotContain("?");
+        assertThat(generated.params()).isEmpty();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("queryCases")
+    void shouldKeepIdNullEqualityAsNativeSqlNullPredicate(QueryCase queryCase) {
+        var generated = queryCase.build(CriteriaCondition.eq(nullElement(ID)));
+
+        assertThat(normalize(generated.query())).contains(ID_PATH + " IS NULL")
+                .doesNotContain("content." + ID, "= null", "EXISTS", "?");
+        assertThat(generated.params()).isEmpty();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("queryCases")
+    void shouldKeepNegatedIdNullEqualityAsNativeSqlNullPredicate(QueryCase queryCase) {
+        var generated = queryCase.build(CriteriaCondition.eq(nullElement(ID)).negate());
+
+        assertThat(normalize(generated.query())).contains(ID_PATH + " IS NOT NULL")
+                .doesNotContain("content." + ID, "!= null", "EXISTS", "?");
         assertThat(generated.params()).isEmpty();
     }
 
@@ -57,8 +84,8 @@ class NullPredicateQueryBuilderTest {
     void shouldKeepNullStringAsBindParameter(QueryCase queryCase) {
         var generated = queryCase.build(CriteriaCondition.eq(Element.of(FIELD, "null")));
 
-        assertThat(generated.query()).contains("content." + FIELD, " = ", "?")
-                .doesNotContain("IS NULL", "IS NOT NULL");
+        assertThat(normalize(generated.query())).contains(JSON_PATH + " = ?")
+                .doesNotContain("IS NULL", "IS NOT NULL", "EXISTS", "= null", "!= null");
         assertThat(generated.params()).singleElement()
                 .satisfies(parameter -> assertThat(parameter.asString().getValue()).isEqualTo("null"));
     }
@@ -93,8 +120,12 @@ class NullPredicateQueryBuilderTest {
         };
     }
 
-    private static Element nullElement() {
-        return Element.of(FIELD, Value.ofNull());
+    private static Element nullElement(String field) {
+        return Element.of(field, Value.ofNull());
+    }
+
+    private static String normalize(String query) {
+        return query.replaceAll("\\s+", " ").trim();
     }
 
     private record QueryCase(String name, Function<CriteriaCondition, OracleQuery> builder) {
