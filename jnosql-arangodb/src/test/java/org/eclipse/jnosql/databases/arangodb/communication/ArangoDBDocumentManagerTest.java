@@ -53,10 +53,6 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -87,7 +83,7 @@ public class ArangoDBDocumentManagerTest {
         var entity = getEntity();
 
         CommunicationEntity documentEntity = entityManager.insert(entity);
-        assertTrue(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals(KEY_NAME)));
+        assertThat(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals(KEY_NAME))).isTrue();
     }
 
     @Test
@@ -97,7 +93,7 @@ public class ArangoDBDocumentManagerTest {
         Element newField = Elements.of("newField", "10");
         entity.add(newField);
         CommunicationEntity updated = entityManager.update(entity);
-        assertEquals(newField, updated.find("newField").get());
+        assertThat(updated.find("newField").get()).isEqualTo(newField);
     }
 
     @Test
@@ -127,12 +123,12 @@ public class ArangoDBDocumentManagerTest {
         Element id = entity.find(KEY_NAME).get();
         SelectQuery query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         CommunicationEntity documentEntity = entities.getFirst();
-        assertEquals(entity.find(KEY_NAME).get().value().get(String.class), documentEntity.find(KEY_NAME).get()
-                .value().get(String.class));
-        assertEquals(entity.find("name").get(), documentEntity.find("name").get());
-        assertEquals(entity.find("city").get(), documentEntity.find("city").get());
+        assertThat(documentEntity.find(KEY_NAME).get()
+                .value().get(String.class)).isEqualTo(entity.find(KEY_NAME).get().value().get(String.class));
+        assertThat(documentEntity.find("name").get()).isEqualTo(entity.find("name").get());
+        assertThat(documentEntity.find("city").get()).isEqualTo(entity.find("city").get());
     }
 
 
@@ -180,12 +176,12 @@ public class ArangoDBDocumentManagerTest {
         SelectQuery query = select().from("AppointmentBook").where(key.name()).eq(key.get()).build();
 
         CommunicationEntity documentEntity = entityManager.singleResult(query).get();
-        assertNotNull(documentEntity);
+        assertThat(documentEntity).isNotNull();
 
         List<List<Element>> contacts = (List<List<Element>>) documentEntity.find("contacts").get().get();
 
-        assertEquals(3, contacts.size());
-        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
+        assertThat(contacts.size()).isEqualTo(3);
+        assertThat(contacts.stream().allMatch(d -> d.size() == 3)).isTrue();
     }
 
     @Test
@@ -202,12 +198,12 @@ public class ArangoDBDocumentManagerTest {
         SelectQuery query = select().from("AppointmentBook").where(key.name()).eq(key.get()).build();
 
         CommunicationEntity documentEntity = entityManager.singleResult(query).get();
-        assertNotNull(documentEntity);
+        assertThat(documentEntity).isNotNull();
 
         List<List<Element>> contacts = (List<List<Element>>) documentEntity.find("contacts").get().get();
 
-        assertEquals(3, contacts.size());
-        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
+        assertThat(contacts.size()).isEqualTo(3);
+        assertThat(contacts.stream().allMatch(d -> d.size() == 3)).isTrue();
     }
 
     @Test
@@ -218,7 +214,7 @@ public class ArangoDBDocumentManagerTest {
         String aql = "FOR a IN person FILTER a.name == @name RETURN a";
         List<CommunicationEntity> entities = entityManager.aql(aql,
                 singletonMap("name", "Poliana")).collect(Collectors.toList());
-        assertNotNull(entities);
+        assertThat(entities).isNotNull();
     }
 
 
@@ -227,7 +223,7 @@ public class ArangoDBDocumentManagerTest {
         CommunicationEntity entity = getEntity();
         entityManager.insert(entity);
 
-        assertTrue(entityManager.count(COLLECTION_NAME) > 0);
+        assertThat(entityManager.count(COLLECTION_NAME) > 0).isTrue();
     }
 
     @Test
@@ -253,7 +249,7 @@ public class ArangoDBDocumentManagerTest {
         arangoDB.db(DATABASE).collection(COLLECTION_NAME).insertDocument(new Human());
         SelectQuery select = select().from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(select).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -266,7 +262,7 @@ public class ArangoDBDocumentManagerTest {
         arangoDB.db(DATABASE).collection(COLLECTION_NAME).insertDocument(map);
         SelectQuery select = select().from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(select).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -276,7 +272,7 @@ public class ArangoDBDocumentManagerTest {
         List<String> entities = entityManager.aql(aql,
                 singletonMap("name", "Poliana"), String.class).toList();
 
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -284,7 +280,7 @@ public class ArangoDBDocumentManagerTest {
         entityManager.insert(getEntity());
         String aql = "FOR a IN person RETURN a.name";
         List<String> entities = entityManager.aql(aql, String.class).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
