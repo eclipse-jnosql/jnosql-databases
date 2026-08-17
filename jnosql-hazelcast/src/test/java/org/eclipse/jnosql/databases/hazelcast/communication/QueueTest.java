@@ -26,10 +26,8 @@ import org.junit.jupiter.api.Test;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class QueueTest {
 
@@ -46,36 +44,36 @@ public class QueueTest {
 
     @Test
     public void shouldPushInTheLine() {
-        assertTrue(lineBank.add(new LineBank("Otavio", 25)));
-        assertEquals(1, lineBank.size());
+        assertThat(lineBank.add(new LineBank("Otavio", 25))).isTrue();
+        assertThat(lineBank.size()).isEqualTo(1);
         LineBank otavio = lineBank.poll();
-        assertEquals(otavio.getPerson().name(), "Otavio");
-        assertNull(lineBank.poll());
-        assertTrue(lineBank.isEmpty());
+        assertThat("Otavio").isEqualTo(otavio.getPerson().name());
+        assertThat(lineBank.poll()).isNull();
+        assertThat(lineBank.isEmpty()).isTrue();
     }
 
     @Test
     public void shouldPeekInTheLine() {
         lineBank.add(new LineBank("Otavio", 25));
         LineBank otavio = lineBank.peek();
-        assertNotNull(otavio);
-        assertNotNull(lineBank.peek());
+        assertThat(otavio).isNotNull();
+        assertThat(lineBank.peek()).isNotNull();
         LineBank otavio2 = lineBank.remove();
-        assertEquals(otavio.getPerson().name(), otavio2.getPerson().name());
+        assertThat(otavio2.getPerson().name()).isEqualTo(otavio.getPerson().name());
         boolean happendException = false;
         try {
             lineBank.remove();
         }catch(NoSuchElementException e) {
             happendException = true;
         }
-        assertTrue(happendException);
+        assertThat(happendException).isTrue();
     }
 
     @Test
     public void shouldElementInTheLine() {
         lineBank.add(new LineBank("Otavio", 25));
-        assertNotNull(lineBank.element());
-        assertNotNull(lineBank.element());
+        assertThat(lineBank.element()).isNotNull();
+        assertThat(lineBank.element()).isNotNull();
         lineBank.remove(new LineBank("Otavio", 25));
         boolean happendException = false;
         try {
@@ -83,7 +81,7 @@ public class QueueTest {
         }catch(NoSuchElementException e) {
             happendException = true;
         }
-        assertTrue(happendException);
+        assertThat(happendException).isTrue();
     }
     @SuppressWarnings("unused")
     @Test
@@ -94,14 +92,14 @@ public class QueueTest {
         for (LineBank line: lineBank) {
             count++;
         }
-        assertEquals(2, count);
+        assertThat(count).isEqualTo(2);
         lineBank.remove();
         lineBank.remove();
         count = 0;
         for (LineBank line: lineBank) {
             count++;
         }
-        assertEquals(0, count);
+        assertThat(count).isEqualTo(0);
     }
     @AfterEach
     public void dispose() {
