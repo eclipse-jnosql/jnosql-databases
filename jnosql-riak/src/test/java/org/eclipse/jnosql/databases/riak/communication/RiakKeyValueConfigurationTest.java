@@ -16,11 +16,12 @@
 package org.eclipse.jnosql.databases.riak.communication;
 
 import org.eclipse.jnosql.communication.keyvalue.KeyValueConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class RiakKeyValueConfigurationTest {
 
@@ -33,22 +34,22 @@ public class RiakKeyValueConfigurationTest {
 
     @Test
     public void shouldReturnErrorWhenNodeIsNull() {
-        assertThrows(NullPointerException.class, () -> configuration.add((String) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.add((String) null));
     }
 
 
     @Test
     public void shouldReturnFromConfiguration() {
         KeyValueConfiguration configuration = KeyValueConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof KeyValueConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof KeyValueConfiguration).isTrue();
     }
 
     @Test
     public void shouldReturnFromConfigurationQuery() {
         RiakKeyValueConfiguration configuration = KeyValueConfiguration
                 .getConfiguration(RiakKeyValueConfiguration.class);
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof RiakKeyValueConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof RiakKeyValueConfiguration).isTrue();
     }
 }
