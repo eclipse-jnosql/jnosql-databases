@@ -28,8 +28,9 @@ import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
@@ -43,14 +44,14 @@ class GraphTemplateProducerTest {
 
     @Test
     void shouldReturnErrorWhenManagerNull() {
-        assertThrows(NullPointerException.class, () -> producer.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> producer.apply(null));
     }
 
     @Test
     void shouldReturnGraphTemplateWhenGetGraph() {
         Graph graph = Mockito.mock(Graph.class);
         TinkerpopTemplate template = producer.apply(graph);
-        assertNotNull(template);
+        assertThat(template).isNotNull();
     }
 
 
