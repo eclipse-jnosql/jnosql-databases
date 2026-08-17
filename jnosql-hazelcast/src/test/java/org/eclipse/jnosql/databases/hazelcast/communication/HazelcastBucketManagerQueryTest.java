@@ -30,8 +30,8 @@ import static com.hazelcast.query.Predicates.and;
 import static com.hazelcast.query.Predicates.equal;
 import static com.hazelcast.query.Predicates.greaterEqual;
 import static java.util.Collections.singletonMap;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class HazelcastBucketManagerQueryTest {
 
@@ -54,52 +54,52 @@ public class HazelcastBucketManagerQueryTest {
 
     @Test
     public void shouldReturnWhenPredicateQueryIsNull() {
-        assertThrows(NullPointerException.class, () -> bucketManager.sql((Predicate<?, ? extends Object>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> bucketManager.sql((Predicate<?, ? extends Object>) null));
     }
 
     @Test
     public void shouldReturnActive() {
         Collection<Value> result = bucketManager.sql("active");
-        assertEquals(2, result.size());
+        assertThat(result.size()).isEqualTo(2);
     }
 
     @Test
     public void shouldReturnActiveAndGreaterThan2000() {
         Collection<Value> result = bucketManager.sql("NOT active AND year > 1990");
-        assertEquals(2, result.size());
+        assertThat(result.size()).isEqualTo(2);
     }
 
     @Test
     public void shouldReturnEqualsMatrix() {
         Collection<Value> result = bucketManager.sql("name = Matrix");
-        assertEquals(1, result.size());
+        assertThat(result.size()).isEqualTo(1);
     }
 
 
     @Test
     public void shouldReturnActivePredicate() {
         Collection<Value> result = bucketManager.sql(equal("active", true));
-        assertEquals(2, result.size());
+        assertThat(result.size()).isEqualTo(2);
     }
 
     @Test
     public void shouldReturnActiveAndGreaterThan2000Predicate() {
         Predicate predicate = and(equal("active", false), greaterEqual("year", 1990));
         Collection<Value> result = bucketManager.sql(predicate);
-        assertEquals(2, result.size());
+        assertThat(result.size()).isEqualTo(2);
     }
 
     @Test
     public void shouldReturnEqualsMatrixPredicate() {
         Predicate predicate = equal("name", "Matrix");
         Collection<Value> result = bucketManager.sql(predicate);
-        assertEquals(1, result.size());
+        assertThat(result.size()).isEqualTo(1);
     }
 
     @Test
     public void shouldReturnEqualsNameParam() {
         Collection<Value> result = bucketManager.sql("name = :name", singletonMap("name", "Matrix"));
-        assertEquals(1, result.size());
+        assertThat(result.size()).isEqualTo(1);
     }
 
     @Test
@@ -109,13 +109,13 @@ public class HazelcastBucketManagerQueryTest {
         params.put("year", 1900);
         Collection<Value> result = bucketManager.sql("name = :name AND year > :year", params);
 
-        assertEquals(1, result.size());
+        assertThat(result.size()).isEqualTo(1);
     }
 
     @Test
     public void shouldReturnLikeNameParam() {
         Collection<Value> result = bucketManager.sql("name like :name", singletonMap("name", "Mat%"));
-        assertEquals(1, result.size());
+        assertThat(result.size()).isEqualTo(1);
     }
 
 }
