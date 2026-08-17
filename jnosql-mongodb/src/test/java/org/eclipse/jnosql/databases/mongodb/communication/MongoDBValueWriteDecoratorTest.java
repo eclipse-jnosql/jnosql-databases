@@ -18,7 +18,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 @SuppressWarnings("rawtypes")
 class MongoDBValueWriteDecoratorTest {
@@ -27,7 +28,7 @@ class MongoDBValueWriteDecoratorTest {
 
     @Test
     void shouldTestUUIDType() {
-        assertTrue(valueWriter.test(UUID.class));
+        assertThat(valueWriter.test(UUID.class)).isTrue();
     }
 
 }
