@@ -18,8 +18,9 @@ package org.eclipse.jnosql.databases.ravendb.communication;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class RavenDBDocumentManagerFactoryTest {
 
@@ -33,12 +34,12 @@ public class RavenDBDocumentManagerFactoryTest {
     @Test
     public void shouldCreateEntityManager() {
         RavenDBDocumentManagerFactory ravenDBFactory = configuration.apply(DocumentConfigurationUtils.INSTANCE.getSettings());
-        assertNotNull(ravenDBFactory.apply("database"));
+        assertThat(ravenDBFactory.apply("database")).isNotNull();
     }
 
     @Test
     public void shouldReturnNPEWhenSettingsIsNull() {
-        assertThrows(NullPointerException.class, () -> configuration.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.apply(null));
     }
 
 
