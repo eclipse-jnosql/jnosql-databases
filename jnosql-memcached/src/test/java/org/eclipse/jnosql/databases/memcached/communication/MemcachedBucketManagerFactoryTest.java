@@ -18,7 +18,8 @@ import org.eclipse.jnosql.communication.Settings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class MemcachedBucketManagerFactoryTest {
 
@@ -35,22 +36,22 @@ public class MemcachedBucketManagerFactoryTest {
 
     @Test
     public void shouldReturnErrorList() {
-        assertThrows(UnsupportedOperationException.class, () -> managerFactory.getList(null, String.class));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> managerFactory.getList(null, String.class));
     }
 
     @Test
     public void shouldReturnErrorSet() {
-        assertThrows(UnsupportedOperationException.class, () -> managerFactory.getSet(null, String.class));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> managerFactory.getSet(null, String.class));
     }
 
     @Test
     public void shouldReturnErrorQueue() {
-        assertThrows(UnsupportedOperationException.class, () -> managerFactory.getQueue(null, String.class));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> managerFactory.getQueue(null, String.class));
     }
 
     @Test
     public void shouldReturnErrorMap() {
-        assertThrows(UnsupportedOperationException.class, () -> managerFactory.getMap(null, String.class, String.class));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> managerFactory.getMap(null, String.class, String.class));
     }
 
 }
