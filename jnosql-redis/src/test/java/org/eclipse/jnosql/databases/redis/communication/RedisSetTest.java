@@ -29,9 +29,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class RedisSetTest {
@@ -50,7 +48,7 @@ public class RedisSetTest {
     @Test
     public void shouldAddUsers() {
         users.add(userOtavioJava);
-        assertEquals(1, users.size());
+        assertThat(users.size()).isEqualTo(1);
     }
 
     @Test
@@ -59,7 +57,7 @@ public class RedisSetTest {
         users.add(felipe);
         users.remove(felipe);
 
-        assertEquals(1, users.size());
+        assertThat(users.size()).isEqualTo(1);
         assertThat(users).isNotIn(felipe);
    }
 
@@ -69,7 +67,7 @@ public class RedisSetTest {
         users.add(felipe);
         users.removeAll(Arrays.asList(felipe, userOtavioJava));
 
-        assertEquals(0, users.size());
+        assertThat(users.size()).isEqualTo(0);
     }
 
     @SuppressWarnings("unused")
@@ -84,27 +82,27 @@ public class RedisSetTest {
         for (User user : users) {
             count++;
         }
-        assertEquals(2, count);
+        assertThat(count).isEqualTo(2);
     }
 
     @Test
     public void shouldContains() {
         users.add(userOtavioJava);
-        assertTrue(users.contains(userOtavioJava));
+        assertThat(users.contains(userOtavioJava)).isTrue();
     }
 
     @Test
     public void shouldContainsAll() {
         users.add(userOtavioJava);
         users.add(felipe);
-        assertTrue(users.containsAll(Arrays.asList(userOtavioJava, felipe)));
+        assertThat(users.containsAll(Arrays.asList(userOtavioJava, felipe))).isTrue();
     }
 
     @Test
     public void shouldReturnSize() {
         users.add(userOtavioJava);
         users.add(felipe);
-        assertEquals(2, users.size());
+        assertThat(users.size()).isEqualTo(2);
     }
 
     @Test
@@ -113,12 +111,12 @@ public class RedisSetTest {
         users.add(felipe);
 
         users.clear();
-        assertTrue(users.isEmpty());
+        assertThat(users.isEmpty()).isTrue();
     }
 
     @Test
     public void shouldThrowExceptionRetainAll() {
-        assertThrows(UnsupportedOperationException.class, () -> users.retainAll(Collections.singletonList(userOtavioJava)));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> users.retainAll(Collections.singletonList(userOtavioJava)));
     }
 
     @AfterEach
