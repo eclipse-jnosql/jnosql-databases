@@ -38,8 +38,6 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class DocumentQueryTest {
@@ -102,7 +100,7 @@ public class DocumentQueryTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertEquals(2, entities.size());
+        assertThat(entities.size()).isEqualTo(2);
 
     }
 
@@ -113,7 +111,7 @@ public class DocumentQueryTest {
                 .skip(1L)
                 .build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertEquals(2, entities.size());
+        assertThat(entities.size()).isEqualTo(2);
 
     }
 
@@ -121,7 +119,7 @@ public class DocumentQueryTest {
     public void shouldShouldDefineLimitAndStart() {
 
         List<CommunicationEntity> entities = entityManager.select(select().from(COLLECTION_NAME).build()).collect(Collectors.toList());
-        assertEquals(4, entities.size());
+        assertThat(entities.size()).isEqualTo(4);
 
         SelectQuery query = select().from(COLLECTION_NAME)
                 .where("name").eq("name")
@@ -130,7 +128,7 @@ public class DocumentQueryTest {
                 .build();
 
         entities = entityManager.select(query).toList();
-        assertEquals(2, entities.size());
+        assertThat(entities.size()).isEqualTo(2);
 
     }
 
@@ -139,7 +137,7 @@ public class DocumentQueryTest {
     public void shouldSelectAll() {
         SelectQuery query = select().from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).hasSize(4);
     }
 
@@ -152,7 +150,7 @@ public class DocumentQueryTest {
                 .eq("name")
                 .build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -169,7 +167,7 @@ public class DocumentQueryTest {
                 .map(d -> d.get(String.class))
                 .collect(Collectors.toList());
 
-        assertFalse(result.isEmpty());
+        assertThat(result.isEmpty()).isFalse();
         assertThat(result).contains("name", "name", "name", "name3");
     }
 
@@ -187,7 +185,7 @@ public class DocumentQueryTest {
                 .map(d -> d.get(String.class))
                 .collect(Collectors.toList());
 
-        assertFalse(result.isEmpty());
+        assertThat(result.isEmpty()).isFalse();
         assertThat(result).contains("name3", "name", "name", "name");
     }
 
@@ -199,7 +197,7 @@ public class DocumentQueryTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
 
     }
 
