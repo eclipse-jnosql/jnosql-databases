@@ -15,13 +15,13 @@
 package org.eclipse.jnosql.databases.dynamodb.communication;
 
 import org.eclipse.jnosql.communication.keyvalue.KeyValueConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class DynamoDBKeyValueConfigurationTest {
@@ -37,15 +37,15 @@ public class DynamoDBKeyValueConfigurationTest {
 	@Test
 	public void shouldReturnFromConfiguration() {
 		DynamoDBKeyValueConfiguration configuration = KeyValueConfiguration.getConfiguration();
-		Assertions.assertNotNull(configuration);
-		Assertions.assertTrue(configuration instanceof DynamoDBKeyValueConfiguration);
+		assertThat(configuration).isNotNull();
+		assertThat(configuration instanceof DynamoDBKeyValueConfiguration).isTrue();
 	}
 
 	@Test
 	public void shouldReturnFromConfigurationQuery() {
 		DynamoDBKeyValueConfiguration configuration = KeyValueConfiguration
 				.getConfiguration(DynamoDBKeyValueConfiguration.class);
-		Assertions.assertNotNull(configuration);
-		Assertions.assertTrue(configuration instanceof DynamoDBKeyValueConfiguration);
+		assertThat(configuration).isNotNull();
+		assertThat(configuration instanceof DynamoDBKeyValueConfiguration).isTrue();
 	}
 }
