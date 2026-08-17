@@ -31,7 +31,8 @@ import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 
 @EnableAutoWeld
@@ -62,24 +63,24 @@ class TinkerpopExtensionTest {
 
     @Test
     void shouldInitiate() {
-        assertNotNull(repository);
+        assertThat(repository).isNotNull();
     }
 
     @Test
     void shouldUseMock() {
-        assertNotNull(repositoryMock);
+        assertThat(repositoryMock).isNotNull();
     }
 
     @Test
     void shouldInjectTemplate() {
-        assertNotNull(templateMock);
-        assertNotNull(template);
-        assertNotNull(repository2);
+        assertThat(templateMock).isNotNull();
+        assertThat(template).isNotNull();
+        assertThat(repository2).isNotNull();
     }
 
     @Test
     void shouldInjectRepository() {
-        assertNotNull(repository);
-        assertNotNull(repositoryMock);
+        assertThat(repository).isNotNull();
+        assertThat(repositoryMock).isNotNull();
     }
 }
