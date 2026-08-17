@@ -17,18 +17,19 @@ package org.eclipse.jnosql.databases.redis.communication;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class RedisUtilsTest {
 
     @Test
     public void shouldReturnNameSpace() {
-        assertEquals("namespace:key", RedisUtils.createKeyWithNameSpace("key", "namespace"));
+        assertThat(RedisUtils.createKeyWithNameSpace("key", "namespace")).isEqualTo("namespace:key");
     }
 
     @Test
     public void shouldThrowWithNullKey() {
-        assertThrows(IrregularKeyValue.class, () -> RedisUtils.createKeyWithNameSpace(null, ""));
+        assertThatExceptionOfType(IrregularKeyValue.class).isThrownBy(() -> RedisUtils.createKeyWithNameSpace(null, ""));
     }
 }
