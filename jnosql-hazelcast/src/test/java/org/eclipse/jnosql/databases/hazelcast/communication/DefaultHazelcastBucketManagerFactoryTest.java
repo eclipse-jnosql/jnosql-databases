@@ -23,8 +23,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class DefaultHazelcastBucketManagerFactoryTest {
 
@@ -40,92 +41,92 @@ public class DefaultHazelcastBucketManagerFactoryTest {
     @Test
     public void shouldReturnList() {
         List<String> list = managerFactory.getList("list_sample", String.class);
-        assertNotNull(list);
+        assertThat(list).isNotNull();
     }
 
     @Test
     public void shouldReturnSet() {
         Set<String> set = managerFactory.getSet("set_sample", String.class);
-        assertNotNull(set);
+        assertThat(set).isNotNull();
     }
 
     @Test
     public void shouldReturnQueue() {
         Queue<String> queue = managerFactory.getQueue("queue_sample", String.class);
-        assertNotNull(queue);
+        assertThat(queue).isNotNull();
     }
 
     @Test
     public void shouldReturnMap() {
         Map<String, String> map = managerFactory.getMap("map_sample", String.class, String.class);
-        assertNotNull(map);
+        assertThat(map).isNotNull();
     }
 
 
     @Test
     public void shouldReturnErrorWhenNullParameterList() {
-        assertThrows(NullPointerException.class, () -> managerFactory.getList(null, String.class));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> managerFactory.getList(null, String.class));
     }
 
     @Test
     public void shouldReturnErrorWhenNullParameterSet() {
-        assertThrows(NullPointerException.class, () -> managerFactory.getSet(null, String.class));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> managerFactory.getSet(null, String.class));
     }
 
     @Test
     public void shouldReturnErrorWhenNullParameterQueue() {
-        assertThrows(NullPointerException.class, () -> managerFactory.getQueue(null, String.class));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> managerFactory.getQueue(null, String.class));
     }
 
     @Test
     public void shouldReturnErrorWhenNullParameterMap() {
-        assertThrows(NullPointerException.class, () -> managerFactory.getMap(null, String.class, String.class));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> managerFactory.getMap(null, String.class, String.class));
     }
 
     //
     @Test
     public void shouldReturnListHazelcast() {
         List<String> list = managerFactory.getList("list_sample");
-        assertNotNull(list);
+        assertThat(list).isNotNull();
     }
 
     @Test
     public void shouldReturnSetHazelcast() {
         Set<String> set = managerFactory.getSet("set_sample");
-        assertNotNull(set);
+        assertThat(set).isNotNull();
     }
 
     @Test
     public void shouldReturnQueueHazelcast() {
         Queue<String> queue = managerFactory.getQueue("queue_sample");
-        assertNotNull(queue);
+        assertThat(queue).isNotNull();
     }
 
     @Test
     public void shouldReturnMapHazelcast() {
         Map<String, String> map = managerFactory.getMap("map_sample");
-        assertNotNull(map);
+        assertThat(map).isNotNull();
     }
 
 
     @Test
     public void shouldReturnErrorWhenNullParameterListHazelcast() {
-        assertThrows(NullPointerException.class, () -> managerFactory.getList(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> managerFactory.getList(null));
     }
 
     @Test
     public void shouldReturnErrorWhenNullParameterSetHazelcast() {
-        assertThrows(NullPointerException.class, () -> managerFactory.getSet(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> managerFactory.getSet(null));
     }
 
     @Test
     public void shouldReturnErrorWhenNullParameterQueueHazelcast() {
-        assertThrows(NullPointerException.class, () -> managerFactory.getQueue(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> managerFactory.getQueue(null));
     }
 
     @Test
     public void shouldReturnErrorWhenNullParameterMapHazelcast() {
-        assertThrows(NullPointerException.class, () -> managerFactory.getMap(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> managerFactory.getMap(null));
     }
 
 }
