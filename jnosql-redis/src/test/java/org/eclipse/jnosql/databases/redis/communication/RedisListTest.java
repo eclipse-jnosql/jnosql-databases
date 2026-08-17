@@ -29,11 +29,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class RedisListTest {
@@ -57,31 +53,31 @@ public class RedisListTest {
 
     @Test
     public void shouldReturnsList() {
-        assertNotNull(fruits);
+        assertThat(fruits).isNotNull();
     }
 
     @Test
     public void shouldAddList() {
-        assertTrue(fruits.isEmpty());
+        assertThat(fruits.isEmpty()).isTrue();
         fruits.add(banana);
-        assertFalse(fruits.isEmpty());
+        assertThat(fruits.isEmpty()).isFalse();
         ProductCart banana = fruits.getFirst();
-        assertNotNull(banana);
-        assertEquals(banana.name(), "banana");
+        assertThat(banana).isNotNull();
+        assertThat("banana").isEqualTo(banana.name());
     }
 
     @Test
     public void shouldSetList() {
         fruits.add(banana);
         fruits.addFirst(orange);
-        assertEquals(2, fruits.size());
+        assertThat(fruits.size()).isEqualTo(2);
 
-        assertEquals(fruits.get(0).name(), "orange");
-        assertEquals(fruits.get(1).name(), "banana");
+        assertThat("orange").isEqualTo(fruits.get(0).name());
+        assertThat("banana").isEqualTo(fruits.get(1).name());
 
         fruits.set(0, waterMelon);
-        assertEquals(fruits.get(0).name(), "waterMelon");
-        assertEquals(fruits.get(1).name(), "banana");
+        assertThat("waterMelon").isEqualTo(fruits.get(0).name());
+        assertThat("banana").isEqualTo(fruits.get(1).name());
     }
 
     @Test
@@ -101,7 +97,7 @@ public class RedisListTest {
         fruits.add(waterMelon);
 
         fruits.removeAll(Arrays.asList(orange, banana));
-        assertEquals(1, fruits.size());
+        assertThat(fruits.size()).isEqualTo(1);
         assertThat(fruits).contains(waterMelon);
     }
 
@@ -121,12 +117,12 @@ public class RedisListTest {
         fruits.add(banana);
         fruits.add(new ProductCart("watermellon", BigDecimal.ONE));
         fruits.add(banana);
-        assertEquals(1, fruits.indexOf(banana));
-        assertEquals(3, fruits.lastIndexOf(banana));
+        assertThat(fruits.indexOf(banana)).isEqualTo(1);
+        assertThat(fruits.lastIndexOf(banana)).isEqualTo(3);
 
-        assertTrue(fruits.contains(banana));
-        assertEquals(-1, fruits.indexOf(melon));
-        assertEquals(-1, fruits.lastIndexOf(melon));
+        assertThat(fruits.contains(banana)).isTrue();
+        assertThat(fruits.indexOf(melon)).isEqualTo(-1);
+        assertThat(fruits.lastIndexOf(melon)).isEqualTo(-1);
     }
 
     @Test
@@ -134,10 +130,10 @@ public class RedisListTest {
         fruits.add(orange);
         fruits.add(banana);
         fruits.add(waterMelon);
-        assertTrue(fruits.contains(banana));
-        assertFalse(fruits.contains(melon));
-        assertTrue(fruits.containsAll(Arrays.asList(banana, orange)));
-        assertFalse(fruits.containsAll(Arrays.asList(banana, melon)));
+        assertThat(fruits.contains(banana)).isTrue();
+        assertThat(fruits.contains(melon)).isFalse();
+        assertThat(fruits.containsAll(Arrays.asList(banana, orange))).isTrue();
+        assertThat(fruits.containsAll(Arrays.asList(banana, melon))).isFalse();
     }
 
     @SuppressWarnings("unused")
@@ -149,14 +145,14 @@ public class RedisListTest {
         for (ProductCart fruiCart : fruits) {
             count++;
         }
-        assertEquals(2, count);
+        assertThat(count).isEqualTo(2);
         fruits.removeFirst();
         fruits.removeFirst();
         count = 0;
         for (ProductCart fruiCart : fruits) {
             count++;
         }
-        assertEquals(0, count);
+        assertThat(count).isEqualTo(0);
     }
 
     @Test
@@ -166,12 +162,12 @@ public class RedisListTest {
         fruits.add(waterMelon);
 
         fruits.clear();
-        assertTrue(fruits.isEmpty());
+        assertThat(fruits.isEmpty()).isTrue();
     }
 
     @Test
     public void shouldThrowExceptionRetainAll() {
-        assertThrows(UnsupportedOperationException.class, () -> fruits.retainAll(Collections.singletonList(orange)));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> fruits.retainAll(Collections.singletonList(orange)));
     }
 
     @AfterEach
