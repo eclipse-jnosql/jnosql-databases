@@ -24,10 +24,11 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class,
@@ -48,8 +49,8 @@ public class SolrExtensionTest {
 
         @Test
         @DisplayName("Should provide a Solr repository bean")
-        public void shouldSaveOrientDB() {
-            Assertions.assertNotNull(repository);
+        public void shouldProvideRepositoryBean() {
+            assertThat(repository).isNotNull();
         }
     }
 }
