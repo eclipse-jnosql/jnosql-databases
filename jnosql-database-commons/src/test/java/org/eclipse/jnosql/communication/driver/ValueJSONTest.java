@@ -25,22 +25,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class ValueJSONTest {
 
     @Test
     public void shouldReturnErrorWhenElementIsNull() {
-        assertThrows(NullPointerException.class, () -> ValueJSON.of(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> ValueJSON.of(null));
     }
 
     @Test
     public void shouldConvertType() {
         AtomicInteger number = new AtomicInteger(5_000);
         Value value = ValueJSON.of(number);
-        assertEquals(Integer.valueOf(5_000), value.get(Integer.class));
-        assertEquals("5000", value.get(String.class));
+        assertThat(value.get(Integer.class)).isEqualTo(Integer.valueOf(5_000));
+        assertThat(value.get(String.class)).isEqualTo("5000");
     }
 
     @Test
