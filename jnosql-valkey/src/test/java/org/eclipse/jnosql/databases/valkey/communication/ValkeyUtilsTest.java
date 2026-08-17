@@ -17,18 +17,19 @@ package org.eclipse.jnosql.databases.valkey.communication;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class ValkeyUtilsTest {
 
     @Test
     public void shouldReturnNameSpace() {
-        assertEquals("namespace:key", ValkeyUtils.createKeyWithNameSpace("key", "namespace"));
+        assertThat(ValkeyUtils.createKeyWithNameSpace("key", "namespace")).isEqualTo("namespace:key");
     }
 
     @Test
     public void shouldThrowWithNullKey() {
-        assertThrows(IrregularKeyValue.class, () -> ValkeyUtils.createKeyWithNameSpace(null, ""));
+        assertThatExceptionOfType(IrregularKeyValue.class).isThrownBy(() -> ValkeyUtils.createKeyWithNameSpace(null, ""));
     }
 }
