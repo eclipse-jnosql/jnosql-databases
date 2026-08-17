@@ -27,10 +27,8 @@ import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBDocument
 import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBDocumentConfigurations.AUTHENTICATION_SOURCE;
 import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBDocumentConfigurations.PASSWORD;
 import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBDocumentConfigurations.USER;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class MongoAuthenticationTest {
 
@@ -39,7 +37,7 @@ class MongoAuthenticationTest {
         Settings settings = Settings.builder().put(USER, "value")
                 .build();
 
-        assertThrows(CommunicationException.class, () -> MongoAuthentication.of(settings));
+        assertThatExceptionOfType(CommunicationException.class).isThrownBy(() -> MongoAuthentication.of(settings));
 
     }
     @Test
@@ -51,10 +49,10 @@ class MongoAuthenticationTest {
                 .build();
 
         MongoCredential credential = MongoAuthentication.of(settings).get();
-        assertEquals("database", credential.getSource());
-        assertArrayEquals("password".toCharArray(), credential.getPassword());
-        assertEquals("user", credential.getUserName());
-        assertNull(credential.getMechanism());
+        assertThat(credential.getSource()).isEqualTo("database");
+        assertThat(credential.getPassword()).isEqualTo("password".toCharArray());
+        assertThat(credential.getUserName()).isEqualTo("user");
+        assertThat(credential.getMechanism()).isNull();
 
     }
 
@@ -68,9 +66,9 @@ class MongoAuthenticationTest {
                 .build();
 
         MongoCredential credential = MongoAuthentication.of(settings).get();
-        assertEquals("$external", credential.getSource());
-        assertEquals("user", credential.getUserName());
-        assertEquals(GSSAPI.getMechanismName(), credential.getMechanism());
+        assertThat(credential.getSource()).isEqualTo("$external");
+        assertThat(credential.getUserName()).isEqualTo("user");
+        assertThat(credential.getMechanism()).isEqualTo(GSSAPI.getMechanismName());
 
     }
 
@@ -84,9 +82,9 @@ class MongoAuthenticationTest {
                 .build();
 
         MongoCredential credential = MongoAuthentication.of(settings).get();
-        assertEquals("$external", credential.getSource());
-        assertEquals("user", credential.getUserName());
-        assertEquals(AuthenticationMechanism.MONGODB_X509.getMechanismName(), credential.getMechanism());
+        assertThat(credential.getSource()).isEqualTo("$external");
+        assertThat(credential.getUserName()).isEqualTo("user");
+        assertThat(credential.getMechanism()).isEqualTo(AuthenticationMechanism.MONGODB_X509.getMechanismName());
     }
 
     @Test
@@ -99,10 +97,10 @@ class MongoAuthenticationTest {
                 .build();
 
         MongoCredential credential = MongoAuthentication.of(settings).get();
-        assertEquals("database", credential.getSource());
-        assertArrayEquals("password".toCharArray(), credential.getPassword());
-        assertEquals("user", credential.getUserName());
-        assertEquals(SCRAM_SHA_1.getMechanismName(), credential.getMechanism());
+        assertThat(credential.getSource()).isEqualTo("database");
+        assertThat(credential.getPassword()).isEqualTo("password".toCharArray());
+        assertThat(credential.getUserName()).isEqualTo("user");
+        assertThat(credential.getMechanism()).isEqualTo(SCRAM_SHA_1.getMechanismName());
     }
 
     @Test
@@ -115,10 +113,10 @@ class MongoAuthenticationTest {
                 .build();
 
         MongoCredential credential = MongoAuthentication.of(settings).get();
-        assertEquals("database", credential.getSource());
-        assertArrayEquals("password".toCharArray(), credential.getPassword());
-        assertEquals("user", credential.getUserName());
-        assertEquals(SCRAM_SHA_256.getMechanismName(), credential.getMechanism());
+        assertThat(credential.getSource()).isEqualTo("database");
+        assertThat(credential.getPassword()).isEqualTo("password".toCharArray());
+        assertThat(credential.getUserName()).isEqualTo("user");
+        assertThat(credential.getMechanism()).isEqualTo(SCRAM_SHA_256.getMechanismName());
     }
 
 }
