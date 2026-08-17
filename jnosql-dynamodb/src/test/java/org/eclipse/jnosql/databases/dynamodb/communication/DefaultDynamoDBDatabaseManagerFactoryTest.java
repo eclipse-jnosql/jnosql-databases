@@ -24,7 +24,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class DefaultDynamoDBDatabaseManagerFactoryTest {
@@ -41,7 +41,7 @@ class DefaultDynamoDBDatabaseManagerFactoryTest {
     }
     @AfterEach
     void tearDown() {
-        assertDoesNotThrow(databaseManagerFactory::close, "DocumentManagerFactory.close() should be not throw exceptions");
+        assertThatCode(databaseManagerFactory::close).as("DocumentManagerFactory.close() should be not throw exceptions").doesNotThrowAnyException();
     }
     @Test
     void shouldCreateDocumentManager() {
