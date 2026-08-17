@@ -18,14 +18,14 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class OracleDocumentConfigurationTest {
 
     @Test
     void shouldReturnErrorWhenMapSettingsIsNull() {
         OracleDocumentConfiguration configuration = new OracleDocumentConfiguration();
-        assertThrows(NullPointerException.class, () -> configuration.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.apply(null));
     }
 
     @Test
