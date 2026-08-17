@@ -29,11 +29,6 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class RedisMapTest {
@@ -54,11 +49,11 @@ public class RedisMapTest {
 
     @Test
     public void shouldPutAndGetMap() {
-        assertNotNull(vertebrates.put("mammals", mammals));
+        assertThat(vertebrates.put("mammals", mammals)).isNotNull();
         Species species = vertebrates.get("mammals");
-        assertNotNull(species);
-        assertEquals(species.getAnimals().getFirst(), mammals.getAnimals().getFirst());
-        assertEquals(1, vertebrates.size());
+        assertThat(species).isNotNull();
+        assertThat(mammals.getAnimals().getFirst()).isEqualTo(species.getAnimals().getFirst());
+        assertThat(vertebrates.size()).isEqualTo(1);
     }
 
     @Test
@@ -68,17 +63,17 @@ public class RedisMapTest {
         toPutAll.put("fishes", fishes);
 
         vertebrates.putAll(toPutAll);
-        assertEquals(2, vertebrates.size());
+        assertThat(vertebrates.size()).isEqualTo(2);
     }
 
     @Test
     public void shouldVerifyExist() {
         vertebrates.put("mammals", mammals);
-        assertTrue(vertebrates.containsKey("mammals"));
-        assertFalse(vertebrates.containsKey("redfish"));
+        assertThat(vertebrates.containsKey("mammals")).isTrue();
+        assertThat(vertebrates.containsKey("redfish")).isFalse();
 
-        assertTrue(vertebrates.containsValue(mammals));
-        assertFalse(vertebrates.containsValue(fishes));
+        assertThat(vertebrates.containsValue(mammals)).isTrue();
+        assertThat(vertebrates.containsValue(fishes)).isFalse();
     }
 
     @Test
@@ -90,12 +85,12 @@ public class RedisMapTest {
         Set<String> keys = vertebrates.keySet();
         Collection<Species> collectionSpecies = vertebrates.values();
 
-        assertEquals(3, keys.size());
-        assertEquals(3, collectionSpecies.size());
-        assertNotNull(vertebrates.remove("mammals"));
-        assertNull(vertebrates.remove("mammals"));
-        assertNull(vertebrates.get("mammals"));
-        assertEquals(2, vertebrates.size());
+        assertThat(keys.size()).isEqualTo(3);
+        assertThat(collectionSpecies.size()).isEqualTo(3);
+        assertThat(vertebrates.remove("mammals")).isNotNull();
+        assertThat(vertebrates.remove("mammals")).isNull();
+        assertThat(vertebrates.get("mammals")).isNull();
+        assertThat(vertebrates.size()).isEqualTo(2);
     }
 
     @Test
@@ -105,7 +100,7 @@ public class RedisMapTest {
         vertebrates.put("amphibians", amphibians);
 
         vertebrates.remove("fishes");
-        assertEquals(2, vertebrates.size());
+        assertThat(vertebrates.size()).isEqualTo(2);
         assertThat(vertebrates).isNotIn(fishes);
     }
 
@@ -115,7 +110,7 @@ public class RedisMapTest {
         vertebrates.put("fishes", fishes);
 
         vertebrates.clear();
-        assertTrue(vertebrates.isEmpty());
+        assertThat(vertebrates.isEmpty()).isTrue();
     }
 
     @AfterEach
