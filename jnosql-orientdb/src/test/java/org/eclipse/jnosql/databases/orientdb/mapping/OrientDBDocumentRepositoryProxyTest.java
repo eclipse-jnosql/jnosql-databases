@@ -39,11 +39,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @EnableAutoWeld
@@ -101,7 +101,7 @@ public class OrientDBDocumentRepositoryProxyTest {
         ArgumentCaptor<Map> argumentCaptor = ArgumentCaptor.forClass(Map.class);
         verify(template).sql(Mockito.eq("select * from Person where age = :age"), argumentCaptor.capture());
         Map value = argumentCaptor.getValue();
-        assertEquals(10, value.get("age"));
+        assertThat(value.get("age")).isEqualTo(10);
     }
 
     @Test
