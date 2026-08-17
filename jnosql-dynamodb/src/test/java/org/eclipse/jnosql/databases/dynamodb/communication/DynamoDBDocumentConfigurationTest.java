@@ -16,13 +16,13 @@ package org.eclipse.jnosql.databases.dynamodb.communication;
 
 
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class DynamoDBDocumentConfigurationTest {
@@ -30,15 +30,15 @@ class DynamoDBDocumentConfigurationTest {
     @Test
     void shouldReturnFromServiceLoaderConfiguration() {
         var configuration = DatabaseConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertInstanceOf(DatabaseConfiguration.class, configuration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration).isInstanceOf(DatabaseConfiguration.class);
     }
 
     @Test
     void shouldReturnFromServiceLoaderConfigurationQuery() {
         var configuration = DatabaseConfiguration
                 .getConfiguration(DynamoDBDocumentConfiguration.class);
-        Assertions.assertNotNull(configuration);
+        assertThat(configuration).isNotNull();
     }
 
     @Test
