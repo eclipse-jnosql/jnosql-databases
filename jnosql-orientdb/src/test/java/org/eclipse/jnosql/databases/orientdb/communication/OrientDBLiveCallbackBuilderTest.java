@@ -17,8 +17,9 @@ package org.eclipse.jnosql.databases.orientdb.communication;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class OrientDBLiveCallbackBuilderTest {
 
@@ -27,11 +28,11 @@ public class OrientDBLiveCallbackBuilderTest {
         OrientDBLiveCallback build = OrientDBLiveCallbackBuilder.builder().onCreate(d -> {
         }).build();
 
-        assertNotNull(build);
+        assertThat(build).isNotNull();
     }
 
     @Test
     public void shouldThrowException() {
-        assertThrows(IllegalArgumentException.class, () -> OrientDBLiveCallbackBuilder.builder().build());
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> OrientDBLiveCallbackBuilder.builder().build());
     }
 }
