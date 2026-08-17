@@ -17,10 +17,10 @@ package org.eclipse.jnosql.databases.arangodb.communication;
 
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class ArangoDBDocumentConfigurationTest {
 
@@ -30,22 +30,22 @@ public class ArangoDBDocumentConfigurationTest {
         ArangoDBDocumentConfiguration configuration = new ArangoDBDocumentConfiguration();
         configuration.addHost("localhost", 8529);
         ArangoDBDocumentManagerFactory managerFactory = configuration.apply(Settings.builder().build());
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
     @Test
     public void shouldReturnFromConfiguration() {
         ArangoDBDocumentConfiguration configuration = DatabaseConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof ArangoDBDocumentConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof ArangoDBDocumentConfiguration).isTrue();
     }
 
     @Test
     public void shouldReturnFromConfigurationQuery() {
         ArangoDBDocumentConfiguration configuration = DatabaseConfiguration
                 .getConfiguration(ArangoDBDocumentConfiguration.class);
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof ArangoDBDocumentConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof ArangoDBDocumentConfiguration).isTrue();
     }
 
 }
