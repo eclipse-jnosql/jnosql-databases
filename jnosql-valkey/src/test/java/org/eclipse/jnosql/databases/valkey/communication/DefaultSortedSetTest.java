@@ -25,9 +25,6 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class DefaultSortedSetTest {
@@ -53,19 +50,19 @@ public class DefaultSortedSetTest {
 
     @Test
     public void shouldSize() {
-        assertTrue(sortedSet.isEmpty());
+        assertThat(sortedSet.isEmpty()).isTrue();
         sortedSet.add(BRAZIL, 10);
-        assertEquals(Integer.valueOf(sortedSet.size()), Integer.valueOf(1));
+        assertThat(Integer.valueOf(1)).isEqualTo(Integer.valueOf(sortedSet.size()));
     }
 
     @Test
     public void shouldCheckIfEmpty() {
 
-        assertTrue(sortedSet.isEmpty());
+        assertThat(sortedSet.isEmpty()).isTrue();
         sortedSet.add(BRAZIL, 1);
         sortedSet.add(USA, 2);
         sortedSet.add(ENGLAND, 3);
-        assertFalse(sortedSet.isEmpty());
+        assertThat(sortedSet.isEmpty()).isFalse();
 
     }
 
@@ -74,9 +71,9 @@ public class DefaultSortedSetTest {
         sortedSet.add(BRAZIL, 1);
         sortedSet.add(USA, 2);
         sortedSet.add(ENGLAND, 3);
-        assertFalse(sortedSet.isEmpty());
+        assertThat(sortedSet.isEmpty()).isFalse();
         sortedSet.delete();
-        assertTrue(sortedSet.isEmpty());
+        assertThat(sortedSet.isEmpty()).isTrue();
     }
 
     @Test
@@ -84,30 +81,30 @@ public class DefaultSortedSetTest {
         sortedSet.add(BRAZIL, 1);
         sortedSet.add(USA, 2);
         sortedSet.add(ENGLAND, 3);
-        assertFalse(sortedSet.isEmpty());
+        assertThat(sortedSet.isEmpty()).isFalse();
         sortedSet.clear();
-        assertTrue(sortedSet.isEmpty());
+        assertThat(sortedSet.isEmpty()).isTrue();
     }
 
     @Test
     public void shouldIncrement() {
         sortedSet.add(BRAZIL, 10);
         Number points = sortedSet.increment(BRAZIL, 2);
-        assertEquals(Long.valueOf(12), Long.valueOf(points.longValue()));
+        assertThat(Long.valueOf(points.longValue())).isEqualTo(Long.valueOf(12));
     }
 
     @Test
     public void shouldDecrement() {
         sortedSet.add(BRAZIL, 10);
         Number points = sortedSet.decrement(BRAZIL, 2);
-        assertEquals(Long.valueOf(8), Long.valueOf(points.longValue()));
+        assertThat(Long.valueOf(points.longValue())).isEqualTo(Long.valueOf(8));
     }
 
     @Test
     public void shouldRemoveMember() {
         sortedSet.add(BRAZIL, 10);
         sortedSet.remove(BRAZIL);
-        assertEquals(0, sortedSet.size());
+        assertThat(sortedSet.size()).isEqualTo(0);
     }
 
     @Test
@@ -115,7 +112,7 @@ public class DefaultSortedSetTest {
         sortedSet.add(BRAZIL, 10);
         sortedSet.expire(Duration.ofSeconds(1));
         Thread.sleep(2_000L);
-        assertEquals(0, sortedSet.size());
+        assertThat(sortedSet.size()).isEqualTo(0);
     }
 
     @Test
@@ -124,7 +121,7 @@ public class DefaultSortedSetTest {
         sortedSet.expire(Duration.ofSeconds(1));
         sortedSet.persist();
         Thread.sleep(2_000L);
-        assertEquals(1, sortedSet.size());
+        assertThat(sortedSet.size()).isEqualTo(1);
     }
 
     @Test
