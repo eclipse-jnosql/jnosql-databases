@@ -23,8 +23,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 
 public class KeyValueEntityManagerFactoryTest {
@@ -44,28 +45,28 @@ public class KeyValueEntityManagerFactoryTest {
     @Test
     public void shouldCreateKeyValueEntityManager(){
         BucketManager keyValueEntityManager = managerFactory.apply(BUCKET_NAME);
-        assertNotNull(keyValueEntityManager);
+        assertThat(keyValueEntityManager).isNotNull();
     }
 
     @Test
     public void shouldCreateMap(){
         Map<String, String> map = managerFactory.getMap(BUCKET_NAME, String.class, String.class);
-        assertNotNull(map);
+        assertThat(map).isNotNull();
     }
 
     @Test
     public void shouldCreateSet(){
-        assertThrows(UnsupportedOperationException.class, () -> managerFactory.getSet(BUCKET_NAME, String.class));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> managerFactory.getSet(BUCKET_NAME, String.class));
     }
 
     @Test
     public void shouldCreateList(){
-        assertThrows(UnsupportedOperationException.class, () -> managerFactory.getList(BUCKET_NAME, String.class));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> managerFactory.getList(BUCKET_NAME, String.class));
     }
 
     @Test
     public void shouldCreateQueue(){
-        assertThrows(UnsupportedOperationException.class, () -> managerFactory.getQueue(BUCKET_NAME, String.class));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> managerFactory.getQueue(BUCKET_NAME, String.class));
     }
 
 }
