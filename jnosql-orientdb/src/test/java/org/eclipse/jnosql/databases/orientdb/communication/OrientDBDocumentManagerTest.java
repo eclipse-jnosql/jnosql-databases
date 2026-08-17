@@ -52,11 +52,8 @@ import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class OrientDBDocumentManagerTest {
@@ -73,15 +70,15 @@ public class OrientDBDocumentManagerTest {
     void shouldInsert() {
         var entity = getEntity();
         var documentEntity = entityManager.insert(entity);
-        assertNotNull(documentEntity);
+        assertThat(documentEntity).isNotNull();
         Optional<Element> document = documentEntity.find(OrientDBConverter.RID_FIELD);
-        assertTrue(document.isPresent());
+        assertThat(document.isPresent()).isTrue();
 
     }
 
     @Test
     void shouldThrowExceptionWhenSaveWithTTL() {
-        assertThrows(UnsupportedOperationException.class, () -> entityManager.insert(getEntity(), Duration.ZERO));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> entityManager.insert(getEntity(), Duration.ZERO));
     }
 
     @Test
@@ -97,8 +94,8 @@ public class OrientDBDocumentManagerTest {
                 .build();
         Optional<CommunicationEntity> updated = entityManager.singleResult(query);
 
-        assertTrue(updated.isPresent());
-        assertEquals(newField, updated.get().find(newField.name()).get());
+        assertThat(updated.isPresent()).isTrue();
+        assertThat(updated.get().find(newField.name()).get()).isEqualTo(newField);
     }
 
     @Test
@@ -115,8 +112,8 @@ public class OrientDBDocumentManagerTest {
                 .build();
         Optional<CommunicationEntity> updated = entityManager.singleResult(query);
 
-        assertTrue(updated.isPresent());
-        assertEquals(newField, updated.get().find(newField.name()).get());
+        assertThat(updated.isPresent()).isTrue();
+        assertThat(updated.get().find(newField.name()).get()).isEqualTo(newField);
     }
 
     @Test
@@ -128,7 +125,7 @@ public class OrientDBDocumentManagerTest {
         var query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
         var deleteQuery = delete().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
         entityManager.delete(deleteQuery);
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
     }
 
     @Test
@@ -138,7 +135,7 @@ public class OrientDBDocumentManagerTest {
 
         var query = select().from(COLLECTION_NAME).where(id.name()).eq(id.get()).build();
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities, contains(entity));
     }
 
@@ -149,7 +146,7 @@ public class OrientDBDocumentManagerTest {
 
         List<CommunicationEntity> entities = entityManager.sql("select * from person where name = ?", id.get().get())
                 .collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities, contains(entity));
     }
 
@@ -160,7 +157,7 @@ public class OrientDBDocumentManagerTest {
 
         List<CommunicationEntity> entities = entityManager.sql("select * from person where name = :name",
                 singletonMap("name", id.get().get())).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities, contains(entity));
     }
 
@@ -206,10 +203,10 @@ public class OrientDBDocumentManagerTest {
         var deleteQuery = delete().from(COLLECTION_NAME).where("name").eq("Poliana")
                 .and("age").gte(10).build();
 
-        assertFalse(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isFalse();
 
         entityManager.delete(deleteQuery);
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
     }
 
     @Test
@@ -225,10 +222,10 @@ public class OrientDBDocumentManagerTest {
         var deleteQuery = delete().from(COLLECTION_NAME).where("name").eq("Poliana")
                 .or("age").gte(10).build();
 
-        assertFalse(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isFalse();
 
         entityManager.delete(deleteQuery);
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
     }
 
     @Test
@@ -240,12 +237,12 @@ public class OrientDBDocumentManagerTest {
         var query = select().from(COLLECTION_NAME)
                 .where("age").gt(25)
                 .build();
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
 
         var query2 = select().from(COLLECTION_NAME)
                 .where("age").gt(24)
                 .build();
-        assertEquals(1, (int) entityManager.select(query2).count());
+        assertThat((int) entityManager.select(query2).count()).isEqualTo(1);
     }
 
     @Test
@@ -257,12 +254,12 @@ public class OrientDBDocumentManagerTest {
         var query = select().from(COLLECTION_NAME)
                 .where("age").lt(25)
                 .build();
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
 
         var query2 = select().from(COLLECTION_NAME)
                 .where("age").lt(26)
                 .build();
-        assertEquals(1, (int) entityManager.select(query2).count());
+        assertThat((int) entityManager.select(query2).count()).isEqualTo(1);
     }
 
     @Test
@@ -274,17 +271,17 @@ public class OrientDBDocumentManagerTest {
         var query = select().from(COLLECTION_NAME)
                 .where("age").lte(24)
                 .build();
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
 
         var query2 = select().from(COLLECTION_NAME)
                 .where("age").lte(25)
                 .build();
-        assertEquals(1, (int) entityManager.select(query2).count());
+        assertThat((int) entityManager.select(query2).count()).isEqualTo(1);
 
         var query3 = select().from(COLLECTION_NAME)
                 .where("age").lte(26)
                 .build();
-        assertEquals(1, (int) entityManager.select(query3).count());
+        assertThat((int) entityManager.select(query3).count()).isEqualTo(1);
     }
 
     @Test
@@ -294,14 +291,14 @@ public class OrientDBDocumentManagerTest {
         var query = select().from(COLLECTION_NAME)
                 .where("city").in(asList("Salvador", "Assis"))
                 .build();
-        assertEquals(2, (int) entityManager.select(query).count());
+        assertThat((int) entityManager.select(query).count()).isEqualTo(2);
 
         var deleteQuery = delete().from(COLLECTION_NAME)
                 .where("city").in(asList("Salvador", "Assis", "Sao Paulo"))
                 .build();
         entityManager.delete(deleteQuery);
 
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
     }
 
     @Test
@@ -314,7 +311,7 @@ public class OrientDBDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entities.size());
+        assertThat(entities.size()).isEqualTo(2);
         assertThat(entities, containsInAnyOrder(entitiesSaved.get(0), entitiesSaved.get(1)));
     }
 
@@ -327,7 +324,7 @@ public class OrientDBDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entities.size());
+        assertThat(entities.size()).isEqualTo(2);
         assertThat(entities, containsInAnyOrder(entitiesSaved.get(0), entitiesSaved.get(1)));
     }
 
@@ -340,7 +337,7 @@ public class OrientDBDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertEquals(2, entities.size());
+        assertThat(entities.size()).isEqualTo(2);
     }
 
     @Test
@@ -352,7 +349,7 @@ public class OrientDBDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertEquals(2, entities.size());
+        assertThat(entities.size()).isEqualTo(2);
     }
 
     @Test
@@ -409,7 +406,7 @@ public class OrientDBDocumentManagerTest {
         entityManager.live(query, OrientDBLiveCallbackBuilder.builder().onCreate(callback).build());
         entityManager.insert(getEntity());
         await().untilTrue(condition);
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -431,8 +428,8 @@ public class OrientDBDocumentManagerTest {
         entity.add(newName);
         entityManager.update(entity);
         await().untilTrue(condition);
-        assertFalse(entities.isEmpty());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -463,7 +460,7 @@ public class OrientDBDocumentManagerTest {
         entityManager.live("SELECT FROM person", OrientDBLiveCallbackBuilder.builder().onCreate(callback).build());
         entityManager.insert(getEntity());
         await().untilTrue(condition);
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -480,20 +477,20 @@ public class OrientDBDocumentManagerTest {
         SelectQuery query = select().from("AppointmentBook").where(key.name()).eq(key.get()).build();
 
         var documentEntity = entityManager.singleResult(query).get();
-        assertNotNull(documentEntity);
+        assertThat(documentEntity).isNotNull();
 
         List<List<Element>> contacts = (List<List<Element>>) documentEntity.find("contacts").get().get();
 
-        assertEquals(3, contacts.size());
-        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
+        assertThat(contacts.size()).isEqualTo(3);
+        assertThat(contacts.stream().allMatch(d -> d.size() == 3)).isTrue();
     }
 
     @Test
     void shouldCount() {
         CommunicationEntity entity = getEntity();
         CommunicationEntity documentEntity = entityManager.insert(entity);
-        assertNotNull(documentEntity);
-        assertTrue(entityManager.count(COLLECTION_NAME) > 0);
+        assertThat(documentEntity).isNotNull();
+        assertThat(entityManager.count(COLLECTION_NAME) > 0).isTrue();
 
     }
 
