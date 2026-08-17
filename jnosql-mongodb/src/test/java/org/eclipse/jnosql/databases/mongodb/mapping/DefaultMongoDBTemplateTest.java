@@ -36,7 +36,6 @@ import org.eclipse.jnosql.mapping.semistructured.EventPersistManager;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -47,10 +46,10 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.mongodb.client.model.Filters.eq;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, DocumentTemplate.class, MongoDBTemplate.class})
@@ -87,12 +86,12 @@ class DefaultMongoDBTemplateTest {
     @Test
     void shouldReturnErrorOnDeleteMethod() {
         Bson filter = eq("name", "Poliana");
-        assertThrows(NullPointerException.class,() -> template.delete((String) null, null));
-        assertThrows(NullPointerException.class,() -> template.delete("Collection", null));
-        assertThrows(NullPointerException.class,() -> template.delete((String) null, filter));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.delete((String) null, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.delete("Collection", null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.delete((String) null, filter));
 
-        assertThrows(NullPointerException.class,() -> template.delete(Birthday.class, null));
-        assertThrows(NullPointerException.class,() -> template.delete((Class<Object>) null, filter));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.delete(Birthday.class, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.delete((Class<Object>) null, filter));
     }
 
     @Test
@@ -121,13 +120,13 @@ class DefaultMongoDBTemplateTest {
     void shouldReturnErrorOnSelectMethod() {
         Bson filter = eq("name", "Poliana");
 
-        assertThrows(NullPointerException.class, () -> template.select((String) null, null));
-        assertThrows(NullPointerException.class, () -> template.select("Collection", null));
-        assertThrows(NullPointerException.class, () -> template.select((String) null, filter));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.select((String) null, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.select("Collection", null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.select((String) null, filter));
 
-        assertThrows(NullPointerException.class, () -> template.select((Class<?>) null, null));
-        assertThrows(NullPointerException.class, () -> template.select(Birthday.class, null));
-        assertThrows(NullPointerException.class, () -> template.select((Class<?>) null, filter));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.select((Class<?>) null, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.select(Birthday.class, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.select((Class<?>) null, filter));
     }
 
     @Test
@@ -139,13 +138,13 @@ class DefaultMongoDBTemplateTest {
         Mockito.when(manager.select("Birthday", filter))
                 .thenReturn(Stream.of(entity));
         Stream<Birthday> stream = template.select("Birthday", filter);
-        Assertions.assertNotNull(stream);
+        assertThat(stream).isNotNull();
         Birthday poliana = stream.findFirst()
                 .orElseThrow(() -> new IllegalStateException("There is an issue on the test"));
 
-        Assertions.assertNotNull(poliana);
-        assertEquals("Poliana", poliana.getName());
-        assertEquals(30, poliana.getAge());
+        assertThat(poliana).isNotNull();
+        assertThat(poliana.getName()).isEqualTo("Poliana");
+        assertThat(poliana.getAge()).isEqualTo(30);
     }
 
     @Test
@@ -157,13 +156,13 @@ class DefaultMongoDBTemplateTest {
         Mockito.when(manager.select("Birthday", filter))
                 .thenReturn(Stream.of(entity));
         Stream<Birthday> stream = template.select(Birthday.class, filter);
-        Assertions.assertNotNull(stream);
+        assertThat(stream).isNotNull();
         Birthday poliana = stream.findFirst()
                 .orElseThrow(() -> new IllegalStateException("There is an issue on the test"));
 
-        Assertions.assertNotNull(poliana);
-        assertEquals("Poliana", poliana.getName());
-        assertEquals(30, poliana.getAge());
+        assertThat(poliana).isNotNull();
+        assertThat(poliana.getName()).isEqualTo("Poliana");
+        assertThat(poliana.getAge()).isEqualTo(30);
     }
 
     @Test
@@ -173,23 +172,23 @@ class DefaultMongoDBTemplateTest {
         var pipeline = Collections.singletonList(bson);
         var pipelineArray = new Bson[]{bson, bson};
 
-        assertThrows(NullPointerException.class, () -> template.aggregate((String) null, (List<Bson>) null));
-        assertThrows(NullPointerException.class, () -> template.aggregate((String) null, (Bson[]) null));
-        assertThrows(NullPointerException.class, () -> template.aggregate((String) null, (Bson) null));
-        assertThrows(NullPointerException.class, () -> template.aggregate((String) null, pipeline));
-        assertThrows(NullPointerException.class, () -> template.aggregate((String) null, pipelineArray));
-        assertThrows(NullPointerException.class, () -> template.aggregate((String) null, bson));
-        assertThrows(NullPointerException.class, () -> template.aggregate(collectionName, (List<Bson>) null));
-        assertThrows(NullPointerException.class, () -> template.aggregate(collectionName, (Bson[]) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((String) null, (List<Bson>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((String) null, (Bson[]) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((String) null, (Bson) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((String) null, pipeline));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((String) null, pipelineArray));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((String) null, bson));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate(collectionName, (List<Bson>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate(collectionName, (Bson[]) null));
 
-        assertThrows(NullPointerException.class, () -> template.aggregate((Class<?>) null, (List<Bson>) null));
-        assertThrows(NullPointerException.class, () -> template.aggregate((Class<?>) null, (Bson[]) null));
-        assertThrows(NullPointerException.class, () -> template.aggregate((Class<?>) null, (Bson) null));
-        assertThrows(NullPointerException.class, () -> template.aggregate((String) null, pipeline));
-        assertThrows(NullPointerException.class, () -> template.aggregate((String) null, pipelineArray));
-        assertThrows(NullPointerException.class, () -> template.aggregate((String) null, bson));
-        assertThrows(NullPointerException.class, () -> template.aggregate(Birthday.class, (List<Bson>) null));
-        assertThrows(NullPointerException.class, () -> template.aggregate(Birthday.class, (Bson[]) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((Class<?>) null, (List<Bson>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((Class<?>) null, (Bson[]) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((Class<?>) null, (Bson) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((String) null, pipeline));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((String) null, pipelineArray));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate((String) null, bson));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate(Birthday.class, (List<Bson>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.aggregate(Birthday.class, (Bson[]) null));
 
     }
 
@@ -236,11 +235,11 @@ class DefaultMongoDBTemplateTest {
     @Test
     void shouldReturnErrorOnCountByFilterMethod() {
         var filter = eq("name", "Poliana");
-        assertThrows(NullPointerException.class, () -> template.count((String) null, null));
-        assertThrows(NullPointerException.class, () -> template.count((String) null, filter));
-        assertThrows(NullPointerException.class, () -> template.count("Person", null));
-        assertThrows(NullPointerException.class, () -> template.count((Class<Birthday>) null, null));
-        assertThrows(NullPointerException.class, () -> template.count((Class<Birthday>) null, filter));
-        assertThrows(NullPointerException.class, () -> template.count(Birthday.class, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.count((String) null, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.count((String) null, filter));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.count("Person", null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.count((Class<Birthday>) null, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.count((Class<Birthday>) null, filter));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.count(Birthday.class, null));
     }
 }
