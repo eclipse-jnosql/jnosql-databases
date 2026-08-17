@@ -36,11 +36,11 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, ColumnTemplate.class, EntityConverter.class,
@@ -105,7 +105,7 @@ public class CassandraRepositoryProxyTest {
         humanRepository.findByName2("Ada");
         verify(template).cql(Mockito.eq("select * from Person where name = :name"), captor.capture());
         Map map = captor.getValue();
-        assertEquals("Ada", map.get("name"));
+        assertThat(map.get("name")).isEqualTo("Ada");
     }
 
     @Test
