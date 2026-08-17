@@ -21,8 +21,8 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class HBaseColumnConfigurationTest {
@@ -31,17 +31,17 @@ public class HBaseColumnConfigurationTest {
     @Test
     public void shouldCreatesColumnManagerFactory() {
         var configuration = new HBaseColumnConfiguration();
-        assertNotNull(configuration.apply(Settings.builder().build()));
+        assertThat(configuration.apply(Settings.builder().build())).isNotNull();
     }
 
     @Test
     public void shouldCreatesColumnManagerFactoryFromConfiguration() {
         var configuration = new HBaseColumnConfiguration();
-        assertNotNull(configuration.apply(Settings.builder().build()));
+        assertThat(configuration.apply(Settings.builder().build())).isNotNull();
     }
 
     @Test
     public void shouldReturnErrorCreatesColumnManagerFactory() {
-        assertThrows(NullPointerException.class, () -> new HBaseColumnConfiguration(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> new HBaseColumnConfiguration(null));
     }
 }
