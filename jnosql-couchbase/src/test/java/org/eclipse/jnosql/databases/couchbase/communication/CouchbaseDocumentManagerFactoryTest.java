@@ -20,7 +20,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class CouchbaseDocumentManagerFactoryTest {
@@ -30,7 +30,7 @@ public class CouchbaseDocumentManagerFactoryTest {
         Settings settings=Database.INSTANCE.getSettings();
         CouchbaseDocumentConfiguration configuration =  new CouchbaseDocumentConfiguration();
         CouchbaseDocumentManagerFactory factory = configuration.apply(settings);
-        assertNotNull(factory.apply(CouchbaseUtil.BUCKET_NAME));
+        assertThat(factory.apply(CouchbaseUtil.BUCKET_NAME)).isNotNull();
     }
 
 }
