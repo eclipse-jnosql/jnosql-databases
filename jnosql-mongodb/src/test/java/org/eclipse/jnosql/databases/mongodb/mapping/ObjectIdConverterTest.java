@@ -16,9 +16,10 @@ package org.eclipse.jnosql.databases.mongodb.mapping;
 
 import jakarta.nosql.AttributeConverter;
 import org.bson.types.ObjectId;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ObjectIdConverterTest {
 
@@ -31,20 +32,20 @@ class ObjectIdConverterTest {
 
     @Test
     void shouldReturnNullWhenAttributeIsNull() {
-        Assertions.assertNull(this.converter.convertToDatabaseColumn(null));
+        assertThat(this.converter.convertToDatabaseColumn(null)).isNull();
     }
 
     @Test
     void shouldReturnNullWhenDataIsNull() {
-        Assertions.assertNull(this.converter.convertToEntityAttribute(null));
+        assertThat(this.converter.convertToEntityAttribute(null)).isNull();
     }
 
     @Test
     void shouldConvertToEntity() {
         ObjectId id = new ObjectId();
         String entityAttribute = this.converter.convertToEntityAttribute(id);
-        Assertions.assertNotNull(entityAttribute);
-        Assertions.assertEquals(id.toString(), entityAttribute);
+        assertThat(entityAttribute).isNotNull();
+        assertThat(entityAttribute).isEqualTo(id.toString());
     }
 
     @Test
@@ -52,7 +53,7 @@ class ObjectIdConverterTest {
         ObjectId objectId = new ObjectId();
         String entityAttribute = objectId.toString();
         ObjectId id = this.converter.convertToDatabaseColumn(entityAttribute);
-        Assertions.assertNotNull(id);
-        Assertions.assertEquals(objectId, id);
+        assertThat(id).isNotNull();
+        assertThat(id).isEqualTo(objectId);
     }
 }
