@@ -20,30 +20,31 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 class DeploymentTypeTest {
 
 
     @Test
     void shouldReturnOnPremiseWhenIsNull() {
-        assertEquals(DeploymentType.ON_PREMISES, DeploymentType.parse(null));
+        assertThat(DeploymentType.parse(null)).isEqualTo(DeploymentType.ON_PREMISES);
     }
 
     @Test
     void shouldReturnOnPremiseWhenTextIsInvalid() {
-        assertEquals(DeploymentType.ON_PREMISES, DeploymentType.parse("invalid"));
+        assertThat(DeploymentType.parse("invalid")).isEqualTo(DeploymentType.ON_PREMISES);
     }
 
     @ParameterizedTest
     @EnumSource(DeploymentType.class)
     void shouldParseEnum(DeploymentType type){
-        assertEquals(type, DeploymentType.parse(type.name()));
+        assertThat(DeploymentType.parse(type.name())).isEqualTo(type);
     }
 
     @ParameterizedTest
     @EnumSource(DeploymentType.class)
     void shouldParseEnumIgnoreCase(DeploymentType type){
-        assertEquals(type, DeploymentType.parse(type.name().toLowerCase(Locale.ROOT)));
+        assertThat(DeploymentType.parse(type.name().toLowerCase(Locale.ROOT))).isEqualTo(type);
     }
 }
