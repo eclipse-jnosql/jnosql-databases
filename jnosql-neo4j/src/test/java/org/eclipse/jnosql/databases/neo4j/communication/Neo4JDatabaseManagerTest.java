@@ -43,9 +43,9 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class Neo4JDatabaseManagerTest {
@@ -68,7 +68,7 @@ class Neo4JDatabaseManagerTest {
     void shouldInsert() {
         var entity = getEntity();
         var communicationEntity = entityManager.insert(entity);
-        assertTrue(communicationEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals("_id")));
+        assertThat(communicationEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals("_id"))).isTrue();
     }
 
     @Test
@@ -86,7 +86,7 @@ class Neo4JDatabaseManagerTest {
         var entity = getEntity();
         entityManager.insert(entity);
         long count = entityManager.count(COLLECTION_NAME);
-        assertTrue(count > 0);
+        assertThat(count > 0).isTrue();
     }
 
     @Test
@@ -121,7 +121,7 @@ class Neo4JDatabaseManagerTest {
             softly.assertThat(result).isNotNull();
             softly.assertThat(result.find("name").orElseThrow().get()).isEqualTo("Lucas");
         });
-        assertTrue(result.find("name").isPresent());
+        assertThat(result.find("name").isPresent()).isTrue();
     }
 
     @Test
