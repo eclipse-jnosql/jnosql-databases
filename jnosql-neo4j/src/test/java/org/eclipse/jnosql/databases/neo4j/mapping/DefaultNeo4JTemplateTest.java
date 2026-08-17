@@ -37,11 +37,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 
 @EnableAutoWeld
@@ -84,13 +83,13 @@ class DefaultNeo4JTemplateTest {
         when(manager.cypher(cypher, parameters)).thenReturn(Stream.of(entity));
 
         Stream<Music> result = template.cypher(cypher, parameters);
-        assertNotNull(result);
-        assertTrue(result.findFirst().isPresent());
+        assertThat(result).isNotNull();
+        assertThat(result.findFirst().isPresent()).isTrue();
     }
 
     @Test
     void shouldThrowExceptionWhenQueryIsNull() {
-        assertThrows(NullPointerException.class, () -> template.cypher(null, Collections.emptyMap()));
-        assertThrows(NullPointerException.class, () -> template.cypher("MATCH (n) RETURN n", null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.cypher(null, Collections.emptyMap()));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> template.cypher("MATCH (n) RETURN n", null));
     }
 }
