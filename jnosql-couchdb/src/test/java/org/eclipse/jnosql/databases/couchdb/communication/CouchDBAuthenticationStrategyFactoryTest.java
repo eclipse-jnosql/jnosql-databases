@@ -29,11 +29,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CouchDBAuthenticationStrategyFactoryTest {
 
     @Nested
-    @DisplayName("Factory strategy resolution")
-    class FactoryResolution {
+    @DisplayName("When resolving authentication strategies")
+    class WhenTheResolution {
 
         @Test
-        @DisplayName("should return Basic strategy when username and password are provided")
+        @DisplayName("Should return Basic strategy when username and password are provided")
         void shouldReturnBasicStrategy() {
             CouchDBAuthenticationStrategy strategy =
                     CouchDBAuthenticationStrategyFactory.of("admin", "secret", null);
@@ -43,7 +43,7 @@ class CouchDBAuthenticationStrategyFactoryTest {
         }
 
         @Test
-        @DisplayName("should return Bearer strategy when token is provided and username/password are null")
+        @DisplayName("Should return Bearer strategy when token is provided and username/password are null")
         void shouldReturnBearerStrategy() {
             CouchDBAuthenticationStrategy strategy =
                     CouchDBAuthenticationStrategyFactory.of(null, null, "jwt-token");
@@ -53,7 +53,7 @@ class CouchDBAuthenticationStrategyFactoryTest {
         }
 
         @Test
-        @DisplayName("should return None strategy when no authentication data is provided")
+        @DisplayName("Should return None strategy when no authentication data is provided")
         void shouldReturnNoneStrategy() {
             CouchDBAuthenticationStrategy strategy =
                     CouchDBAuthenticationStrategyFactory.of(null, null, null);
@@ -64,8 +64,8 @@ class CouchDBAuthenticationStrategyFactoryTest {
     }
 
     @Nested
-    @DisplayName("Authentication strategy behavior")
-    class StrategyBehavior {
+    @DisplayName("When applying authentication strategies")
+    class WhenTheApplication {
 
         @Test
         @DisplayName("Basic strategy should apply Authorization header using Basic scheme")
