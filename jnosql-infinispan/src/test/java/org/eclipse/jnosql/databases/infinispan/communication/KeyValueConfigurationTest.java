@@ -21,7 +21,8 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class KeyValueConfigurationTest {
 
@@ -36,7 +37,7 @@ public class KeyValueConfigurationTest {
     public void shouldCreateKeyValueFactory() {
         Map<String, String> map = new HashMap<>();
         BucketManagerFactory managerFactory = configuration.get(map);
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
 }
