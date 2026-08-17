@@ -29,8 +29,7 @@ import java.util.Collection;
 
 import static com.hazelcast.query.Predicates.equal;
 import static java.util.Collections.singletonMap;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, AbstractKeyValueTemplate.class, HazelcastTemplate.class})
@@ -46,22 +45,22 @@ public class DefaultHazelcastTemplateTest {
     @Test
     public void shouldRunQuery() {
         Collection<Human> people = template.sql("active");
-        assertNotNull(people);
-        assertTrue(people.stream().allMatch(Human.class::isInstance));
+        assertThat(people).isNotNull();
+        assertThat(people.stream().allMatch(Human.class::isInstance)).isTrue();
     }
 
     @Test
     public void shouldRunQuery2() {
         Collection<Human> people = template.sql("age = :age", singletonMap("age", 10));
-        assertNotNull(people);
-        assertTrue(people.stream().allMatch(Human.class::isInstance));
+        assertThat(people).isNotNull();
+        assertThat(people.stream().allMatch(Human.class::isInstance)).isTrue();
     }
 
     @Test
     public void shouldRunQuery3() {
         Collection<Human> people = template.sql(equal("name",  "Poliana"));
-        assertNotNull(people);
-        assertTrue(people.stream().allMatch(Human.class::isInstance));
+        assertThat(people).isNotNull();
+        assertThat(people.stream().allMatch(Human.class::isInstance)).isTrue();
     }
 
 }
