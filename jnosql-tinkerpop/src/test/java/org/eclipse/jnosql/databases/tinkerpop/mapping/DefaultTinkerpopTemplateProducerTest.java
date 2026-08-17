@@ -25,11 +25,12 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 
 @EnableAutoWeld
@@ -45,13 +46,13 @@ class DefaultGraphTemplateProducerTest {
 
     @Test
     void shouldReturnErrorWhenManagerNull() {
-        Assertions.assertThrows(NullPointerException.class, () -> producer.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> producer.apply(null));
     }
 
     @Test
     void shouldReturn() {
         var graph = Mockito.mock(Graph.class);
         var template = producer.apply(graph);
-        assertNotNull(template);
+        assertThat(template).isNotNull();
     }
 }
