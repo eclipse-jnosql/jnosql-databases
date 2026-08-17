@@ -42,10 +42,6 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class RavenDBDocumentManagerTest {
@@ -77,7 +73,7 @@ public class RavenDBDocumentManagerTest {
     public void shouldInsert() {
         var entity = getEntity();
         var documentEntity = manager.insert(entity);
-        assertTrue(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals("_id")));
+        assertThat(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals("_id"))).isTrue();
     }
 
     @Test
@@ -97,7 +93,7 @@ public class RavenDBDocumentManagerTest {
         var newField = Elements.of("newField", "10");
         entity.add(newField);
         var updated = manager.update(entity);
-        assertEquals(newField, updated.find("newField").get());
+        assertThat(updated.find("newField").get()).isEqualTo(newField);
     }
 
     @Test
@@ -114,7 +110,7 @@ public class RavenDBDocumentManagerTest {
                 .build();
 
         manager.delete(deleteQuery);
-        assertTrue(manager.select(query).findAny().isEmpty());
+        assertThat(manager.select(query).findAny().isEmpty()).isTrue();
     }
 
     @Test
@@ -128,7 +124,7 @@ public class RavenDBDocumentManagerTest {
 
         List<CommunicationEntity> entities = manager.select(query)
                 .collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
@@ -142,8 +138,8 @@ public class RavenDBDocumentManagerTest {
                 .build();
 
         Optional<CommunicationEntity> result = manager.singleResult(query);
-        assertTrue(result.isPresent());
-        assertEquals(entity, result.get());
+        assertThat(result.isPresent()).isTrue();
+        assertThat(result.get()).isEqualTo(entity);
     }
 
     @Test
@@ -157,7 +153,7 @@ public class RavenDBDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = manager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
@@ -173,7 +169,7 @@ public class RavenDBDocumentManagerTest {
 
         List<CommunicationEntity> entities = manager.select(query)
                 .collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
@@ -208,7 +204,7 @@ public class RavenDBDocumentManagerTest {
 
         Thread.sleep(TIME_LIMIT);
         List<CommunicationEntity> entitiesFound = manager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
@@ -261,7 +257,7 @@ public class RavenDBDocumentManagerTest {
                 .and("type").eq("V")
                 .build();
         Thread.sleep(TIME_LIMIT);
-        assertEquals(entities, manager.select(query).collect(Collectors.toList()));
+        assertThat(manager.select(query).collect(Collectors.toList())).isEqualTo(entities);
     }
 
     @Test
@@ -269,7 +265,7 @@ public class RavenDBDocumentManagerTest {
         manager.insert(getEntity());
         var query = select().from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = manager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
 
@@ -324,12 +320,12 @@ public class RavenDBDocumentManagerTest {
                 .eq(key.get()).build();
 
         var documentEntity = manager.singleResult(query).get();
-        assertNotNull(documentEntity);
+        assertThat(documentEntity).isNotNull();
 
         List<List<Element>> contacts = (List<List<Element>>) documentEntity.find("contacts").get().get();
 
-        assertEquals(3, contacts.size());
-        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
+        assertThat(contacts.size()).isEqualTo(3);
+        assertThat(contacts.stream().allMatch(d -> d.size() == 3)).isTrue();
     }
 
     private CommunicationEntity createSubdocumentList() {
@@ -355,7 +351,7 @@ public class RavenDBDocumentManagerTest {
     public void shouldCount() {
         CommunicationEntity entity = getEntity();
         manager.insert(entity);
-        assertTrue(manager.count(COLLECTION_NAME) > 0);
+        assertThat(manager.count(COLLECTION_NAME) > 0).isTrue();
     }
 
 
