@@ -31,7 +31,6 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -40,12 +39,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
@@ -73,7 +67,7 @@ abstract class EdgeEntityTest {
 
     @Test
     void shouldReturnErrorWhenInboundIsNull() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
             Human human = Human.builder().withName("Poliana").withAge().build();
             Magazine magazine = null;
             tinkerpopTemplate.edge(human, "reads", magazine);
@@ -82,7 +76,7 @@ abstract class EdgeEntityTest {
 
     @Test
     void shouldReturnErrorWhenOutboundIsNull() {
-        Assertions.assertThrows(IllegalStateException.class, () -> {
+        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
             Human human = Human.builder().withName("Poliana").withAge().build();
             Magazine magazine = Magazine.builder().withAge(2007).withName("The Shack").build();
             tinkerpopTemplate.edge(human, "reads", magazine);
@@ -91,7 +85,7 @@ abstract class EdgeEntityTest {
 
     @Test
     void shouldReturnErrorWhenLabelIsNull() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
             Human human = Human.builder().withName("Poliana").withAge().build();
             Magazine magazine = Magazine.builder().withAge(2007).withName("The Shack").build();
             tinkerpopTemplate.edge(human, (String) null, magazine);
@@ -100,7 +94,7 @@ abstract class EdgeEntityTest {
 
     @Test
     void shouldReturnNullWhenInboundIdIsNull() {
-        Assertions.assertThrows(EmptyResultException.class, () -> {
+        assertThatExceptionOfType(EmptyResultException.class).isThrownBy(() -> {
             Human human = Human.builder().withId("-5").withName("Poliana").withAge().build();
             Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
             tinkerpopTemplate.edge(human, "reads", magazine);
@@ -110,7 +104,7 @@ abstract class EdgeEntityTest {
 
     @Test
     void shouldReturnNullWhenOutboundIdIsNull() {
-        Assertions.assertThrows(IllegalStateException.class, () -> {
+        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
             Human human = tinkerpopTemplate.insert(Human.builder().withName("Poliana").withAge().build());
             Magazine magazine = Magazine.builder().withAge(2007).withName("The Shack").build();
             tinkerpopTemplate.edge(human, "reads", magazine);
@@ -119,7 +113,7 @@ abstract class EdgeEntityTest {
 
     @Test
     void shouldReturnEntityNotFoundWhenOutBoundDidNotFound() {
-        Assertions.assertThrows( EmptyResultException.class, () -> {
+        assertThatExceptionOfType(EmptyResultException.class).isThrownBy(() -> {
             Human human = Human.builder().withId("-10").withName("Poliana").withAge().build();
             Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
             tinkerpopTemplate.edge(human, "reads", magazine);
@@ -128,7 +122,7 @@ abstract class EdgeEntityTest {
 
     @Test
     void shouldReturnEntityNotFoundWhenInBoundDidNotFound() {
-        Assertions.assertThrows( EmptyResultException.class, () -> {
+        assertThatExceptionOfType(EmptyResultException.class).isThrownBy(() -> {
             Human human = tinkerpopTemplate.insert(Human.builder().withName("Poliana").withAge().build());
             Magazine magazine = Magazine.builder().withId("10").withAge(2007).withName("The Shack").build();
             tinkerpopTemplate.edge(human, "reads", magazine);
@@ -141,11 +135,11 @@ abstract class EdgeEntityTest {
         Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
         EdgeEntity edge = tinkerpopTemplate.edge(human, "reads", magazine);
 
-        assertEquals("reads", edge.label());
-        assertEquals(human, edge.outgoing());
-        assertEquals(magazine, edge.incoming());
-        assertTrue(edge.isEmpty());
-        assertNotNull(edge.id());
+        assertThat(edge.label()).isEqualTo("reads");
+        assertThat((Object) edge.outgoing()).isEqualTo(human);
+        assertThat((Object) edge.incoming()).isEqualTo(magazine);
+        assertThat(edge.isEmpty()).isTrue();
+        assertThat(edge.id()).isNotNull();
     }
 
     @Test
@@ -154,15 +148,15 @@ abstract class EdgeEntityTest {
         Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
         EdgeEntity edge = tinkerpopTemplate.edge(human, "reads", magazine);
 
-        assertEquals("reads", edge.label());
-        assertEquals(human, edge.outgoing());
-        assertEquals(magazine, edge.incoming());
-        assertTrue(edge.isEmpty());
-        assertNotNull(edge.id());
+        assertThat(edge.label()).isEqualTo("reads");
+        assertThat((Object) edge.outgoing()).isEqualTo(human);
+        assertThat((Object) edge.incoming()).isEqualTo(magazine);
+        assertThat(edge.isEmpty()).isTrue();
+        assertThat(edge.id()).isNotNull();
         final String id = edge.id(String.class);
-        assertNotNull(id);
+        assertThat(id).isNotNull();
 
-        assertEquals(id, edge.id(String.class));
+        assertThat(edge.id(String.class)).isEqualTo(id);
 
     }
 
@@ -172,11 +166,11 @@ abstract class EdgeEntityTest {
         Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
         EdgeEntity edge = tinkerpopTemplate.edge(human, () -> "reads", magazine);
 
-        assertEquals("reads", edge.label());
-        assertEquals(human, edge.outgoing());
-        assertEquals(magazine, edge.incoming());
-        assertTrue(edge.isEmpty());
-        assertNotNull(edge.id());
+        assertThat(edge.label()).isEqualTo("reads");
+        assertThat((Object) edge.outgoing()).isEqualTo(human);
+        assertThat((Object) edge.incoming()).isEqualTo(magazine);
+        assertThat(edge.isEmpty()).isTrue();
+        assertThat(edge.id()).isNotNull();
     }
 
     @Test
@@ -187,8 +181,8 @@ abstract class EdgeEntityTest {
 
         EdgeEntity sameEdge = tinkerpopTemplate.edge(human, "reads", magazine);
 
-        assertEquals(edge.id(), sameEdge.id());
-        assertEquals(edge, sameEdge);
+        assertThat(sameEdge.id()).isEqualTo(edge.id());
+        assertThat(sameEdge).isEqualTo(edge);
     }
 
     @Test
@@ -203,11 +197,11 @@ abstract class EdgeEntityTest {
         EdgeEntity sameEdge = tinkerpopTemplate.edge(poliana, "reads", magazine);
         EdgeEntity sameEdge1 = tinkerpopTemplate.edge(nilzete, "reads", magazine);
 
-        assertEquals(edge.id(), sameEdge.id());
-        assertEquals(edge, sameEdge);
+        assertThat(sameEdge.id()).isEqualTo(edge.id());
+        assertThat(sameEdge).isEqualTo(edge);
 
-        assertEquals(edge1.id(), sameEdge1.id());
-        assertEquals(edge1, sameEdge1);
+        assertThat(sameEdge1.id()).isEqualTo(edge1.id());
+        assertThat(sameEdge1).isEqualTo(edge1);
 
     }
 
@@ -223,15 +217,15 @@ abstract class EdgeEntityTest {
         EdgeEntity sameEdge = tinkerpopTemplate.edge(poliana, "reads", magazine);
         EdgeEntity sameEdge1 = tinkerpopTemplate.edge(nilzete, "reads", magazine);
 
-        assertNotEquals(edge.id(), edge1.id());
-        assertNotEquals(edge.id(), sameEdge1.id());
+        assertThat(edge1.id()).isNotEqualTo(edge.id());
+        assertThat(sameEdge1.id()).isNotEqualTo(edge.id());
 
-        assertNotEquals(sameEdge1.id(), sameEdge.id());
+        assertThat(sameEdge.id()).isNotEqualTo(sameEdge1.id());
     }
 
     @Test
     void shouldReturnErrorWhenAddKeyIsNull() {
-        assertThrows(NullPointerException.class, () -> {
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
             Human human = tinkerpopTemplate.insert(Human.builder().withName("Poliana").withAge().build());
             Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
             EdgeEntity edge = tinkerpopTemplate.edge(human, "reads", magazine);
@@ -242,7 +236,7 @@ abstract class EdgeEntityTest {
     @Test
     void shouldReturnErrorWhenAddValueIsNull() {
 
-        assertThrows(NullPointerException.class, () -> {
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
             Human human = tinkerpopTemplate.insert(Human.builder().withName("Poliana").withAge().build());
             Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
             EdgeEntity edge = tinkerpopTemplate.edge(human, "reads", magazine);
@@ -257,8 +251,8 @@ abstract class EdgeEntityTest {
         EdgeEntity edge = tinkerpopTemplate.edge(human, "reads", magazine);
         edge.add("where", "Brazil");
 
-        assertFalse(edge.isEmpty());
-        assertEquals(1, edge.size());
+        assertThat(edge.isEmpty()).isFalse();
+        assertThat(edge.size()).isEqualTo(1);
         assertThat(edge.properties()).contains(Element.of("where", "Brazil"));
     }
 
@@ -269,22 +263,22 @@ abstract class EdgeEntityTest {
         EdgeEntity edge = tinkerpopTemplate.edge(human, "reads", magazine);
         edge.add("where", Value.of("Brazil"));
 
-        assertFalse(edge.isEmpty());
-        assertEquals(1, edge.size());
+        assertThat(edge.isEmpty()).isFalse();
+        assertThat(edge.size()).isEqualTo(1);
         assertThat(edge.properties()).contains(Element.of("where", "Brazil"));
     }
 
 
     @Test
     void shouldReturnErrorWhenRemoveNullKeyProperty() {
-        assertThrows(NullPointerException.class, () -> {
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
             Human human = tinkerpopTemplate.insert(Human.builder().withName("Poliana").withAge().build());
             Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
             EdgeEntity edge = tinkerpopTemplate.edge(human, "reads", magazine);
             edge.add("where", "Brazil");
 
 
-            assertFalse(edge.isEmpty());
+            assertThat(edge.isEmpty()).isFalse();
             edge.remove(null);
         });
     }
@@ -295,11 +289,11 @@ abstract class EdgeEntityTest {
         Magazine magazine = tinkerpopTemplate.insert(Magazine.builder().withAge(2007).withName("The Shack").build());
         EdgeEntity edge = tinkerpopTemplate.edge(human, "reads", magazine);
         edge.add("where", "Brazil");
-        assertEquals(1, edge.size());
-        assertFalse(edge.isEmpty());
+        assertThat(edge.size()).isEqualTo(1);
+        assertThat(edge.isEmpty()).isFalse();
         edge.remove("where");
-        assertTrue(edge.isEmpty());
-        assertEquals(0, edge.size());
+        assertThat(edge.isEmpty()).isTrue();
+        assertThat(edge.size()).isEqualTo(0);
     }
 
     @Test
@@ -310,9 +304,9 @@ abstract class EdgeEntityTest {
         edge.add("where", "Brazil");
 
         Optional<Value> where = edge.get("where");
-        assertTrue(where.isPresent());
-        assertEquals("Brazil", where.get().get());
-        assertFalse(edge.get("not").isPresent());
+        assertThat(where.isPresent()).isTrue();
+        assertThat(where.get().get()).isEqualTo("Brazil");
+        assertThat(edge.get("not").isPresent()).isFalse();
 
     }
 
@@ -324,14 +318,14 @@ abstract class EdgeEntityTest {
         edge.delete();
 
         EdgeEntity newEdge = tinkerpopTemplate.edge(human, "reads", magazine);
-        assertNotEquals(edge.id(), newEdge.id());
+        assertThat(newEdge.id()).isNotEqualTo(edge.id());
 
         tinkerpopTemplate.deleteEdge(newEdge.id());
     }
 
     @Test
     void shouldReturnErrorWhenDeleteAnEdgeWithNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.delete((Iterable<Object>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.delete((Iterable<Object>) null));
     }
 
     @Test
@@ -344,13 +338,13 @@ abstract class EdgeEntityTest {
         tinkerpopTemplate.deleteEdge(edge.id());
 
         EdgeEntity newEdge = tinkerpopTemplate.edge(human, "reads", magazine);
-        assertNotEquals(edge.id(), newEdge.id());
+        assertThat(newEdge.id()).isNotEqualTo(edge.id());
     }
 
 
     @Test
     void shouldReturnErrorWhenFindEdgeWithNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.edge(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.edge(null));
     }
 
 
@@ -362,8 +356,8 @@ abstract class EdgeEntityTest {
 
         Optional<EdgeEntity> newEdge = tinkerpopTemplate.edge(edge.id());
 
-        assertTrue(newEdge.isPresent());
-        assertEquals(edge.id(), newEdge.get().id());
+        assertThat(newEdge.isPresent()).isTrue();
+        assertThat(newEdge.get().id()).isEqualTo(edge.id());
 
         tinkerpopTemplate.deleteEdge(edge.id());
     }
@@ -372,7 +366,7 @@ abstract class EdgeEntityTest {
     void shouldNotFindAnEdge() {
         Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.edge("-12");
 
-        assertFalse(edgeEntity.isPresent());
+        assertThat(edgeEntity.isPresent()).isFalse();
     }
 
 }
