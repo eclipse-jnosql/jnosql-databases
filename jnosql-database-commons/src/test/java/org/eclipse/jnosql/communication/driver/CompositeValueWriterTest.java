@@ -53,23 +53,23 @@ class CompositeValueWriterTest {
     }
 
     @Nested
-    @DisplayName("When evaluating supported types via test()")
-    class TestMethodScenarios {
+    @DisplayName("When validating supported value types")
+    class WhenTheValidation {
 
         @Test
         @DisplayName("Should return true when at least one registered custom writer supports the type")
         void shouldReturnTrueWhenCustomWriterSupportsTheType() {
-            // Arrange
+            // Given
             CompositeValueWriter<Object, Object> composite = new CompositeValueWriter<>(
                     new StringToIntegerWriter(),
                     new DummyUUIDWriter()
             );
 
-            // Act
+            // When
             boolean supportsString = composite.test(String.class);
             boolean supportsUUID = composite.test(UUID.class);
 
-            // Assert
+            // Then
             assertThat(supportsString).isTrue();
             assertThat(supportsUUID).isTrue();
         }
@@ -77,39 +77,37 @@ class CompositeValueWriterTest {
         @Test
         @DisplayName("Should fall back to the system default configuration when no custom writer matches")
         void shouldFallbackToDefaultWhenNoCustomWriterMatches() {
-            // Arrange
+            // Given
             CompositeValueWriter<Object, Object> composite = new CompositeValueWriter<>(
                     new StringToIntegerWriter()
             );
 
-            // Act
-            // Using a type unlikely to be supported natively by default SPI, or checking fallback execution path
+            // When
             boolean result = composite.test(Void.class);
 
-            // Assert
-            // Falls back to ValueWriterDecorator.getInstance().test(Void.class) which is typically false
+            // Then
             assertThat(result).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("When converting data via write()")
-    class WriteMethodScenarios {
+    @DisplayName("When converting values")
+    class WhenTheConversion {
 
         @Test
         @DisplayName("Should delegate to the appropriate custom writer when a matching type is provided")
         void shouldDelegateToMatchingCustomWriter() {
-            // Arrange
+            // Given
             CompositeValueWriter<Object, Object> composite = new CompositeValueWriter<>(
                     new StringToIntegerWriter(),
                     new DummyUUIDWriter()
             );
             UUID targetUuid = UUID.randomUUID();
 
-            // Act
+            // When
             Object result = composite.write(targetUuid);
 
-            // Assert
+            // Then
             assertThat(result)
                     .isInstanceOf(String.class)
                     .isEqualTo("CUSTOM-" + targetUuid);
@@ -118,7 +116,7 @@ class CompositeValueWriterTest {
         @Test
         @DisplayName("Should respect registration order and use the first matching writer if multiple support the type")
         void shouldRespectOrderWhenMultipleWritersMatch() {
-            // Arrange
+            // Given
             ValueWriter<String, String> firstMatchingWriter = new ValueWriter<>() {
                 @Override public boolean test(Class<?> type) { return String.class.equals(type); }
                 @Override public String write(String type) { return "FIRST"; }
@@ -134,24 +132,23 @@ class CompositeValueWriterTest {
                     secondMatchingWriter
             );
 
-            // Act
+            // When
             String result = composite.write("input");
 
-            // Assert
+            // Then
             assertThat(result).isEqualTo("FIRST");
         }
 
         @Test
         @DisplayName("Should fall back to default writer behavior when payload type has no custom match")
         void shouldFallbackToDefaultWriterWhenNoCustomMatchFound() {
-            // Arrange
+            // Given
             CompositeValueWriter<Object, Object> composite = new CompositeValueWriter<>(new DummyUUIDWriter());
 
-            // Act & Assert
-            // Passing a plain String, which bypasses DummyUUIDWriter and hits the framework default pipeline
+            // When
             Object result = composite.write(Month.APRIL);
 
-            // Default framework behavior for a String value writer usually returns the string itself
+            // Then
             assertThat(result).isEqualTo("APRIL");
         }
     }
