@@ -34,10 +34,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class OracleNoSQLBucketManagerTest {
@@ -63,16 +59,16 @@ public class OracleNoSQLBucketManagerTest {
     public void shouldPutValue() {
         keyValueEntityManager.put("otavio", otavio);
         Optional<Value> otavio = keyValueEntityManager.get("otavio");
-        assertTrue(otavio.isPresent());
-        assertEquals(this.otavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(this.otavio);
     }
 
     @Test
     public void shouldPutKeyValue() {
         keyValueEntityManager.put(entityOtavio);
         Optional<Value> otavio = keyValueEntityManager.get("otavio");
-        assertTrue(otavio.isPresent());
-        assertEquals(this.otavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(this.otavio);
     }
 
     @Test
@@ -86,12 +82,12 @@ public class OracleNoSQLBucketManagerTest {
 
         keyValueEntityManager.put(asList(entitySoro, entityOtavio));
         Optional<Value> otavio = keyValueEntityManager.get("otavio");
-        assertTrue(otavio.isPresent());
-        assertEquals(this.otavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(this.otavio);
 
         Optional<Value> soro = keyValueEntityManager.get("soro");
-        assertTrue(soro.isPresent());
-        assertEquals(this.soro, soro.get().get(User.class));
+        assertThat(soro.isPresent()).isTrue();
+        assertThat(soro.get().get(User.class)).isEqualTo(this.soro);
     }
 
     @Test
@@ -99,7 +95,7 @@ public class OracleNoSQLBucketManagerTest {
         User user = new User("otavio");
         KeyValueEntity keyValue = KeyValueEntity.of("otavio", Value.of(user));
         keyValueEntityManager.put(keyValue);
-        assertNotNull(keyValueEntityManager.get("otavio"));
+        assertThat(keyValueEntityManager.get("otavio")).isNotNull();
 
 
     }
@@ -108,9 +104,9 @@ public class OracleNoSQLBucketManagerTest {
     public void shouldRemoveKey() {
 
         keyValueEntityManager.put(entityOtavio);
-        assertTrue(keyValueEntityManager.get("otavio").isPresent());
+        assertThat(keyValueEntityManager.get("otavio").isPresent()).isTrue();
         keyValueEntityManager.delete("otavio");
-        assertFalse(keyValueEntityManager.get("otavio").isPresent());
+        assertThat(keyValueEntityManager.get("otavio").isPresent()).isFalse();
     }
 
     @Test
@@ -124,7 +120,7 @@ public class OracleNoSQLBucketManagerTest {
                 .contains(otavio, soro);
         keyValueEntityManager.delete(keys);
         Iterable<Value> users = values;
-        assertEquals(0L, StreamSupport.stream(keyValueEntityManager.get(keys).spliterator(), false).count());
+        assertThat(StreamSupport.stream(keyValueEntityManager.get(keys).spliterator(), false).count()).isEqualTo(0L);
     }
 
 
