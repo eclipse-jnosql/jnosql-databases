@@ -22,7 +22,6 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +40,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class MongoDBSpecificFeaturesTest {
@@ -63,12 +62,9 @@ class MongoDBSpecificFeaturesTest {
     void shouldReturnErrorOnSelectWhenThereIsNullParameter() {
         Bson filter = eq("name", "Poliana");
 
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.select(null, null));
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.select(COLLECTION_NAME, null));
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.select(null, filter));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.select(null, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.select(COLLECTION_NAME, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.select(null, filter));
     }
 
     @Test
@@ -77,7 +73,7 @@ class MongoDBSpecificFeaturesTest {
 
         List<CommunicationEntity> entities = entityManager.select(COLLECTION_NAME,
                 eq("name", "Poliana")).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
@@ -85,12 +81,9 @@ class MongoDBSpecificFeaturesTest {
     void shouldReturnErrorOnDeleteWhenThereIsNullParameter() {
         Bson filter = eq("name", "Poliana");
 
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.delete(null, null));
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.delete(COLLECTION_NAME, null));
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.delete(null, filter));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.delete(null, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.delete(COLLECTION_NAME, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.delete(null, filter));
     }
 
     @Test
@@ -100,10 +93,10 @@ class MongoDBSpecificFeaturesTest {
         long result = entityManager.delete(COLLECTION_NAME,
                 eq("name", "Poliana"));
 
-        Assertions.assertEquals(1L, result);
+        assertThat(result).isEqualTo(1L);
         List<CommunicationEntity> entities = entityManager.select(COLLECTION_NAME,
                 eq("name", "Poliana")).toList();
-        Assertions.assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
@@ -112,12 +105,9 @@ class MongoDBSpecificFeaturesTest {
         List<Bson> pipeline = Collections.singletonList(bson);
         var pipelineArray = new Bson[]{bson};
 
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.aggregate(null, (List<Bson>) null));
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.aggregate(COLLECTION_NAME, (List<Bson>) null));
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.aggregate(null, (Bson[]) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.aggregate(null, (List<Bson>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.aggregate(COLLECTION_NAME, (List<Bson>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.aggregate(null, (Bson[]) null));
     }
 
     @Test
@@ -128,14 +118,14 @@ class MongoDBSpecificFeaturesTest {
         };
         entityManager.insert(getEntity());
         Stream<Map<String, BsonValue>> aggregate = entityManager.aggregate(COLLECTION_NAME, predicates);
-        Assertions.assertNotNull(aggregate);
+        assertThat(aggregate).isNotNull();
         Map<String, BsonValue> result = aggregate.findFirst()
                 .orElseThrow(() -> new IllegalStateException("There is an issue with the aggregate test result"));
 
-        Assertions.assertNotNull(result);
-        Assertions.assertFalse(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result.isEmpty()).isFalse();
         BsonValue count = result.get("count");
-        Assertions.assertEquals(1L, count.asNumber().longValue());
+        assertThat(count.asNumber().longValue()).isEqualTo(1L);
 
     }
 
@@ -147,11 +137,11 @@ class MongoDBSpecificFeaturesTest {
         );
         entityManager.insert(getEntity());
         Stream<CommunicationEntity> aggregate = entityManager.aggregate(COLLECTION_NAME, predicates);
-        Assertions.assertNotNull(aggregate);
+        assertThat(aggregate).isNotNull();
         CommunicationEntity result = aggregate.findFirst()
                 .orElseThrow(() -> new IllegalStateException("There is an issue with the aggregate test result"));
 
-        Assertions.assertNotNull(result);
+        assertThat(result).isNotNull();
     }
 
     private CommunicationEntity getEntity() {
@@ -169,13 +159,13 @@ class MongoDBSpecificFeaturesTest {
 
         entityManager.insert(getEntity());
         var filter = eq("name", "Poliana");
-        Assertions.assertEquals(1L, entityManager.count(COLLECTION_NAME, filter));
+        assertThat(entityManager.count(COLLECTION_NAME, filter)).isEqualTo(1L);
 
         var filter2 = and(filter, eq("city", "Salvador"));
-        Assertions.assertEquals(1L, entityManager.count(COLLECTION_NAME, filter2));
+        assertThat(entityManager.count(COLLECTION_NAME, filter2)).isEqualTo(1L);
 
         var filter3 = and(filter, eq("city", "São Paulo"));
-        Assertions.assertEquals(0L, entityManager.count(COLLECTION_NAME, filter3));
+        assertThat(entityManager.count(COLLECTION_NAME, filter3)).isEqualTo(0L);
 
     }
 
@@ -184,12 +174,9 @@ class MongoDBSpecificFeaturesTest {
 
         Bson filter = eq("name", "Poliana");
 
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.count(null, null));
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.count(COLLECTION_NAME, null));
-        Assertions.assertThrows(NullPointerException.class,
-                () -> entityManager.count(null, filter));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.count(null, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.count(COLLECTION_NAME, null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.count(null, filter));
 
     }
 
