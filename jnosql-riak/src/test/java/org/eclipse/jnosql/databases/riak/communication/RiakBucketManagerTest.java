@@ -32,10 +32,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
@@ -62,16 +58,16 @@ public class RiakBucketManagerTest {
     public void shouldPutValue() {
         keyValueEntityManager.put("otavio", userOtavio);
         Optional<Value> otavio = keyValueEntityManager.get("otavio");
-        assertTrue(otavio.isPresent());
-        assertEquals(userOtavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(userOtavio);
     }
 
     @Test
     public void shouldPutKeyValue() {
         keyValueEntityManager.put(keyValueOtavio);
         Optional<Value> otavio = keyValueEntityManager.get("otavio");
-        assertTrue(otavio.isPresent());
-        assertEquals(userOtavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(userOtavio);
     }
 
     @Test
@@ -80,12 +76,12 @@ public class RiakBucketManagerTest {
 
         keyValueEntityManager.put(asList(keyValueSoro, keyValueOtavio));
         Optional<Value> otavio = keyValueEntityManager.get("otavio");
-        assertTrue(otavio.isPresent());
-        assertEquals(userOtavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(userOtavio);
 
         Optional<Value> soro = keyValueEntityManager.get("soro");
-        assertTrue(soro.isPresent());
-        assertEquals(userSoro, soro.get().get(User.class));
+        assertThat(soro.isPresent()).isTrue();
+        assertThat(soro.get().get(User.class)).isEqualTo(userSoro);
     }
 
     @Test
@@ -93,7 +89,7 @@ public class RiakBucketManagerTest {
         User user = new User("otavio");
         KeyValueEntity keyValue = KeyValueEntity.of("otavio", Value.of(user));
         keyValueEntityManager.put(keyValue);
-        assertNotNull(keyValueEntityManager.get("otavio"));
+        assertThat(keyValueEntityManager.get("otavio")).isNotNull();
 
 
     }
@@ -102,9 +98,9 @@ public class RiakBucketManagerTest {
     public void shouldRemoveKey() {
 
         keyValueEntityManager.put(keyValueOtavio);
-        assertTrue(keyValueEntityManager.get("otavio").isPresent());
+        assertThat(keyValueEntityManager.get("otavio").isPresent()).isTrue();
         keyValueEntityManager.delete("otavio");
-        assertFalse(keyValueEntityManager.get("otavio").isPresent());
+        assertThat(keyValueEntityManager.get("otavio").isPresent()).isFalse();
     }
 
     @Test
@@ -117,6 +113,6 @@ public class RiakBucketManagerTest {
                 .collect(Collectors.toList())).contains(userOtavio, userSoro);
         keyValueEntityManager.delete(keys);
         Iterable<Value> users = values;
-        assertEquals(0L, StreamSupport.stream(keyValueEntityManager.get(keys).spliterator(), false).count());
+        assertThat(StreamSupport.stream(keyValueEntityManager.get(keys).spliterator(), false).count()).isEqualTo(0L);
     }
 }
