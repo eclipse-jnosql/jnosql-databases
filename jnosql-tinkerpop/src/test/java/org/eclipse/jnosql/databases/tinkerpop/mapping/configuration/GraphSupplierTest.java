@@ -26,7 +26,6 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -52,7 +51,7 @@ class GraphSupplierTest {
     void shouldGetGraph() {
         System.setProperty(DatabaseConfigurationAdapter.TINKERPOP_PROVIDER, GraphConfigurationMock.class.getName());
         Graph graph = supplier.get();
-        Assertions.assertNotNull(graph);
+        assertThat(graph).isNotNull();
         assertThat(graph).isInstanceOf(GraphConfigurationMock.GraphMock.class);
     }
 
@@ -61,14 +60,14 @@ class GraphSupplierTest {
     void shouldUseDefaultConfigurationWhenProviderIsWrong() {
         System.setProperty(GRAPH_PROVIDER.get(), Integer.class.getName());
         Graph graph = supplier.get();
-        Assertions.assertNotNull(graph);
+        assertThat(graph).isNotNull();
         assertThat(graph).isInstanceOf(GraphConfigurationMock2.GraphMock.class);
     }
 
     @Test
     void shouldUseDefaultConfiguration() {
         Graph graph = supplier.get();
-        Assertions.assertNotNull(graph);
+        assertThat(graph).isNotNull();
         assertThat(graph).isInstanceOf(GraphConfigurationMock2.GraphMock.class);
     }
 

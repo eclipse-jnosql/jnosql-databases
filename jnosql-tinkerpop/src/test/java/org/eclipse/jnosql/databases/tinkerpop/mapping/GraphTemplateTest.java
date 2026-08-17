@@ -30,10 +30,10 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.jnosql.mapping.DatabaseType.GRAPH;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class, GraphTemplate.class})
@@ -63,11 +63,11 @@ abstract class GraphTemplateTest {
 
     @Test
     void shouldInjectTemplate() {
-        Assertions.assertNotNull(template);
+        assertThat(template).isNotNull();
     }
 
     @Test
     void shouldInjectQualifier() {
-        Assertions.assertNotNull(qualifier);
+        assertThat(qualifier).isNotNull();
     }
 }

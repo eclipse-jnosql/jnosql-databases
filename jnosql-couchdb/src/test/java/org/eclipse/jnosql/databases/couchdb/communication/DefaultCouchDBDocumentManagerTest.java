@@ -23,7 +23,6 @@ import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.databases.couchdb.communication.configuration.DocumentDatabase;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -44,12 +43,7 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class DefaultCouchDBDocumentManagerTest {
@@ -73,7 +67,7 @@ class DefaultCouchDBDocumentManagerTest {
     void shouldInsert() {
         var entity = getEntity();
         var documentEntity = entityManager.insert(entity);
-        assertEquals(entity, documentEntity);
+        assertThat(documentEntity).isEqualTo(entity);
     }
 
     @Test
@@ -81,7 +75,7 @@ class DefaultCouchDBDocumentManagerTest {
         var entity = getEntity();
         entity.remove(CouchDBConstant.ID);
         var documentEntity = entityManager.insert(entity);
-        assertTrue(documentEntity.find(CouchDBConstant.ID).isPresent());
+        assertThat(documentEntity.find(CouchDBConstant.ID).isPresent()).isTrue();
     }
 
     @Test
@@ -92,20 +86,20 @@ class DefaultCouchDBDocumentManagerTest {
         var newField = Elements.of("newField", "10");
         entity.add(newField);
         var updated = entityManager.update(entity);
-        assertEquals(newField, updated.find("newField").get());
+        assertThat(updated.find("newField").get()).isEqualTo(newField);
     }
 
     @Test
     void shouldReturnErrorOnUpdate() {
-        assertThrows(NullPointerException.class, () -> entityManager.update((CommunicationEntity) null));
-        assertThrows(CouchDBHttpClientException.class, () -> {
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.update((CommunicationEntity) null));
+        assertThatExceptionOfType(CouchDBHttpClientException.class).isThrownBy(() -> {
             var entity = getEntity();
             entity.remove(CouchDBConstant.ID);
             entityManager.update(entity);
 
         });
 
-        assertThrows(CouchDBHttpClientException.class, () -> {
+        assertThatExceptionOfType(CouchDBHttpClientException.class).isThrownBy(() -> {
             var entity = getEntity();
             entity.add(CouchDBConstant.ID, "not_found");
             entityManager.update(entity);
@@ -122,14 +116,14 @@ class DefaultCouchDBDocumentManagerTest {
         Object id = entity.find(CouchDBConstant.ID).map(Element::get).get();
         var query = select().from(COLLECTION_NAME).where(CouchDBConstant.ID).eq(id).build();
         var documentFound = entityManager.singleResult(query).get();
-        assertEquals(entity, documentFound);
+        assertThat(documentFound).isEqualTo(entity);
     }
 
     @Test
     void shouldSelectEmptyResult() {
         var query = select().from(COLLECTION_NAME).where("no_field").eq("not_found").build();
         var entities = entityManager.select(query).toList();
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
@@ -143,7 +137,7 @@ class DefaultCouchDBDocumentManagerTest {
         var deleteQuery = delete().from(COLLECTION_NAME)
                 .where(name.name()).eq(name.get()).build();
         entityManager.delete(deleteQuery);
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
     }
 
     @Test
@@ -152,7 +146,7 @@ class DefaultCouchDBDocumentManagerTest {
         entity.remove(CouchDBConstant.ID);
         entityManager.insert(entity);
         long count = entityManager.count();
-        assertTrue(count > 0);
+        assertThat(count > 0).isTrue();
     }
 
     @Test
@@ -167,19 +161,19 @@ class DefaultCouchDBDocumentManagerTest {
         CouchDBDocumentQuery query = CouchDBDocumentQuery.of(select().from(COLLECTION_NAME)
                 .where("index").in(asList(0, 1, 2, 3, 4)).limit(2).build());
 
-        assertFalse(query.getBookmark().isPresent());
+        assertThat(query.getBookmark().isPresent()).isFalse();
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entities.size());
-        assertTrue(query.getBookmark().isPresent());
+        assertThat(entities.size()).isEqualTo(2);
+        assertThat(query.getBookmark().isPresent()).isTrue();
         String bookmark = query.getBookmark().get();
 
         entities = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entities.size());
-        assertTrue(query.getBookmark().isPresent());
-        assertNotEquals(bookmark, query.getBookmark().get());
+        assertThat(entities.size()).isEqualTo(2);
+        assertThat(query.getBookmark().isPresent()).isTrue();
+        assertThat(query.getBookmark().get()).isNotEqualTo(bookmark);
 
         entities = entityManager.select(query).collect(Collectors.toList());
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
@@ -193,7 +187,7 @@ class DefaultCouchDBDocumentManagerTest {
         CouchDBDocumentQuery query = CouchDBDocumentQuery.of(select().from(COLLECTION_NAME)
                 .where("name").in(Arrays.asList("Poliana", "Poliana")).build());
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertEquals(4, entities.size());
+        assertThat(entities.size()).isEqualTo(4);
     }
 
     @Test
@@ -210,10 +204,10 @@ class DefaultCouchDBDocumentManagerTest {
         var query = select().from("AppointmentBook").where(key.name()).eq(key.get()).build();
 
         var documentEntity = entityManager.singleResult(query).get();
-        assertNotNull(documentEntity);
+        assertThat(documentEntity).isNotNull();
         List<List<Element>> contacts = (List<List<Element>>) documentEntity.find("contacts").get().get();
-        assertEquals(3, contacts.size());
-        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
+        assertThat(contacts.size()).isEqualTo(3);
+        assertThat(contacts.stream().allMatch(d -> d.size() == 3)).isTrue();
     }
 
     @Test
@@ -263,10 +257,10 @@ class DefaultCouchDBDocumentManagerTest {
         final SelectQuery query = select().from(COLLECTION_NAME)
                 .where("_id").eq(id).and("scope").eq("xxx").build();
         final Optional<CommunicationEntity> optional = entityManager.select(query).findFirst();
-        Assertions.assertTrue(optional.isPresent());
+        assertThat(optional.isPresent()).isTrue();
         var documentEntity = optional.get();
         var properties = documentEntity.find("properties").get();
-        Assertions.assertNotNull(properties);
+        assertThat(properties).isNotNull();
     }
 
     @Test

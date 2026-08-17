@@ -48,11 +48,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class ElasticsearchDocumentManagerTest {
@@ -104,15 +100,14 @@ public class ElasticsearchDocumentManagerTest {
     @Test
     public void shouldClose() {
         entityManager.close();
-        assertThrows(RuntimeException.class,
-                () -> entityManager.insert(DocumentEntityGerator.getEntity()));
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> entityManager.insert(DocumentEntityGerator.getEntity()));
     }
 
     @Test
     public void shouldInsert() {
         var entity = DocumentEntityGerator.getEntity();
         var documentEntity = entityManager.insert(entity);
-        assertEquals(entity, documentEntity);
+        assertThat(documentEntity).isEqualTo(entity);
 
         var id = documentEntity.find(EntityConverter.ID_FIELD).get();
         var query = SelectQuery.select()
@@ -126,7 +121,7 @@ public class ElasticsearchDocumentManagerTest {
 
     @Test
     public void shouldInsertTTL() {
-        assertThrows(UnsupportedOperationException.class, () -> entityManager.insert(DocumentEntityGerator.getEntity(), Duration.ofSeconds(1L)));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> entityManager.insert(DocumentEntityGerator.getEntity(), Duration.ofSeconds(1L)));
     }
 
     @Test
@@ -162,7 +157,7 @@ public class ElasticsearchDocumentManagerTest {
         var newField = Elements.of("newField", "10");
         entity.add(newField);
         var updated = entityManager.update(entity);
-        assertEquals(newField, updated.find("newField").get());
+        assertThat(updated.find("newField").get()).isEqualTo(newField);
 
         // it's required in order to avoid an eventual inconsistency
         await().until(numberOfEntitiesFrom(query), equalTo(1L));
@@ -236,7 +231,7 @@ public class ElasticsearchDocumentManagerTest {
         await().until(numberOfEntitiesFrom(query), equalTo(1L));
 
         var entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         var names = entities.stream().map(e -> e.find("name").get())
                 .distinct().collect(Collectors.toList());
         assertThat(names).contains(name);
@@ -388,14 +383,14 @@ public class ElasticsearchDocumentManagerTest {
         await().until(numberOfEntitiesFrom(query), equalTo(1L));
 
         var documentEntity = entityManager.singleResult(query).orElse(null);
-        assertNotNull(documentEntity);
+        assertThat(documentEntity).isNotNull();
 
         List<List<Element>> contacts = documentEntity.find("contacts")
                 .orElseThrow()
                 .get(List.class);
 
-        assertEquals(3, contacts.size());
-        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
+        assertThat(contacts.size()).isEqualTo(3);
+        assertThat(contacts.stream().allMatch(d -> d.size() == 3)).isTrue();
     }
 
     @Test

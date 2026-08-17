@@ -27,7 +27,6 @@ import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -57,11 +56,7 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class CassandraColumnManagerTest {
@@ -90,7 +85,7 @@ public class CassandraColumnManagerTest {
         entityManager.close();
         DefaultCassandraColumnManager manager = DefaultCassandraColumnManager.class.cast(entityManager);
         CqlSession session = manager.getSession();
-        assertTrue(session.isClosed());
+        assertThat(session.isClosed()).isTrue();
     }
 
     @Test
@@ -117,7 +112,7 @@ public class CassandraColumnManagerTest {
 
         List<CommunicationEntity> entities = entityManager.select(select().from(Constants.COLUMN_FAMILY).where("id").eq(10L).build())
                 .toList();
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
@@ -128,27 +123,27 @@ public class CassandraColumnManagerTest {
 
         List<CommunicationEntity> entities = entityManager.select(select().from(Constants.COLUMN_FAMILY).build())
                 .toList();
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
     void shouldReturnErrorWhenInsertWithColumnNull() {
 
-        assertThrows(NullPointerException.class, () -> entityManager.insert((CommunicationEntity) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.insert((CommunicationEntity) null));
     }
 
     @Test
     void shouldReturnErrorWhenInsertWithConsistencyLevelNull() {
 
-        assertThrows(NullPointerException.class, () -> entityManager.insert(getColumnFamily(), null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.insert(getColumnFamily(), null));
 
-        assertThrows(NullPointerException.class, () -> entityManager.insert(getEntities(), null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.insert(getEntities(), null));
     }
 
     @Test
     void shouldReturnErrorWhenInsertWithColumnsNull() {
 
-        assertThrows(NullPointerException.class, () -> entityManager.insert((Iterable<CommunicationEntity>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.insert((Iterable<CommunicationEntity>) null));
     }
 
 
@@ -162,13 +157,13 @@ public class CassandraColumnManagerTest {
     @Test
     void shouldReturnErrorWhenUpdateWithColumnsNull() {
 
-        assertThrows(NullPointerException.class, () -> entityManager.update((Iterable<CommunicationEntity>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.update((Iterable<CommunicationEntity>) null));
 
     }
 
     @Test
     void shouldReturnErrorWhenUpdateWithColumnNull() {
-        assertThrows(NullPointerException.class, () -> entityManager.update((CommunicationEntity) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.update((CommunicationEntity) null));
     }
 
     @Test
@@ -228,20 +223,20 @@ public class CassandraColumnManagerTest {
 
     @Test
     void shouldReturnErrorWhenSaveHasNullElement() {
-        assertThrows(NullPointerException.class, () -> entityManager.save((CommunicationEntity) null, Duration.ofSeconds(1L), ConsistencyLevel.ALL));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.save((CommunicationEntity) null, Duration.ofSeconds(1L), ConsistencyLevel.ALL));
 
-        assertThrows(NullPointerException.class, () -> entityManager.save(getColumnFamily(), null, ConsistencyLevel.ALL));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.save(getColumnFamily(), null, ConsistencyLevel.ALL));
 
-        assertThrows(NullPointerException.class, () -> entityManager.save(getColumnFamily(), Duration.ofSeconds(1L), null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.save(getColumnFamily(), Duration.ofSeconds(1L), null));
     }
 
     @Test
     void shouldReturnErrorWhenSaveIterableHasNullElement() {
-        assertThrows(NullPointerException.class, () -> entityManager.save((List<CommunicationEntity>) null, Duration.ofSeconds(1L), ConsistencyLevel.ALL));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.save((List<CommunicationEntity>) null, Duration.ofSeconds(1L), ConsistencyLevel.ALL));
 
-        assertThrows(NullPointerException.class, () -> entityManager.save(getEntities(), null, ConsistencyLevel.ALL));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.save(getEntities(), null, ConsistencyLevel.ALL));
 
-        assertThrows(NullPointerException.class, () -> entityManager.save(getEntities(), Duration.ofSeconds(1L), null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.save(getEntities(), Duration.ofSeconds(1L), null));
     }
 
     @Test
@@ -251,7 +246,7 @@ public class CassandraColumnManagerTest {
 
         var query = select().from(columnEntity.name()).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -263,7 +258,7 @@ public class CassandraColumnManagerTest {
 
         query = select().from(columnEntity.name()).where("id").eq(-10L).build();
         entity = entityManager.singleResult(query);
-        assertFalse(entity.isPresent());
+        assertThat(entity.isPresent()).isFalse();
 
     }
 
@@ -271,14 +266,14 @@ public class CassandraColumnManagerTest {
     void shouldReturnErrorWhenThereIsNotThanOneResultInSingleResult() {
         entityManager.insert(getEntities());
         var query = select().from(Constants.COLUMN_FAMILY).build();
-        assertThrows(NonUniqueResultException.class, () -> entityManager.singleResult(query));
+        assertThatExceptionOfType(NonUniqueResultException.class).isThrownBy(() -> entityManager.singleResult(query));
     }
 
     @Test
     void shouldReturnErrorWhenQueryIsNull() {
-        assertThrows(NullPointerException.class, () -> entityManager.select(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.select(null));
 
-        assertThrows(NullPointerException.class, () -> entityManager.singleResult(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.singleResult(null));
     }
 
 
@@ -289,7 +284,7 @@ public class CassandraColumnManagerTest {
 
         var query = select().from(Constants.COLUMN_FAMILY).where("id").eq(10L).build();
         List<CommunicationEntity> columnEntity = entityManager.select(query).toList();
-        assertFalse(columnEntity.isEmpty());
+        assertThat(columnEntity.isEmpty()).isFalse();
         List<Element> columns = columnEntity.getFirst().elements();
         assertThat(columns.stream().map(Element::name).collect(toList()))
                 .contains("name", "version", "options", "id");
@@ -304,7 +299,7 @@ public class CassandraColumnManagerTest {
         entityManager.insert(getColumnFamily());
         var query = select().from(Constants.COLUMN_FAMILY).where("id").eq(10L).build();
         List<CommunicationEntity> columnEntity = entityManager.select(query, CONSISTENCY_LEVEL).toList();
-        assertFalse(columnEntity.isEmpty());
+        assertThat(columnEntity.isEmpty()).isFalse();
         List<Element> columns = columnEntity.getFirst().elements();
         assertThat(columns.stream().map(Element::name).collect(toList())).contains("name", "version", "options", "id");
         assertThat(columns.stream().map(Element::value).map(Value::get).collect(toList()))
@@ -317,7 +312,7 @@ public class CassandraColumnManagerTest {
         entityManager.insert(getColumnFamily());
         List<CommunicationEntity> entities = entityManager.cql("select * from newKeySpace.newColumnFamily where id=10;")
                 .toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         List<Element> columns = entities.getFirst().elements();
         assertThat(columns.stream().map(Element::name).collect(toList())).contains("name", "version", "options", "id");
         assertThat(columns.stream().map(Element::value).map(Value::get).collect(toList()))
@@ -329,7 +324,7 @@ public class CassandraColumnManagerTest {
         entityManager.insert(getColumnFamily());
         String query = "select * from newKeySpace.newColumnFamily where id = :id;";
         List<CommunicationEntity> entities = entityManager.cql(query, singletonMap("id", 10L)).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         List<Element> columns = entities.getFirst().elements();
         assertThat(columns.stream().map(Element::name).collect(toList()))
                 .contains("name", "version", "options", "id");
@@ -359,17 +354,17 @@ public class CassandraColumnManagerTest {
         entityManager.delete(deleteQuery);
         List<CommunicationEntity> entities = entityManager.cql("select * from newKeySpace.newColumnFamily where id=10;")
                 .toList();
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
     void shouldReturnErrorWhenDeleteQueryIsNull() {
-        assertThrows(NullPointerException.class, () -> entityManager.delete(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.delete(null));
     }
 
     @Test
     void shouldReturnErrorWhenDeleteConsistencyLevelIsNull() {
-        assertThrows(NullPointerException.class, () -> entityManager.delete(delete().from(Constants.COLUMN_FAMILY).build(), null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> entityManager.delete(delete().from(Constants.COLUMN_FAMILY).build(), null));
     }
 
     @Test
@@ -380,7 +375,7 @@ public class CassandraColumnManagerTest {
         entityManager.delete(deleteQuery, CONSISTENCY_LEVEL);
         List<CommunicationEntity> entities = entityManager.cql("select * from newKeySpace.newColumnFamily where id=10;")
                 .toList();
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
@@ -389,7 +384,7 @@ public class CassandraColumnManagerTest {
         var query = select().from(Constants.COLUMN_FAMILY).where("id").in(Arrays.asList(1L, 2L, 3L))
                 .limit(2).build();
         List<CommunicationEntity> columnFamilyEntities = entityManager.select(query).toList();
-        assertEquals(Integer.valueOf(2), Integer.valueOf(columnFamilyEntities.size()));
+        assertThat(Integer.valueOf(columnFamilyEntities.size())).isEqualTo(Integer.valueOf(2));
     }
 
     private List<CommunicationEntity> getEntities() {
@@ -424,8 +419,8 @@ public class CassandraColumnManagerTest {
         var column = columnEntity.find("name").get();
         udt = UDT.class.cast(column);
         List<Element> udtColumns = (List<Element>) udt.get();
-        assertEquals("name", udt.name());
-        assertEquals("fullname", udt.userType());
+        assertThat(udt.name()).isEqualTo("name");
+        assertThat(udt.userType()).isEqualTo("fullname");
         assertThat(udtColumns).contains(Element.of("firstname", "Ada"),
                 Element.of("lastname", "Lovelace"));
     }
@@ -449,8 +444,8 @@ public class CassandraColumnManagerTest {
         Element column = columnEntity.find("name").get();
         udt = UDT.class.cast(column);
         List<Element> udtColumns = (List<Element>) udt.get();
-        assertEquals("name", udt.name());
-        assertEquals("fullname", udt.userType());
+        assertThat(udt.name()).isEqualTo("name");
+        assertThat(udt.userType()).isEqualTo("fullname");
         assertThat(udtColumns).contains(Element.of("firstname", "Ioda"));
     }
 
@@ -470,7 +465,7 @@ public class CassandraColumnManagerTest {
                 .build();
 
         var entity1 = entityManager.singleResult(query).get();
-        assertNotNull(entity1);
+        assertThat(entity1).isNotNull();
 
     }
 
@@ -488,8 +483,8 @@ public class CassandraColumnManagerTest {
         var query = select().from("contacts").where("user").eq("otaviojava").build();
         var columnEntity = entityManager.singleResult(query).get();
         List<List<Element>> names = (List<List<Element>>) columnEntity.find("names").get().get();
-        assertEquals(3, names.size());
-        assertTrue(names.stream().allMatch(n -> n.size() == 2));
+        assertThat(names.size()).isEqualTo(3);
+        assertThat(names.stream().allMatch(n -> n.size() == 2)).isTrue();
     }
 
     @Test
@@ -497,7 +492,7 @@ public class CassandraColumnManagerTest {
         var entity = createEntityWithIterable();
         entityManager.insert(entity);
         long contacts = entityManager.count("contacts");
-        assertTrue(contacts > 0);
+        assertThat(contacts > 0).isTrue();
     }
 
     @Test
@@ -537,11 +532,11 @@ public class CassandraColumnManagerTest {
         var query = select().from(Constants.COLUMN_FAMILY).build();
         CassandraQuery cassandraQuery = CassandraQuery.of(query);
 
-        assertFalse(cassandraQuery.getPagingState().isPresent());
+        assertThat(cassandraQuery.getPagingState().isPresent()).isFalse();
 
         List<CommunicationEntity> entities = entityManager.select(cassandraQuery).toList();
-        assertEquals(10, entities.size());
-        assertTrue(cassandraQuery.getPagingState().isPresent());
+        assertThat(entities.size()).isEqualTo(10);
+        assertThat(cassandraQuery.getPagingState().isPresent()).isTrue();
     }
 
     @Test
@@ -554,7 +549,7 @@ public class CassandraColumnManagerTest {
 
         var query = select().from(Constants.COLUMN_FAMILY).limit(4).skip(2).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertEquals(4, entities.size());
+        assertThat(entities.size()).isEqualTo(4);
     }
 
     @Test
@@ -563,11 +558,11 @@ public class CassandraColumnManagerTest {
         entityManager.insert(entity);
         SelectQuery query = select().from("agenda").build();
         var result = entityManager.singleResult(query).get();
-        Assertions.assertEquals(Element.of("user", "otaviojava"), result.find("user").get());
-        Assertions.assertEquals(2, result.size());
+        assertThat(result.find("user").get()).isEqualTo(Element.of("user", "otaviojava"));
+        assertThat(result.size()).isEqualTo(2);
         List<List<Element>> names = (List<List<Element>>) result.find("names").get().get();
-        assertEquals(3, names.size());
-        assertTrue(names.stream().allMatch(n -> n.size() == 2));
+        assertThat(names.size()).isEqualTo(3);
+        assertThat(names.stream().allMatch(n -> n.size() == 2)).isTrue();
     }
 
     @Test

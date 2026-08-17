@@ -26,8 +26,9 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, Neo4JRepository.class, EntityConverter.class, GraphTemplate.class})
@@ -48,12 +49,12 @@ public class Neo4jExtensionTest {
 
     @Test
     public void shouldCreteNeo4j() {
-        Assertions.assertNotNull(repository);
+        assertThat(repository).isNotNull();
     }
 
     @Test
     public void shouldCreteGraph() {
-        Assertions.assertNotNull(repository2);
-        Assertions.assertNotNull(repository3);
+        assertThat(repository2).isNotNull();
+        assertThat(repository3).isNotNull();
     }
 }

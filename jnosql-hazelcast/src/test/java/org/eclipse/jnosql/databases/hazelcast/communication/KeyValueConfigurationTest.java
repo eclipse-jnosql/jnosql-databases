@@ -18,14 +18,14 @@ package org.eclipse.jnosql.databases.hazelcast.communication;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.keyvalue.BucketManagerFactory;
 import org.eclipse.jnosql.communication.keyvalue.KeyValueConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class KeyValueConfigurationTest {
 
@@ -40,27 +40,27 @@ public class KeyValueConfigurationTest {
     public void shouldCreateKeyValueFactory() {
         Map<String, String> map = new HashMap<>();
         BucketManagerFactory managerFactory = configuration.get(map);
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
     @Test
     public void shouldCreateKeyValueFactoryFromFile() {
         BucketManagerFactory managerFactory = configuration.apply(Settings.builder().build());
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
     @Test
     public void shouldReturnFromConfiguration() {
         KeyValueConfiguration configuration = KeyValueConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof KeyValueConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof KeyValueConfiguration).isTrue();
     }
 
     @Test
     public void shouldReturnFromConfigurationQuery() {
         HazelcastKeyValueConfiguration configuration = KeyValueConfiguration
                 .getConfiguration(HazelcastKeyValueConfiguration.class);
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof HazelcastKeyValueConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof HazelcastKeyValueConfiguration).isTrue();
     }
 }

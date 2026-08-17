@@ -23,7 +23,7 @@ import java.time.Duration;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
@@ -41,21 +41,21 @@ public class DefaultCounterTest {
 
     @Test
     public void shouldIncrement() {
-        assertEquals(1D, counter.increment());
-        assertEquals(10D, counter.increment(9));
+        assertThat(counter.increment()).isEqualTo(1D);
+        assertThat(counter.increment(9)).isEqualTo(10D);
     }
 
     @Test
     public void shouldDecrement() {
         counter.increment(10.15);
-        assertEquals(9.15D, counter.decrement());
-        assertEquals(0.15D, counter.decrement(9));
+        assertThat(counter.decrement()).isEqualTo(9.15D);
+        assertThat(counter.decrement(9)).isEqualTo(0.15D);
     }
 
     @Test
     public void shouldGet() {
         counter.increment(10.15);
-        assertEquals(10.15D, counter.get().doubleValue());
+        assertThat(counter.get().doubleValue()).isEqualTo(10.15D);
     }
 
     @Test
@@ -63,7 +63,7 @@ public class DefaultCounterTest {
         counter.increment(10.15);
         counter.expire(Duration.ofSeconds(1));
         Thread.sleep(2_000L);
-        assertEquals(0D, counter.get().doubleValue());
+        assertThat(counter.get().doubleValue()).isEqualTo(0D);
     }
 
     @Test
@@ -72,14 +72,14 @@ public class DefaultCounterTest {
         counter.expire(Duration.ofSeconds(1));
         counter.persist();
         Thread.sleep(2_000L);
-        assertEquals(10.15D, counter.get().doubleValue());
+        assertThat(counter.get().doubleValue()).isEqualTo(10.15D);
     }
 
     @Test
     public void shouldDelete() {
         counter.increment(10.15);
         counter.delete();
-        assertEquals(0D, counter.get().doubleValue());
+        assertThat(counter.get().doubleValue()).isEqualTo(0D);
     }
 
     @AfterEach

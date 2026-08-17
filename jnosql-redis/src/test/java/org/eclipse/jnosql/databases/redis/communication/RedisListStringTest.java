@@ -27,10 +27,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class RedisListStringTest {
@@ -50,37 +46,37 @@ public class RedisListStringTest {
 
     @Test
     public void shouldReturnsList() {
-        assertNotNull(fruits);
+        assertThat(fruits).isNotNull();
     }
 
     @Test
     public void shouldAddList() {
-        assertTrue(fruits.isEmpty());
+        assertThat(fruits.isEmpty()).isTrue();
         fruits.add("banana");
-        assertFalse(fruits.isEmpty());
+        assertThat(fruits.isEmpty()).isFalse();
         String banana = fruits.getFirst();
-        assertNotNull(banana);
-        assertEquals(banana, "banana");
+        assertThat(banana).isNotNull();
+        assertThat("banana").isEqualTo(banana);
     }
     
     @Test
     public void shouldAddAll() {
         fruits.addAll(Arrays.asList("banana", "orange"));
-        assertEquals(2, fruits.size());
+        assertThat(fruits.size()).isEqualTo(2);
     }
 
     @Test
     public void shouldSetList() {
         fruits.add("banana");
         fruits.addFirst("orange");
-        assertEquals(2, fruits.size());
+        assertThat(fruits.size()).isEqualTo(2);
 
-        assertEquals(fruits.get(0), "orange");
-        assertEquals(fruits.get(1), "banana");
+        assertThat("orange").isEqualTo(fruits.get(0));
+        assertThat("banana").isEqualTo(fruits.get(1));
 
         fruits.set(0, "waterMelon");
-        assertEquals(fruits.get(0), "waterMelon");
-        assertEquals(fruits.get(1), "banana");
+        assertThat("waterMelon").isEqualTo(fruits.get(0));
+        assertThat("banana").isEqualTo(fruits.get(1));
 
     }
 
@@ -100,12 +96,12 @@ public class RedisListStringTest {
         fruits.add("banana");
         fruits.add("watermellon");
         fruits.add("banana");
-        assertEquals(1, fruits.indexOf("banana"));
-        assertEquals(3, fruits.lastIndexOf("banana"));
+        assertThat(fruits.indexOf("banana")).isEqualTo(1);
+        assertThat(fruits.lastIndexOf("banana")).isEqualTo(3);
 
-        assertTrue(fruits.contains("banana"));
-        assertEquals(-1, fruits.indexOf("melon"));
-        assertEquals(-1, fruits.lastIndexOf("melon"));
+        assertThat(fruits.contains("banana")).isTrue();
+        assertThat(fruits.indexOf("melon")).isEqualTo(-1);
+        assertThat(fruits.lastIndexOf("melon")).isEqualTo(-1);
     }
 
     @Test
@@ -113,10 +109,10 @@ public class RedisListStringTest {
         fruits.add("orange");
         fruits.add("banana");
         fruits.add("watermellon");
-        assertTrue(fruits.contains("banana"));
-        assertFalse(fruits.contains("melon"));
-        assertTrue(fruits.containsAll(Arrays.asList("banana", "orange")));
-        assertFalse(fruits.containsAll(Arrays.asList("banana", "melon")));
+        assertThat(fruits.contains("banana")).isTrue();
+        assertThat(fruits.contains("melon")).isFalse();
+        assertThat(fruits.containsAll(Arrays.asList("banana", "orange"))).isTrue();
+        assertThat(fruits.containsAll(Arrays.asList("banana", "melon"))).isFalse();
 
     }
 
@@ -129,14 +125,14 @@ public class RedisListStringTest {
         for (String fruiCart : fruits) {
             count++;
         }
-        assertEquals(2, count);
+        assertThat(count).isEqualTo(2);
         fruits.removeFirst();
         fruits.removeFirst();
         count = 0;
         for (String fruiCart : fruits) {
             count++;
         }
-        assertEquals(0, count);
+        assertThat(count).isEqualTo(0);
     }
 
     @Test
@@ -146,7 +142,7 @@ public class RedisListStringTest {
         fruits.add("watermellon");
 
         fruits.clear();
-        assertTrue(fruits.isEmpty());
+        assertThat(fruits.isEmpty()).isTrue();
     }
 
     @AfterEach

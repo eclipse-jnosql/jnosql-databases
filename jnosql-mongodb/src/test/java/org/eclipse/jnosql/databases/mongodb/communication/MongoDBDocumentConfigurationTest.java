@@ -16,14 +16,14 @@
 package org.eclipse.jnosql.databases.mongodb.communication;
 
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 class MongoDBDocumentConfigurationTest {
 
@@ -33,35 +33,35 @@ class MongoDBDocumentConfigurationTest {
         map.put("mongodb-server-host-1", "172.17.0.2:27017");
         MongoDBDocumentConfiguration configuration = new MongoDBDocumentConfiguration();
         var managerFactory = configuration.get(map);
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
 
     @Test
     void shouldReturnErrorWhenSettingsIsNull() {
         var configuration = new MongoDBDocumentConfiguration();
-        assertThrows(NullPointerException.class, () -> configuration.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.apply(null));
     }
 
     @Test
     void shouldReturnErrorWhenMapSettingsIsNull() {
         MongoDBDocumentConfiguration configuration = new MongoDBDocumentConfiguration();
-        assertThrows(NullPointerException.class, () -> configuration.get((Map) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.get((Map) null));
     }
 
     @Test
     void shouldReturnFromConfiguration() {
         var configuration = DatabaseConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof DatabaseConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof DatabaseConfiguration).isTrue();
     }
 
     @Test
     void shouldReturnFromConfigurationQuery() {
         MongoDBDocumentConfiguration configuration = DatabaseConfiguration
                 .getConfiguration(MongoDBDocumentConfiguration.class);
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof MongoDBDocumentConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof MongoDBDocumentConfiguration).isTrue();
     }
 
 }

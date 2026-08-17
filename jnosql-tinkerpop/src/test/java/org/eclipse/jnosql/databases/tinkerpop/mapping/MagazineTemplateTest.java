@@ -40,10 +40,8 @@ import static org.apache.tinkerpop.gremlin.structure.Transaction.Status.COMMIT;
 import static org.apache.tinkerpop.gremlin.structure.Transaction.Status.ROLLBACK;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
@@ -81,8 +79,8 @@ abstract class MagazineTemplateTest {
         Transaction transaction = graph.tx();
         transaction.addTransactionListener(status::set);
         template.insert(magazine);
-        assertFalse(transaction.isOpen());
-        assertEquals(COMMIT, status.get());
+        assertThat(transaction.isOpen()).isFalse();
+        assertThat(status.get()).isEqualTo(COMMIT);
     }
 
     @Test
@@ -101,8 +99,8 @@ abstract class MagazineTemplateTest {
 
         }
 
-        assertFalse(transaction.isOpen());
-        assertEquals(ROLLBACK, status.get());
+        assertThat(transaction.isOpen()).isFalse();
+        assertThat(status.get()).isEqualTo(ROLLBACK);
     }
 
     @Test
@@ -114,10 +112,10 @@ abstract class MagazineTemplateTest {
         Magazine magazine = Magazine.builder().withName("The Book").build();
         Transaction transaction = graph.tx();
         transaction.addTransactionListener(status::set);
-        assertNull(status.get());
+        assertThat(status.get()).isNull();
         template.normalInsertion(magazine);
-        assertEquals(COMMIT, status.get());
-        assertFalse(transaction.isOpen());
+        assertThat(status.get()).isEqualTo(COMMIT);
+        assertThat(transaction.isOpen()).isFalse();
     }
 }
 

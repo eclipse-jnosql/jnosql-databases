@@ -18,13 +18,12 @@ package org.eclipse.jnosql.databases.couchdb.communication;
 
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class CouchDBDocumentConfigurationTest {
@@ -33,29 +32,29 @@ class CouchDBDocumentConfigurationTest {
     public void shouldCreateDocumentManagerFactoryByMap() {
         CouchDBDocumentConfiguration configuration = new CouchDBDocumentConfiguration();
         var managerFactory = configuration.apply(Settings.settings());
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
     @Test
     public void shouldCreateDocumentManagerFactoryByFile() {
         CouchDBDocumentConfiguration configuration = new CouchDBDocumentConfiguration();
         var managerFactory = configuration.apply(Settings.settings());
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
     @Test
     public void shouldReturnFromConfiguration() {
         CouchDBDocumentConfiguration configuration = DatabaseConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof CouchDBDocumentConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof CouchDBDocumentConfiguration).isTrue();
     }
 
     @Test
     public void shouldReturnFromConfigurationQuery() {
         CouchDBDocumentConfiguration configuration = DatabaseConfiguration
                 .getConfiguration(CouchDBDocumentConfiguration.class);
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof CouchDBDocumentConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof CouchDBDocumentConfiguration).isTrue();
     }
 
 }

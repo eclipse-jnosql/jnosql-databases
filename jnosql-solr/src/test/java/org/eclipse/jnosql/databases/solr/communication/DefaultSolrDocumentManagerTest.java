@@ -15,12 +15,10 @@
 
 package org.eclipse.jnosql.databases.solr.communication;
 
-import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -41,15 +39,13 @@ import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 @DisplayName("Default Solr Document Manager")
@@ -75,20 +71,22 @@ public class DefaultSolrDocumentManagerTest {
         void shouldInsert() {
             var entity = getEntity();
             var documentEntity = entityManager.insert(entity);
-            assertTrue(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals(ID)));
+            assertThat(documentEntity.elements().stream().map(Element::name))
+                    .contains(ID);
         }
 
         @Test
         @DisplayName("Should reject insert with TTL because Solr does not support TTL saves")
         void shouldThrowExceptionWhenInsertWithTTL() {
-            assertThrows(UnsupportedOperationException.class,
-                    () -> entityManager.insert(getEntity(), Duration.ofSeconds(10)));
+            assertThatExceptionOfType(UnsupportedOperationException.class)
+                    .isThrownBy(() -> entityManager.insert(getEntity(), Duration.ofSeconds(10)));
         }
 
         @Test
         @DisplayName("Should reject null entity on insert")
         void shouldThrowExceptionWhenInsertIsNull() {
-            assertThrows(NullPointerException.class, () -> entityManager.insert((CommunicationEntity) null));
+            assertThatNullPointerException()
+                    .isThrownBy(() -> entityManager.insert((CommunicationEntity) null));
         }
 
         @Test
@@ -98,7 +96,7 @@ public class DefaultSolrDocumentManagerTest {
             entity.add(Element.of("name", null));
             var documentEntity = entityManager.insert(entity);
             Optional<Element> name = documentEntity.find("name");
-            SoftAssertions.assertSoftly(soft -> {
+            assertSoftly(soft -> {
                 soft.assertThat(name).isPresent();
                 soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
                 soft.assertThat(name).get().extracting(Element::get).isNull();
@@ -110,7 +108,8 @@ public class DefaultSolrDocumentManagerTest {
         void shouldReturnErrorWhenSaveSubDocument() {
             var entity = getEntity();
             entity.add(Element.of("phones", Element.of("mobile", "1231231")));
-            Assertions.assertThrows(SolrException.class, () -> entityManager.insert(entity));
+            assertThatExceptionOfType(SolrException.class)
+                    .isThrownBy(() -> entityManager.insert(entity));
         }
     }
 
@@ -126,13 +125,14 @@ public class DefaultSolrDocumentManagerTest {
             var newField = Elements.of("newField", "10");
             entity.add(newField);
             var updated = entityManager.update(entity);
-            assertEquals(newField, updated.find("newField").get());
+            assertThat(updated.find("newField")).get().isEqualTo(newField);
         }
 
         @Test
         @DisplayName("Should reject null entity on update")
         void shouldThrowExceptionWhenUpdateIsNull() {
-            assertThrows(NullPointerException.class, () -> entityManager.update((CommunicationEntity) null));
+            assertThatNullPointerException()
+                    .isThrownBy(() -> entityManager.update((CommunicationEntity) null));
         }
 
         @Test
@@ -142,7 +142,7 @@ public class DefaultSolrDocumentManagerTest {
             entity.add(Element.of("name", null));
             var documentEntity = entityManager.update(entity);
             Optional<Element> name = documentEntity.find("name");
-            SoftAssertions.assertSoftly(soft -> {
+            assertSoftly(soft -> {
                 soft.assertThat(name).isPresent();
                 soft.assertThat(name).get().extracting(Element::name).isEqualTo("name");
                 soft.assertThat(name).get().extracting(Element::get).isNull();
@@ -168,13 +168,14 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             entityManager.delete(deleteQuery);
-            assertTrue(entityManager.select(query).findAny().isEmpty());
+            assertThat(entityManager.select(query).findAny()).isEmpty();
         }
 
         @Test
         @DisplayName("Should reject null delete query")
         void shouldThrowExceptionWhenDeleteQueryIsNull() {
-            assertThrows(NullPointerException.class, () -> entityManager.delete(null));
+            assertThatNullPointerException()
+                    .isThrownBy(() -> entityManager.delete(null));
         }
     }
 
@@ -193,11 +194,11 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entities = entityManager.select(query).toList();
-            assertFalse(entities.isEmpty());
+            assertThat(entities).isNotEmpty();
             final CommunicationEntity result = entities.getFirst();
 
-            assertEquals(entity.find("name").get(), result.find("name").get());
-            assertEquals(entity.find("city").get(), result.find("city").get());
+            assertThat(result.find("name")).get().isEqualTo(entity.find("name").get());
+            assertThat(result.find("city")).get().isEqualTo(entity.find("city").get());
         }
 
         @Test
@@ -212,11 +213,11 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entities = entityManager.select(query).toList();
-            assertFalse(entities.isEmpty());
+            assertThat(entities).isNotEmpty();
             final CommunicationEntity result = entities.getFirst();
 
-            assertEquals(entity.find("name").get(), result.find("name").get());
-            assertEquals(entity.find("city").get(), result.find("city").get());
+            assertThat(result.find("name")).get().isEqualTo(entity.find("name").get());
+            assertThat(result.find("city")).get().isEqualTo(entity.find("city").get());
         }
 
         @Test
@@ -231,10 +232,10 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entities = entityManager.select(query).toList();
-            assertFalse(entities.isEmpty());
+            assertThat(entities).isNotEmpty();
             final CommunicationEntity result = entities.getFirst();
-            assertEquals(entity.find("name").get(), result.find("name").get());
-            assertEquals(entity.find("city").get(), result.find("city").get());
+            assertThat(result.find("name")).get().isEqualTo(entity.find("name").get());
+            assertThat(result.find("city")).get().isEqualTo(entity.find("city").get());
         }
 
         @Test
@@ -250,7 +251,7 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-            assertEquals(3, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(3);
         }
 
         @Test
@@ -262,7 +263,7 @@ public class DefaultSolrDocumentManagerTest {
             var query = select().from(COLLECTION_NAME)
                     .where("name").not().eq("Lucas").build();
             List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-            assertEquals(2, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(2);
         }
 
         @Test
@@ -279,7 +280,7 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-            assertEquals(2, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(2);
             assertThat(entitiesFound).isNotIn(entities.getFirst());
         }
 
@@ -296,7 +297,7 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-            assertEquals(2, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(2);
         }
 
         @Test
@@ -312,7 +313,7 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-            assertEquals(2, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(2);
         }
 
         @Test
@@ -328,7 +329,7 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-            assertEquals(2, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(2);
         }
 
         @Test
@@ -343,7 +344,7 @@ public class DefaultSolrDocumentManagerTest {
                     .and("type").eq("V")
                     .build();
 
-            assertEquals(3, (int) entityManager.select(query).count());
+            assertThat(entityManager.select(query).count()).isEqualTo(3);
         }
 
         @Test
@@ -361,7 +362,7 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-            assertEquals(2, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(2);
             assertThat(entitiesFound).isNotIn(entities.getFirst());
 
             query = select().from(COLLECTION_NAME)
@@ -371,7 +372,7 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             entitiesFound = entityManager.select(query).collect(Collectors.toList());
-            assertTrue(entitiesFound.isEmpty());
+            assertThat(entitiesFound).isEmpty();
         }
 
         @Test
@@ -389,7 +390,7 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-            assertEquals(1, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(1);
             assertThat(entitiesFound).isNotIn(entities.getFirst());
 
             query = select().from(COLLECTION_NAME)
@@ -399,7 +400,7 @@ public class DefaultSolrDocumentManagerTest {
                     .build();
 
             entitiesFound = entityManager.select(query).collect(Collectors.toList());
-            assertEquals(2, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(2);
             entityManager.delete(deleteQuery);
         }
 
@@ -442,13 +443,14 @@ public class DefaultSolrDocumentManagerTest {
             entityManager.insert(getEntity());
             var query = select().from(COLLECTION_NAME).build();
             List<CommunicationEntity> entities = entityManager.select(query).toList();
-            assertFalse(entities.isEmpty());
+            assertThat(entities).isNotEmpty();
         }
 
         @Test
         @DisplayName("Should reject null select query")
         void shouldThrowExceptionWhenSelectQueryIsNull() {
-            assertThrows(NullPointerException.class, () -> entityManager.select(null));
+            assertThatNullPointerException()
+                    .isThrownBy(() -> entityManager.select(null));
         }
     }
 
@@ -464,7 +466,7 @@ public class DefaultSolrDocumentManagerTest {
             entityManager.insert(getEntitiesWithValues());
 
             List<CommunicationEntity> entitiesFound = entityManager.solr("age:22 AND type:V AND _entity:person");
-            assertEquals(1, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(1);
         }
 
         @Test
@@ -481,7 +483,7 @@ public class DefaultSolrDocumentManagerTest {
 
             List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND type:@type AND _entity:@entity",
                     params);
-            assertEquals(1, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(1);
         }
 
         @Test
@@ -496,7 +498,7 @@ public class DefaultSolrDocumentManagerTest {
             params.put("age", 22);
 
             List<CommunicationEntity> entitiesFound = entityManager.solr("age:@age AND age:@age", params);
-            assertEquals(1, entitiesFound.size());
+            assertThat(entitiesFound).hasSize(1);
         }
     }
 
@@ -562,10 +564,14 @@ public class DefaultSolrDocumentManagerTest {
             List<CommunicationEntity> entities = entityManager.select(select().from("download")
                     .where(ID).eq(id).build()).toList();
 
-            assertEquals(1, entities.size());
+            assertThat(entities).hasSize(1);
             var documentEntity = entities.getFirst();
-            assertEquals(date, documentEntity.find("date").get().get(Date.class));
-            assertEquals(now, documentEntity.find("date").get().get(LocalDate.class));
+            assertThat(documentEntity.find("date")).get()
+                    .extracting(element -> element.get(Date.class))
+                    .isEqualTo(date);
+            assertThat(documentEntity.find("date")).get()
+                    .extracting(element -> element.get(LocalDate.class))
+                    .isEqualTo(now);
         }
     }
 

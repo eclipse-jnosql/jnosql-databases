@@ -15,7 +15,6 @@
 package org.eclipse.jnosql.databases.couchbase.communication;
 
 import org.eclipse.jnosql.communication.keyvalue.BucketManager;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -24,8 +23,8 @@ import java.util.List;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class DefaultCouchbaseBucketManagerFactoryTest {
@@ -41,33 +40,33 @@ public class DefaultCouchbaseBucketManagerFactoryTest {
     @Test
     public void shouldReturnManager() {
         BucketManager database = factory.apply(CouchbaseUtil.BUCKET_NAME);
-        assertNotNull(database);
+        assertThat(database).isNotNull();
     }
 
     @Test
     public void shouldReturnError() {
-        assertThrows(NullPointerException.class, () -> factory.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> factory.apply(null));
     }
 
 
     @Test
     public void shouldReturnList() {
         List<String> names = factory.getList("jnosql", String.class);
-        Assertions.assertNotNull(names);
+        assertThat(names).isNotNull();
     }
 
     @Test
     public void shouldReturnSet() {
-        Assertions.assertNotNull(factory.getSet("jnosql", String.class));
+        assertThat(factory.getSet("jnosql", String.class)).isNotNull();
     }
 
     @Test
     public void shouldReturnQueue() {
-        Assertions.assertNotNull(factory.getQueue("jnosql", String.class));
+        assertThat(factory.getQueue("jnosql", String.class)).isNotNull();
     }
 
     @Test
     public void shouldReturnMap() {
-        Assertions.assertNotNull(factory.getMap("jnosql", String.class, String.class) );
+        assertThat(factory.getMap("jnosql", String.class, String.class)).isNotNull();
     }
 }

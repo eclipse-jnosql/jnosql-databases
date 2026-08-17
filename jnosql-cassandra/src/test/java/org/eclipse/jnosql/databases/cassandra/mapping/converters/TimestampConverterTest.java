@@ -24,7 +24,8 @@ import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class TimestampConverterTest {
 
@@ -50,9 +51,9 @@ public class TimestampConverterTest {
         java.time.LocalDate localDate = converter.convertToDatabaseColumn(number).toInstant()
                 .atZone(defaultZoneId).toLocalDate();
 
-        assertEquals(calendar.get(Calendar.DAY_OF_MONTH), localDate.getDayOfMonth());
-        assertEquals(calendar.get(Calendar.YEAR), localDate.getYear());
-        assertEquals(calendar.get(Calendar.MONTH) + 1, localDate.getMonthValue());
+        assertThat(localDate.getDayOfMonth()).isEqualTo(calendar.get(Calendar.DAY_OF_MONTH));
+        assertThat(localDate.getYear()).isEqualTo(calendar.get(Calendar.YEAR));
+        assertThat(localDate.getMonthValue()).isEqualTo(calendar.get(Calendar.MONTH) + 1);
     }
 
     @Test
@@ -66,9 +67,9 @@ public class TimestampConverterTest {
         calendar.setTime(date);
         java.time.LocalDate localDate = converter.convertToDatabaseColumn(date).toInstant()
                 .atZone(defaultZoneId).toLocalDate();
-        assertEquals(calendar.get(Calendar.DAY_OF_MONTH), localDate.getDayOfMonth());
-        assertEquals(calendar.get(Calendar.YEAR), localDate.getYear());
-        assertEquals(calendar.get(Calendar.MONTH) + 1, localDate.getMonthValue());
+        assertThat(localDate.getDayOfMonth()).isEqualTo(calendar.get(Calendar.DAY_OF_MONTH));
+        assertThat(localDate.getYear()).isEqualTo(calendar.get(Calendar.YEAR));
+        assertThat(localDate.getMonthValue()).isEqualTo(calendar.get(Calendar.MONTH) + 1);
     }
 
     @Test
@@ -77,9 +78,9 @@ public class TimestampConverterTest {
         Calendar calendar = Calendar.getInstance();
         java.time.LocalDate localDate = converter.convertToDatabaseColumn(calendar).toInstant()
                 .atZone(defaultZoneId).toLocalDate();
-        assertEquals(calendar.get(Calendar.DAY_OF_MONTH), localDate.getDayOfMonth());
-        assertEquals(calendar.get(Calendar.YEAR), localDate.getYear());
-        assertEquals(calendar.get(Calendar.MONTH) + 1, localDate.getMonthValue());
+        assertThat(localDate.getDayOfMonth()).isEqualTo(calendar.get(Calendar.DAY_OF_MONTH));
+        assertThat(localDate.getYear()).isEqualTo(calendar.get(Calendar.YEAR));
+        assertThat(localDate.getMonthValue()).isEqualTo(calendar.get(Calendar.MONTH) + 1);
     }
 
     @Test
@@ -88,9 +89,9 @@ public class TimestampConverterTest {
         java.time.LocalDate date = java.time.LocalDate.now();
         java.time.LocalDate localDate = converter.convertToDatabaseColumn(date).toInstant()
                 .atZone(defaultZoneId).toLocalDate();
-        assertEquals(date.getDayOfMonth(), localDate.getDayOfMonth());
-        assertEquals(date.getYear(), localDate.getYear());
-        assertEquals(date.getMonthValue(), localDate.getMonthValue());
+        assertThat(localDate.getDayOfMonth()).isEqualTo(date.getDayOfMonth());
+        assertThat(localDate.getYear()).isEqualTo(date.getYear());
+        assertThat(localDate.getMonthValue()).isEqualTo(date.getMonthValue());
     }
 
 
@@ -100,9 +101,9 @@ public class TimestampConverterTest {
         LocalDateTime date = LocalDateTime.now();
         java.time.LocalDate localDate = converter.convertToDatabaseColumn(date).toInstant()
                 .atZone(defaultZoneId).toLocalDate();
-        assertEquals(date.getDayOfMonth(), localDate.getDayOfMonth());
-        assertEquals(date.getYear(), localDate.getYear());
-        assertEquals(date.getMonthValue(), localDate.getMonthValue());
+        assertThat(localDate.getDayOfMonth()).isEqualTo(date.getDayOfMonth());
+        assertThat(localDate.getYear()).isEqualTo(date.getYear());
+        assertThat(localDate.getMonthValue()).isEqualTo(date.getMonthValue());
     }
 
     @Test
@@ -111,8 +112,8 @@ public class TimestampConverterTest {
         ZonedDateTime date = ZonedDateTime.now();
         java.time.LocalDate localDate = converter.convertToDatabaseColumn(date).toInstant()
                 .atZone(defaultZoneId).toLocalDate();
-        assertEquals(date.getDayOfMonth(), localDate.getDayOfMonth());
-        assertEquals(date.getYear(), localDate.getYear());
-        assertEquals(date.getMonthValue(), localDate.getMonthValue());
+        assertThat(localDate.getDayOfMonth()).isEqualTo(date.getDayOfMonth());
+        assertThat(localDate.getYear()).isEqualTo(date.getYear());
+        assertThat(localDate.getMonthValue()).isEqualTo(date.getMonthValue());
     }
 }

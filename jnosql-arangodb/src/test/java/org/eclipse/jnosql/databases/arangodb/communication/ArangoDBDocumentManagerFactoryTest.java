@@ -21,7 +21,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class ArangoDBDocumentManagerFactoryTest {
@@ -36,7 +36,7 @@ public class ArangoDBDocumentManagerFactoryTest {
     @Test
     public void shouldCreateEntityManager() {
         var database = managerFactory.apply("database");
-        assertNotNull(database);
+        assertThat(database).isNotNull();
     }
 
 }

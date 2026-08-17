@@ -21,7 +21,6 @@ import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.Elements;
 import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -50,13 +49,8 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class OracleNoSQLDocumentManagerTest {
@@ -78,14 +72,14 @@ class OracleNoSQLDocumentManagerTest {
     void shouldInsert() {
         var entity = getEntity();
         var documentEntity = entityManager.insert(entity);
-        assertTrue(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals("_id")));
+        assertThat(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals("_id"))).isTrue();
     }
 
     @Test
     void shouldThrowExceptionWhenInsertWithTTL() {
         var entity = getEntity();
         var ttl = Duration.ofSeconds(10);
-        assertThrows(UnsupportedOperationException.class, () -> entityManager.insert(entity, ttl));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> entityManager.insert(entity, ttl));
     }
 
     @Test
@@ -95,7 +89,7 @@ class OracleNoSQLDocumentManagerTest {
         var newField = Elements.of("newField", "10");
         entity.add(newField);
         var updated = entityManager.update(entity);
-        assertEquals(newField, updated.find("newField").orElseThrow());
+        assertThat(updated.find("newField").orElseThrow()).isEqualTo(newField);
     }
 
     @Test
@@ -111,7 +105,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         entityManager.delete(deleteQuery);
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
     }
 
     @Test
@@ -124,7 +118,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
@@ -168,7 +162,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
@@ -185,7 +179,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
@@ -202,7 +196,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
@@ -244,7 +238,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).toList();
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
     }
 
     @Test
@@ -289,7 +283,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(1, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(1);
         assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
@@ -299,7 +293,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertTrue(entitiesFound.isEmpty());
+        assertThat(entitiesFound.isEmpty()).isTrue();
 
     }
 
@@ -317,7 +311,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(1, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(1);
         assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
@@ -327,7 +321,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
 
     }
 
@@ -344,7 +338,7 @@ class OracleNoSQLDocumentManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         List<Integer> ages = entitiesFound.stream()
                 .map(e -> e.find("age").orElseThrow().get(Integer.class))
                 .collect(Collectors.toList());
@@ -361,7 +355,7 @@ class OracleNoSQLDocumentManagerTest {
         ages = entitiesFound.stream()
                 .map(e -> e.find("age").orElseThrow().get(Integer.class))
                 .collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         assertThat(ages).contains(25, 23);
 
     }
@@ -371,7 +365,7 @@ class OracleNoSQLDocumentManagerTest {
         entityManager.insert(getEntity());
         var query = select().from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -379,11 +373,11 @@ class OracleNoSQLDocumentManagerTest {
         entityManager.insert(getEntity());
         var query = select().from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         var deleteQuery = delete().from(COLLECTION_NAME).build();
         entityManager.delete(deleteQuery);
         entities = entityManager.select(query).toList();
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
@@ -391,7 +385,7 @@ class OracleNoSQLDocumentManagerTest {
         entityManager.insert(getEntity());
         var query = select("name").from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         final CommunicationEntity entity = entities.getFirst();
         assertSoftly(soft -> {
             soft.assertThat(entity.find("name")).isPresent();
@@ -451,11 +445,11 @@ class OracleNoSQLDocumentManagerTest {
         List<CommunicationEntity> entities = entityManager.select(select().from("download")
                 .where("_id").eq(id).build()).toList();
 
-        assertEquals(1, entities.size());
+        assertThat(entities.size()).isEqualTo(1);
         var documentEntity = entities.getFirst();
-        assertEquals(id, documentEntity.find("_id").orElseThrow().get(Long.class));
+        assertThat(documentEntity.find("_id").orElseThrow().get(Long.class)).isEqualTo(id);
 
-        assertArrayEquals(contents, documentEntity.find("contents").orElseThrow().get(byte[].class));
+        assertThat(documentEntity.find("contents").orElseThrow().get(byte[].class)).isEqualTo(contents);
 
     }
 
@@ -473,7 +467,7 @@ class OracleNoSQLDocumentManagerTest {
         List<CommunicationEntity> entities = entityManager.select(select().from("download")
                 .where("_id").eq(id).build()).toList();
 
-        assertEquals(1, entities.size());
+        assertThat(entities.size()).isEqualTo(1);
         var documentEntity = entities.getFirst();
         assertSoftly(soft -> {
             soft.assertThat(id).isEqualTo(documentEntity.find("_id").orElseThrow().get(Long.class));
@@ -484,7 +478,7 @@ class OracleNoSQLDocumentManagerTest {
     @Test
     void shouldConvertFromListDocumentList() {
         var entity = createDocumentList();
-        assertDoesNotThrow(() -> entityManager.insert(entity));
+        assertThatCode(() -> entityManager.insert(entity)).doesNotThrowAnyException();
     }
 
     @Test
@@ -496,18 +490,18 @@ class OracleNoSQLDocumentManagerTest {
                 .eq(key.get()).build();
 
         var documentEntity = entityManager.singleResult(query).orElseThrow();
-        assertNotNull(documentEntity);
+        assertThat(documentEntity).isNotNull();
 
         List<List<Element>> contacts = (List<List<Element>>) documentEntity.find("contacts").orElseThrow().get();
 
-        assertEquals(3, contacts.size());
-        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
+        assertThat(contacts.size()).isEqualTo(3);
+        assertThat(contacts.stream().allMatch(d -> d.size() == 3)).isTrue();
     }
 
     @Test
     void shouldCount() {
         entityManager.insert(getEntity());
-        assertTrue(entityManager.count(COLLECTION_NAME) > 0);
+        assertThat(entityManager.count(COLLECTION_NAME) > 0).isTrue();
     }
 
     @Test
@@ -543,7 +537,7 @@ class OracleNoSQLDocumentManagerTest {
         var query = select().from(COLLECTION_NAME)
                 .where("_id").eq(id).and("scope").eq("xxx").build();
         final Optional<CommunicationEntity> optional = entityManager.select(query).findFirst();
-        Assertions.assertTrue(optional.isPresent());
+        assertThat(optional.isPresent()).isTrue();
         CommunicationEntity documentEntity = optional.get();
         var properties = documentEntity.find("properties").orElseThrow();
         var document = properties.get(Element.class);

@@ -24,8 +24,9 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, ColumnTemplate.class, EntityConverter.class,
@@ -42,6 +43,6 @@ public class CassandraExtensionTest {
 
     @Test
     public void shouldSaveCassandra() {
-        Assertions.assertNotNull(repository);
+        assertThat(repository).isNotNull();
     }
 }

@@ -16,10 +16,11 @@
 package org.eclipse.jnosql.databases.solr.communication;
 
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class SolrDocumentConfigurationTest {
 
@@ -27,23 +28,23 @@ public class SolrDocumentConfigurationTest {
     @Test
     public void shouldReturnErrorWhenSettingsIsNull() {
         var configuration = new SolrDocumentConfiguration();
-        assertThrows(NullPointerException.class, () -> configuration.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.apply(null));
     }
 
 
     @Test
     public void shouldReturnFromConfiguration() {
         var configuration = DatabaseConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof DatabaseConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof DatabaseConfiguration).isTrue();
     }
 
     @Test
     public void shouldReturnFromConfigurationQuery() {
         SolrDocumentConfiguration configuration = DatabaseConfiguration
                 .getConfiguration(SolrDocumentConfiguration.class);
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof SolrDocumentConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof SolrDocumentConfiguration).isTrue();
     }
 
 }

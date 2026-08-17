@@ -37,11 +37,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, Neo4JRepository.class, EntityConverter.class})
@@ -110,7 +110,7 @@ public class Neo4jRepositoryProxyTest {
         personRepository.findByName2("Ada");
         verify(template).cypher(Mockito.eq("MATCH (p:Person) WHERE p.name = $name RETURN p"), captor.capture());
         Map map = captor.getValue();
-        assertEquals("Ada", map.get("name"));
+        assertThat(map.get("name")).isEqualTo("Ada");
     }
 
     @Test

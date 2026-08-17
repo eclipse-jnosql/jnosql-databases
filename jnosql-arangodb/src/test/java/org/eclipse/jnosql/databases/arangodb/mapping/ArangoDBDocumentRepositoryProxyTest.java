@@ -36,11 +36,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Collections.emptyMap;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @EnableAutoWeld
@@ -80,7 +80,7 @@ public class ArangoDBDocumentRepositoryProxyTest {
         verify(template).aql(eq("FOR p IN Person FILTER p.name = @name RETURN p"), captor.capture());
 
         Map value = captor.getValue();
-        assertEquals("Ada", value.get("name"));
+        assertThat(value.get("name")).isEqualTo("Ada");
     }
 
     @Test

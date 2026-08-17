@@ -48,12 +48,7 @@ import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, TinkerpopTemplate.class})
@@ -77,7 +72,7 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnErrorWhenEdgeIdIsNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalEdge(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.traversalEdge(null));
     }
 
     @Test
@@ -85,8 +80,8 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
         Optional<EdgeEntity> edgeEntity = tinkerpopTemplate.traversalEdge(reads.id())
                 .next();
 
-        assertTrue(edgeEntity.isPresent());
-        assertEquals(reads.id(), edgeEntity.get().id());
+        assertThat(edgeEntity.isPresent()).isTrue();
+        assertThat(edgeEntity.get().id()).isEqualTo(reads.id());
     }
 
     @Test
@@ -95,7 +90,7 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .stream()
                 .collect(toList());
 
-        assertEquals(3, edges.size());
+        assertThat(edges.size()).isEqualTo(3);
         assertThat(edges).contains(reads, reads2, reads3);
     }
 
@@ -105,13 +100,13 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .stream()
                 .collect(toList());
 
-        assertEquals(3, edges.size());
+        assertThat(edges.size()).isEqualTo(3);
         assertThat(edges).contains(reads, reads2, reads3);
     }
 
     @Test
     void shouldReturnErrorOutEWhenIsNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex().outE((String) null)
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.traversalVertex().outE((String) null)
                 .stream()
                 .toList());
     }
@@ -122,7 +117,7 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .stream()
                 .collect(toList());
 
-        assertEquals(3, edges.size());
+        assertThat(edges.size()).isEqualTo(3);
         assertThat(edges).contains(reads, reads2, reads3);
     }
 
@@ -132,14 +127,14 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .stream()
                 .collect(toList());
 
-        assertEquals(3, edges.size());
+        assertThat(edges.size()).isEqualTo(3);
         assertThat(edges).contains(reads, reads2, reads3);
     }
 
 
     @Test
     void shouldReturnErrorWhenInEIsNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex().inE((String) null)
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.traversalVertex().inE((String) null)
                 .stream()
                 .toList());
 
@@ -151,7 +146,7 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .stream()
                 .toList();
 
-        assertEquals(6, edges.size());
+        assertThat(edges.size()).isEqualTo(6);
     }
 
     @Test
@@ -160,12 +155,12 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .stream()
                 .toList();
 
-        assertEquals(6, edges.size());
+        assertThat(edges.size()).isEqualTo(6);
     }
 
     @Test
     void shouldReturnErrorWhenBothEIsNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex().bothE((String) null)
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.traversalVertex().bothE((String) null)
                 .stream()
                 .toList());
     }
@@ -174,14 +169,14 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
     @Test
     void shouldReturnOut() {
         List<Human> people = tinkerpopTemplate.traversalVertex().outE(READS).outV().<Human>result().collect(toList());
-        assertEquals(3, people.size());
+        assertThat(people.size()).isEqualTo(3);
         assertThat(people).contains(poliana, otavio, paulo);
     }
 
     @Test
     void shouldReturnIn() {
         List<Magazine> magazines = tinkerpopTemplate.traversalVertex().outE(READS).inV().<Magazine>result().collect(toList());
-        assertEquals(3, magazines.size());
+        assertThat(magazines.size()).isEqualTo(3);
         assertThat(magazines).contains(shack, effectiveJava, license);
     }
 
@@ -189,7 +184,7 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
     @Test
     void shouldReturnBoth() {
         List<Object> entities = tinkerpopTemplate.traversalVertex().outE(READS).bothV().result().collect(toList());
-        assertEquals(6, entities.size());
+        assertThat(entities.size()).isEqualTo(6);
         assertThat(entities).contains(shack, effectiveJava, license, paulo, otavio, poliana);
     }
 
@@ -201,7 +196,7 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .outE(READS)
                 .has(T.id, "notFound").next();
 
-        assertFalse(edgeEntity.isPresent());
+        assertThat(edgeEntity.isPresent()).isFalse();
     }
 
 
@@ -211,8 +206,8 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .outE(READS)
                 .has("motivation", "hobby").next();
 
-        assertTrue(edgeEntity.isPresent());
-        assertEquals(reads.id(), edgeEntity.get().id());
+        assertThat(edgeEntity.isPresent()).isTrue();
+        assertThat(edgeEntity.get().id()).isEqualTo(reads.id());
     }
 
     @Test
@@ -221,8 +216,8 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .outE(READS)
                 .has(() -> "motivation", "hobby").next();
 
-        assertTrue(edgeEntity.isPresent());
-        assertEquals(reads.id(), edgeEntity.get().id());
+        assertThat(edgeEntity.isPresent()).isTrue();
+        assertThat(edgeEntity.get().id()).isEqualTo(reads.id());
     }
 
     @Test
@@ -232,8 +227,8 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .outE(READS)
                 .has("motivation", P.eq("hobby")).next();
 
-        assertTrue(edgeEntity.isPresent());
-        assertEquals(reads.id(), edgeEntity.get().id());
+        assertThat(edgeEntity.isPresent()).isTrue();
+        assertThat(edgeEntity.get().id()).isEqualTo(reads.id());
     }
 
 
@@ -244,21 +239,21 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .outE(READS)
                 .has(() -> "motivation", P.eq("hobby")).next();
 
-        assertTrue(edgeEntity.isPresent());
-        assertEquals(reads.id(), edgeEntity.get().id());
+        assertThat(edgeEntity.isPresent()).isTrue();
+        assertThat(edgeEntity.get().id()).isEqualTo(reads.id());
     }
 
 
     @Test
     void shouldReturnErrorWhenHasPropertyWhenKeyIsNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex()
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.traversalVertex()
                 .outE(READS)
                 .has((String) null, "hobby").next());
     }
 
     @Test
     void shouldReturnErrorWhenHasPropertyWhenValueIsNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex()
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.traversalVertex()
                 .outE(READS)
                 .has("motivation", null).next());
     }
@@ -270,39 +265,39 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .stream()
                 .toList();
 
-        assertEquals(2, edgeEntities.size());
+        assertThat(edgeEntities.size()).isEqualTo(2);
     }
 
     @Test
     void shouldCount() {
         long count = tinkerpopTemplate.traversalVertex().outE(READS).count();
-        assertEquals(3L, count);
+        assertThat(count).isEqualTo(3L);
     }
 
     @Test
     void shouldReturnZeroWhenCountIsEmpty() {
         long count = tinkerpopTemplate.traversalVertex().outE("WRITES").count();
-        assertEquals(0L, count);
+        assertThat(count).isEqualTo(0L);
     }
 
     @Test
     void shouldReturnErrorWhenHasNotIsNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalVertex().outE(READS).hasNot((String) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.traversalVertex().outE(READS).hasNot((String) null));
     }
 
 
     @Test
     void shouldDefinesLimit() {
         long count = tinkerpopTemplate.traversalEdge().limit(1L).count();
-        assertEquals(1L, count);
-        assertNotEquals(tinkerpopTemplate.traversalEdge().count(), count);
+        assertThat(count).isEqualTo(1L);
+        assertThat(count).isNotEqualTo(tinkerpopTemplate.traversalEdge().count());
     }
 
     @Test
     void shouldDefinesRange() {
         long count = tinkerpopTemplate.traversalEdge().range(1, 3).count();
-        assertEquals(2L, count);
-        assertNotEquals(tinkerpopTemplate.traversalEdge().count(), count);
+        assertThat(count).isEqualTo(2L);
+        assertThat(count).isNotEqualTo(tinkerpopTemplate.traversalEdge().count());
     }
 
     @Test
@@ -310,8 +305,8 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
         List<Map<String, Object>> maps = tinkerpopTemplate.traversalVertex().inE("reads")
                 .valueMap("motivation").stream().toList();
 
-        assertFalse(maps.isEmpty());
-        assertEquals(3, maps.size());
+        assertThat(maps.isEmpty()).isFalse();
+        assertThat(maps.size()).isEqualTo(3);
 
         List<String> names = new ArrayList<>();
 
@@ -325,8 +320,8 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
         List<Map<String, Object>> maps = tinkerpopTemplate.traversalVertex().inE("reads")
                 .valueMap("motivation").next(2).toList();
 
-        assertFalse(maps.isEmpty());
-        assertEquals(2, maps.size());
+        assertThat(maps.isEmpty()).isFalse();
+        assertThat(maps.size()).isEqualTo(2);
     }
 
 
@@ -334,7 +329,7 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
     void shouldReturnMapValueAsEmptyStream() {
         Stream<Map<String, Object>> stream = tinkerpopTemplate.traversalVertex().inE("reads")
                 .valueMap("noFoundProperty").stream();
-        assertTrue(stream.allMatch(m -> Objects.isNull(m.get("noFoundProperty"))));
+        assertThat(stream.allMatch(m -> Objects.isNull(m.get("noFoundProperty")))).isTrue();
     }
 
     @Test
@@ -342,8 +337,8 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
         Map<String, Object> map = tinkerpopTemplate.traversalVertex().inE("reads")
                 .valueMap("motivation").next();
 
-        assertNotNull(map);
-        assertFalse(map.isEmpty());
+        assertThat(map).isNotNull();
+        assertThat(map.isEmpty()).isFalse();
     }
 
 
@@ -360,7 +355,7 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
 
         Optional<EdgeEntity> result = tinkerpopTemplate.traversalEdge().has("when").next();
-        assertNotNull(result);
+        assertThat(result).isNotNull();
 
         tinkerpopTemplate.deleteEdge(lion.getId());
     }
@@ -376,9 +371,9 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
         tinkerpopTemplate.edge(snake, "eats", mouse);
         tinkerpopTemplate.edge(mouse, "eats", plant);
         Optional<EdgeEntity> result = tinkerpopTemplate.traversalEdge().repeat().has("when").times(2).next();
-        assertNotNull(result);
-        assertEquals(snake, result.get().incoming());
-        assertEquals(lion, result.get().outgoing());
+        assertThat(result).isNotNull();
+        assertThat((Object) result.get().incoming()).isEqualTo(snake);
+        assertThat((Object) result.get().outgoing()).isEqualTo(lion);
     }
 
     @Test
@@ -395,10 +390,10 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
         Optional<EdgeEntity> result = tinkerpopTemplate.traversalEdge().repeat().has("when")
                 .until().has("when").next();
 
-        assertTrue(result.isPresent());
+        assertThat(result.isPresent()).isTrue();
 
-        assertEquals(snake, result.get().incoming());
-        assertEquals(lion, result.get().outgoing());
+        assertThat((Object) result.get().incoming()).isEqualTo(snake);
+        assertThat((Object) result.get().outgoing()).isEqualTo(lion);
 
     }
 
@@ -416,10 +411,10 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
         Optional<EdgeEntity> result = tinkerpopTemplate.traversalEdge().repeat().has("when")
                 .until().has("when", "night").next();
 
-        assertTrue(result.isPresent());
+        assertThat(result.isPresent()).isTrue();
 
-        assertEquals(snake, result.get().incoming());
-        assertEquals(lion, result.get().outgoing());
+        assertThat((Object) result.get().incoming()).isEqualTo(snake);
+        assertThat((Object) result.get().outgoing()).isEqualTo(lion);
 
     }
 
@@ -450,12 +445,12 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
 
     @Test
     void shouldReturnErrorWhenTheOrderIsNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalEdge().orderBy(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.traversalEdge().orderBy(null));
     }
 
     @Test
     void shouldReturnErrorWhenThePropertyDoesNotExist() {
-       assertThrows(NoSuchElementException.class, () ->
+       assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(() ->
                tinkerpopTemplate.traversalEdge().orderBy("wrong property").asc().next().get());
     }
 
@@ -498,36 +493,36 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
     void shouldReturnResultAsList() {
         List<EdgeEntity> entities = tinkerpopTemplate.traversalEdge().result()
                 .toList();
-        assertEquals(3, entities.size());
+        assertThat(entities.size()).isEqualTo(3);
     }
 
     @Test
     void shouldReturnErrorWhenThereAreMoreThanOneInGetSingleResult() {
-        assertThrows(NonUniqueResultException.class, () -> tinkerpopTemplate.traversalEdge().singleResult());
+        assertThatExceptionOfType(NonUniqueResultException.class).isThrownBy(() -> tinkerpopTemplate.traversalEdge().singleResult());
     }
 
     @Test
     void shouldReturnOptionalEmptyWhenThereIsNotResultInSingleResult() {
         Optional<EdgeEntity> entity = tinkerpopTemplate.traversalEdge("-1").singleResult();
-        assertFalse(entity.isPresent());
+        assertThat(entity.isPresent()).isFalse();
     }
 
     @Test
     void shouldReturnSingleResult() {
         String name = "Poliana";
         Optional<EdgeEntity> entity = tinkerpopTemplate.traversalEdge(reads.id()).singleResult();
-        assertEquals(reads, entity.get());
+        assertThat(entity.get()).isEqualTo(reads);
     }
 
     @Test
     void shouldReturnErrorWhenPredicateIsNull() {
-        assertThrows(NullPointerException.class, () -> tinkerpopTemplate.traversalEdge().filter(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> tinkerpopTemplate.traversalEdge().filter(null));
     }
 
     @Test
     void shouldReturnFromPredicate() {
         long count = tinkerpopTemplate.traversalEdge().filter(reads::equals).count();
-        assertEquals(1L, count);
+        assertThat(count).isEqualTo(1L);
     }
 
     @Test
@@ -545,7 +540,7 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .inE("knows").result()
                 .collect(Collectors.toList());
 
-        assertEquals(6, edges.size());
+        assertThat(edges.size()).isEqualTo(6);
 
         edges = tinkerpopTemplate.traversalVertex()
                 .hasLabel(Human.class)
@@ -554,6 +549,6 @@ abstract class DefaultEdgeTraversalTest extends AbstractTraversalTest {
                 .result()
                 .toList();
 
-        assertEquals(6, edges.size());
+        assertThat(edges.size()).isEqualTo(6);
     }
 }

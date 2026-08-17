@@ -24,8 +24,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 /**
  * Contains tests to handle attachment representations.
@@ -77,17 +77,17 @@ public class AttachmentTest {
     }
     
     private void checkAttachment(EntityAttachment att, String name, String contentType, long lastModified) throws IOException {
-        assertEquals(name, att.name());
-        assertEquals(contentType, att.getContentType());
-        assertEquals(testData.length, att.getLength());
-        assertEquals(lastModified, att.getLastModified());
+        assertThat(att.name()).isEqualTo(name);
+        assertThat(att.getContentType()).isEqualTo(contentType);
+        assertThat(att.getLength()).isEqualTo(testData.length);
+        assertThat(att.getLastModified()).isEqualTo(lastModified);
         
         ByteArrayOutputStream data = new ByteArrayOutputStream();
         try(InputStream is = att.getData()) {
             copyStream(is, data, 128);
         }
         
-        assertArrayEquals(testData, data.toByteArray());
+        assertThat(data.toByteArray()).isEqualTo(testData);
     }
     
      public static long copyStream(InputStream is, OutputStream os, int bufferSize) throws IOException {

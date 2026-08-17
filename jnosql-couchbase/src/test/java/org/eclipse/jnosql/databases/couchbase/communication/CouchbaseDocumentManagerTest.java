@@ -52,9 +52,6 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
@@ -103,7 +100,7 @@ public class CouchbaseDocumentManagerTest {
     void shouldInsert() {
         CommunicationEntity entity = getEntity();
         CommunicationEntity documentEntity = entityManager.insert(entity);
-        assertEquals(entity, documentEntity);
+        assertThat(documentEntity).isEqualTo(entity);
     }
 
     @Test
@@ -111,7 +108,7 @@ public class CouchbaseDocumentManagerTest {
         CommunicationEntity entity = getEntity();
         entity.add("_key", "anyvalue");
         CommunicationEntity documentEntity = entityManager.insert(entity);
-        assertEquals(entity, documentEntity);
+        assertThat(documentEntity).isEqualTo(entity);
     }
 
     @Test
@@ -121,7 +118,7 @@ public class CouchbaseDocumentManagerTest {
         Element newField = Elements.of("newField", "10");
         entity.add(newField);
         CommunicationEntity updated = entityManager.update(entity);
-        assertEquals(newField, updated.find("newField").get());
+        assertThat(updated.find("newField").get()).isEqualTo(newField);
     }
 
     @Test
@@ -186,7 +183,7 @@ public class CouchbaseDocumentManagerTest {
                 .where(name.name()).eq(name.get()).build();
         entityManager.delete(deleteQuery);
         Thread.sleep(1_000L);
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
     }
 
     @Test
@@ -235,7 +232,7 @@ public class CouchbaseDocumentManagerTest {
         Optional<Element> foods = entityFound.find("foods");
         Set<String> setFoods = foods.get().get(new TypeReference<>() {
         });
-        assertEquals(set, setFoods);
+        assertThat(setFoods).isEqualTo(set);
     }
 
     @Test
@@ -252,12 +249,12 @@ public class CouchbaseDocumentManagerTest {
         var query = select().from(COLLECTION_APP_NAME).where(key.name()).eq(key.get()).build();
 
         CommunicationEntity documentEntity = entityManager.singleResult(query).get();
-        assertNotNull(documentEntity);
+        assertThat(documentEntity).isNotNull();
 
         List<List<Element>> contacts = (List<List<Element>>) documentEntity.find("contacts").get().get();
 
-        assertEquals(3, contacts.size());
-        assertTrue(contacts.stream().allMatch(d -> d.size() == 3));
+        assertThat(contacts.size()).isEqualTo(3);
+        assertThat(contacts.stream().allMatch(d -> d.size() == 3)).isTrue();
     }
 
     @Test

@@ -15,10 +15,10 @@
 package org.eclipse.jnosql.databases.couchbase.communication;
 
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 
 public class CouchbaseDocumentConfigurationTest {
@@ -28,22 +28,22 @@ public class CouchbaseDocumentConfigurationTest {
     public void shouldCreateDocumentManagerFactoryByFile() {
         CouchbaseDocumentConfiguration configuration = new CouchbaseDocumentConfiguration();
         CouchbaseDocumentManagerFactory managerFactory = configuration.apply(CouchbaseUtil.getSettings());
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
     @Test
     public void shouldGetConfiguration() {
         DatabaseConfiguration configuration = DatabaseConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof CouchbaseDocumentConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof CouchbaseDocumentConfiguration).isTrue();
     }
 
     @Test
     public void shouldGetConfigurationFromQuery() {
         CouchbaseDocumentConfiguration configuration = DatabaseConfiguration
                 .getConfiguration(CouchbaseDocumentConfiguration.class);
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof CouchbaseDocumentConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof CouchbaseDocumentConfiguration).isTrue();
     }
 
 }

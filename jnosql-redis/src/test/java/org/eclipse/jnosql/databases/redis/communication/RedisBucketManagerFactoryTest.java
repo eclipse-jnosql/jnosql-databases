@@ -28,7 +28,7 @@ import java.util.Set;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
@@ -45,31 +45,31 @@ public class RedisBucketManagerFactoryTest {
     @Test
     public void shouldCreateKeyValueEntityManager() {
         BucketManager keyValueEntityManager = managerFactory.apply(BUCKET_NAME);
-        assertNotNull(keyValueEntityManager);
+        assertThat(keyValueEntityManager).isNotNull();
     }
 
     @Test
     public void shouldCreateMap() {
         Map<String, String> map = managerFactory.getMap(BUCKET_NAME, String.class, String.class);
-        assertNotNull(map);
+        assertThat(map).isNotNull();
     }
 
     @Test
     public void shouldCreateSet() {
         Set<String> set = managerFactory.getSet(BUCKET_NAME, String.class);
-        assertNotNull(set);
+        assertThat(set).isNotNull();
     }
 
     @Test
     public void shouldCreateList() {
         List<String> list = managerFactory.getList(BUCKET_NAME, String.class);
-        assertNotNull(list);
+        assertThat(list).isNotNull();
     }
 
     @Test
     public void shouldCreateQueue() {
         Queue<String> queue = managerFactory.getQueue(BUCKET_NAME, String.class);
-        assertNotNull(queue);
+        assertThat(queue).isNotNull();
     }
 
 }

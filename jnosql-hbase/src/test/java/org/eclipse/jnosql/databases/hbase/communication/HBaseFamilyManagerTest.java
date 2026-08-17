@@ -33,11 +33,7 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class HBaseFamilyManagerTest {
@@ -71,7 +67,7 @@ public class HBaseFamilyManagerTest {
         entity.add(Element.of("id", "otaviojava"));
         entity.add(Element.of("age", 26));
         entity.add(Element.of("country", "Brazil"));
-        assertThrows(HBaseException.class, () -> manager.insert(entity));
+        assertThatExceptionOfType(HBaseException.class).isThrownBy(() -> manager.insert(entity));
     }
 
     @Test
@@ -80,10 +76,10 @@ public class HBaseFamilyManagerTest {
 
         var query = select().from(FAMILY).where(ID_FIELD).eq("otaviojava").build();
         List<CommunicationEntity> columnFamilyEntities = manager.select(query).collect(Collectors.toList());
-        assertNotNull(columnFamilyEntities);
-        assertFalse(columnFamilyEntities.isEmpty());
+        assertThat(columnFamilyEntities).isNotNull();
+        assertThat(columnFamilyEntities.isEmpty()).isFalse();
         var entity = columnFamilyEntities.getFirst();
-        assertEquals(FAMILY, entity.name());
+        assertThat(entity.name()).isEqualTo(FAMILY);
         assertThat(entity.elements()).contains(Element.of(ID_FIELD, "otaviojava"),
                 Element.of("age", "26"), Element.of("country", "Brazil"));
     }
@@ -97,7 +93,7 @@ public class HBaseFamilyManagerTest {
                 .or(ID_FIELD).eq("poliana").build();
 
         List<CommunicationEntity> entities = manager.select(query).toList();
-        assertEquals(Integer.valueOf(2), Integer.valueOf(entities.size()));
+        assertThat(Integer.valueOf(entities.size())).isEqualTo(Integer.valueOf(2));
 
     }
 
@@ -108,7 +104,7 @@ public class HBaseFamilyManagerTest {
         var deleteQuery = delete().from(FAMILY).where(ID_FIELD).eq("otaviojava").build();
         manager.delete(deleteQuery);
         List<CommunicationEntity> entities = manager.select(query).toList();
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
@@ -124,7 +120,7 @@ public class HBaseFamilyManagerTest {
 
         manager.delete(deleteQuery);
         List<CommunicationEntity> entities = manager.select(query).toList();
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     private CommunicationEntity createEntity() {

@@ -28,11 +28,6 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class ValkeyMapStringTest {
@@ -54,21 +49,21 @@ public class ValkeyMapStringTest {
 
     @Test
     public void shouldPutAndGetMap() {
-        assertNotNull(vertebrates.put(MAMMALS, MAMMALS));
+        assertThat(vertebrates.put(MAMMALS, MAMMALS)).isNotNull();
         String species = vertebrates.get(MAMMALS);
-        assertNotNull(species);
-        assertEquals(MAMMALS, vertebrates.get(MAMMALS));
-        assertEquals(1, vertebrates.size());
+        assertThat(species).isNotNull();
+        assertThat(vertebrates.get(MAMMALS)).isEqualTo(MAMMALS);
+        assertThat(vertebrates.size()).isEqualTo(1);
     }
 
     @Test
     public void shouldVerifyExist() {
         vertebrates.put(MAMMALS, MAMMALS);
-        assertTrue(vertebrates.containsKey(MAMMALS));
-        assertFalse(vertebrates.containsKey(FISHES));
+        assertThat(vertebrates.containsKey(MAMMALS)).isTrue();
+        assertThat(vertebrates.containsKey(FISHES)).isFalse();
 
-        assertTrue(vertebrates.containsValue(MAMMALS));
-        assertFalse(vertebrates.containsValue(FISHES));
+        assertThat(vertebrates.containsValue(MAMMALS)).isTrue();
+        assertThat(vertebrates.containsValue(FISHES)).isFalse();
     }
 
     @Test
@@ -80,12 +75,12 @@ public class ValkeyMapStringTest {
         Set<String> keys = vertebrates.keySet();
         Collection<String> collectionSpecies = vertebrates.values();
 
-        assertEquals(3, keys.size());
-        assertEquals(3, collectionSpecies.size());
-        assertNotNull(vertebrates.remove(MAMMALS));
-        assertNull(vertebrates.remove(MAMMALS));
-        assertNull(vertebrates.get(MAMMALS));
-        assertEquals(2, vertebrates.size());
+        assertThat(keys.size()).isEqualTo(3);
+        assertThat(collectionSpecies.size()).isEqualTo(3);
+        assertThat(vertebrates.remove(MAMMALS)).isNotNull();
+        assertThat(vertebrates.remove(MAMMALS)).isNull();
+        assertThat(vertebrates.get(MAMMALS)).isNull();
+        assertThat(vertebrates.size()).isEqualTo(2);
     }
 
     @Test
@@ -95,7 +90,7 @@ public class ValkeyMapStringTest {
         vertebrates.put(AMPHIBIANS, AMPHIBIANS);
 
         vertebrates.remove(FISHES);
-        assertEquals(2, vertebrates.size());
+        assertThat(vertebrates.size()).isEqualTo(2);
         assertThat(vertebrates).isNotIn(FISHES);
     }
 
@@ -105,7 +100,7 @@ public class ValkeyMapStringTest {
         vertebrates.put(FISHES, FISHES);
 
         vertebrates.clear();
-        assertTrue(vertebrates.isEmpty());
+        assertThat(vertebrates.isEmpty()).isTrue();
     }
 
     @AfterEach

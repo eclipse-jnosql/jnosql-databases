@@ -27,10 +27,7 @@ import java.util.Queue;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class RedisQueueStringTest {
@@ -48,36 +45,36 @@ public class RedisQueueStringTest {
 
     @Test
     public void shouldPushInTheLine() {
-        assertTrue(lineBank.add("Otavio"));
-        assertEquals(1, lineBank.size());
+        assertThat(lineBank.add("Otavio")).isTrue();
+        assertThat(lineBank.size()).isEqualTo(1);
         String otavio = lineBank.poll();
-        assertEquals(otavio, "Otavio");
-        assertNull(lineBank.poll());
-        assertTrue(lineBank.isEmpty());
+        assertThat("Otavio").isEqualTo(otavio);
+        assertThat(lineBank.poll()).isNull();
+        assertThat(lineBank.isEmpty()).isTrue();
     }
 
     @Test
     public void shouldPeekInTheLine() {
         lineBank.add("Otavio");
         String otavio = lineBank.peek();
-        assertNotNull(otavio);
-        assertNotNull(lineBank.peek());
+        assertThat(otavio).isNotNull();
+        assertThat(lineBank.peek()).isNotNull();
         String otavio2 = lineBank.remove();
-        assertEquals(otavio, otavio2);
+        assertThat(otavio2).isEqualTo(otavio);
         boolean happendException = false;
         try {
             lineBank.remove();
         } catch (NoSuchElementException e) {
             happendException = true;
         }
-        assertTrue(happendException);
+        assertThat(happendException).isTrue();
     }
 
     @Test
     public void shouldElementInTheLine() {
         lineBank.add("Otavio");
-        assertNotNull(lineBank.element());
-        assertNotNull(lineBank.element());
+        assertThat(lineBank.element()).isNotNull();
+        assertThat(lineBank.element()).isNotNull();
         lineBank.remove("Otavio");
         boolean happendException = false;
         try {
@@ -85,7 +82,7 @@ public class RedisQueueStringTest {
         } catch (NoSuchElementException e) {
             happendException = true;
         }
-        assertTrue(happendException);
+        assertThat(happendException).isTrue();
     }
 
     @SuppressWarnings("unused")
@@ -97,21 +94,21 @@ public class RedisQueueStringTest {
         for (String line : lineBank) {
             count++;
         }
-        assertEquals(2, count);
+        assertThat(count).isEqualTo(2);
         lineBank.remove();
         lineBank.remove();
         count = 0;
         for (String line : lineBank) {
             count++;
         }
-        assertEquals(0, count);
+        assertThat(count).isEqualTo(0);
     }
 
     @Test
     public void shouldClear() {
         lineBank.add("Otavio");
         lineBank.clear();
-        assertTrue(lineBank.isEmpty());
+        assertThat(lineBank.isEmpty()).isTrue();
     }
 
     @AfterEach

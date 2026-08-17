@@ -21,8 +21,9 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 public class RavenDBDocumentConfigurationTest {
 
@@ -32,14 +33,14 @@ public class RavenDBDocumentConfigurationTest {
         map.put("ravendb-server-host-1", "172.17.0.2:8080");
         RavenDBDocumentConfiguration configuration = new RavenDBDocumentConfiguration();
         var managerFactory = configuration.apply(Settings.of(map));
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
 
     @Test
     public void shouldReturnErrorWhenSettingsIsNull() {
         var configuration = new RavenDBDocumentConfiguration();
-        assertThrows(NullPointerException.class, () -> configuration.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.apply(null));
     }
 
 

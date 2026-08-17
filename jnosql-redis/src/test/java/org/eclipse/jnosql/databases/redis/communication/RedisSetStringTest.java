@@ -27,8 +27,7 @@ import java.util.Set;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class RedisSetStringTest {
@@ -47,17 +46,17 @@ public class RedisSetStringTest {
     @Test
     public void shouldAddUsers() {
         users.add("otaviojava");
-        assertEquals(1, users.size());
+        assertThat(users.size()).isEqualTo(1);
 
         String user = users.iterator().next();
-        assertEquals("otaviojava", user);
+        assertThat(user).isEqualTo("otaviojava");
     }
 
     @Test
     public void shouldRemoveSet() {
         users.add("otaviojava");
         users.remove("otaviojava");
-        assertTrue(users.isEmpty());
+        assertThat(users.isEmpty()).isTrue();
     }
 
 
@@ -73,27 +72,27 @@ public class RedisSetStringTest {
         for (String user : users) {
             count++;
         }
-        assertEquals(2, count);
+        assertThat(count).isEqualTo(2);
         users.remove("otaviojava");
         users.remove("felipe");
         count = 0;
         for (String user : users) {
             count++;
         }
-        assertEquals(0, count);
+        assertThat(count).isEqualTo(0);
     }
 
     @Test
     public void shouldClear() {
         users.add("otaviojava");
         users.clear();
-        assertTrue(users.isEmpty());
+        assertThat(users.isEmpty()).isTrue();
     }
 
     @Test
     public void shouldContains() {
         users.add("otaviojava");
-        assertTrue(users.contains("otaviojava"));
+        assertThat(users.contains("otaviojava")).isTrue();
     }
 
     @Test
@@ -101,7 +100,7 @@ public class RedisSetStringTest {
         users.add("otaviojava");
         users.add("furlaneto");
         users.add("joao");
-        assertTrue(users.containsAll(Arrays.asList("furlaneto", "otaviojava")));
+        assertThat(users.containsAll(Arrays.asList("furlaneto", "otaviojava"))).isTrue();
     }
 
     @Test
@@ -109,7 +108,7 @@ public class RedisSetStringTest {
         users.add("otaviojava");
         users.add("furlaneto");
         users.add("joao");
-        assertEquals(3, users.size());
+        assertThat(users.size()).isEqualTo(3);
     }
     
     @AfterEach

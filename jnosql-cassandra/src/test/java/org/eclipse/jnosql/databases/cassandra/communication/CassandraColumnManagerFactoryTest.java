@@ -24,8 +24,8 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class CassandraColumnManagerFactoryTest {
@@ -48,15 +48,15 @@ public class CassandraColumnManagerFactoryTest {
     @Test
     public void shouldReturnErrorWhenSettingsIsNull() {
         CassandraConfiguration cassandraConfiguration = new CassandraConfiguration();
-        assertThrows(NullPointerException.class, () -> cassandraConfiguration.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> cassandraConfiguration.apply(null));
 
-        assertThrows(NullPointerException.class, () -> cassandraConfiguration.apply(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> cassandraConfiguration.apply(null));
     }
 
     @Test
     public void shouldReturnEntityManager() {
         DatabaseManager columnEntityManager = subject.apply(Constants.KEY_SPACE);
-        assertNotNull(columnEntityManager);
+        assertThat(columnEntityManager).isNotNull();
     }
 
 }

@@ -18,13 +18,12 @@ package org.eclipse.jnosql.databases.cassandra.communication;
 
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class CassandraConfigurationTest {
@@ -34,7 +33,7 @@ public class CassandraConfigurationTest {
         Settings settings = ColumnDatabase.INSTANCE.getSettings();
         CassandraConfiguration cassandraConfiguration = new CassandraConfiguration();
         var entityManagerFactory = cassandraConfiguration.apply(settings);
-        assertNotNull(entityManagerFactory);
+        assertThat(entityManagerFactory).isNotNull();
     }
 
     @Test
@@ -42,21 +41,21 @@ public class CassandraConfigurationTest {
         Settings settings = ColumnDatabase.INSTANCE.getSettings();
         CassandraConfiguration cassandraConfiguration = new CassandraConfiguration();
         var entityManagerFactory = cassandraConfiguration.apply(settings);
-        assertNotNull(entityManagerFactory);
+        assertThat(entityManagerFactory).isNotNull();
     }
 
     @Test
     public void shouldCreateConfiguration() {
         var configuration = DatabaseConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue( configuration instanceof DatabaseConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof DatabaseConfiguration).isTrue();
     }
 
     @Test
     public void shouldCreateConfigurationQuery() {
         CassandraConfiguration configuration = DatabaseConfiguration.getConfiguration(CassandraConfiguration.class);
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue( configuration instanceof CassandraConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof CassandraConfiguration).isTrue();
     }
 
 }

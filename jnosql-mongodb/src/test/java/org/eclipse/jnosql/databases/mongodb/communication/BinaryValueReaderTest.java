@@ -21,9 +21,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 class BinaryValueReaderTest {
 
@@ -36,14 +35,14 @@ class BinaryValueReaderTest {
 
     @Test
     void shouldValidateCompatibility() {
-        assertTrue(valueReader.test(Binary.class));
-        assertFalse(valueReader.test(AtomicBoolean.class));
+        assertThat(valueReader.test(Binary.class)).isTrue();
+        assertThat(valueReader.test(AtomicBoolean.class)).isFalse();
     }
 
     @Test
     void shouldConvert() {
         byte[] bytes = new byte[] {10, 10, 10};
-        assertEquals(new Binary(bytes), valueReader.read(Binary.class, bytes));
-        assertEquals(new Binary("hello".getBytes()), valueReader.read(Binary.class, "hello"));
+        assertThat(valueReader.read(Binary.class, bytes)).isEqualTo(new Binary(bytes));
+        assertThat(valueReader.read(Binary.class, "hello")).isEqualTo(new Binary("hello".getBytes()));
     }
 }

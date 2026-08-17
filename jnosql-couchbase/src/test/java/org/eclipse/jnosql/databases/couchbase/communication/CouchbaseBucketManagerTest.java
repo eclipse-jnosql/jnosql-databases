@@ -35,10 +35,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class CouchbaseBucketManagerTest {
 
@@ -76,8 +73,8 @@ public class CouchbaseBucketManagerTest {
     public void shouldPutValue() {
         manager.put(KEY_OTAVIO, userOtavio);
         Optional<Value> otavio = manager.get(KEY_OTAVIO);
-        assertTrue(otavio.isPresent());
-        assertEquals(userOtavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(userOtavio);
     }
 
     @Test
@@ -88,12 +85,12 @@ public class CouchbaseBucketManagerTest {
 
         manager.put(entities);
         Optional<Value> otavio = manager.get(KEY_OTAVIO);
-        assertTrue(otavio.isPresent());
-        assertEquals(userOtavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(userOtavio);
 
         Optional<Value> soro = manager.get(KEY_SORO);
-        assertTrue(soro.isPresent());
-        assertEquals(userSoro, soro.get().get(User.class));
+        assertThat(soro.isPresent()).isTrue();
+        assertThat(soro.get().get(User.class)).isEqualTo(userSoro);
     }
 
 
@@ -101,8 +98,8 @@ public class CouchbaseBucketManagerTest {
     public void shouldPutPrimitivesValues() {
         manager.put("integer", 1);
         Optional<Value> integer = manager.get("integer");
-        assertTrue(integer.isPresent());
-        assertEquals(Integer.valueOf(1), integer.get().get(Integer.class));
+        assertThat(integer.isPresent()).isTrue();
+        assertThat(integer.get().get(Integer.class)).isEqualTo(Integer.valueOf(1));
     }
 
     @Test
@@ -111,10 +108,10 @@ public class CouchbaseBucketManagerTest {
         manager.put(KeyValueEntity.of(KEY_OTAVIO, userOtavio), Duration.ofSeconds(1L));
 
         Optional<Value> otavio = manager.get(KEY_OTAVIO);
-        assertTrue(otavio.isPresent());
+        assertThat(otavio.isPresent()).isTrue();
         Thread.sleep(2_000);
         otavio = manager.get(KEY_OTAVIO);
-        assertFalse(otavio.isPresent());
+        assertThat(otavio.isPresent()).isFalse();
     }
 
     @Test
@@ -122,10 +119,10 @@ public class CouchbaseBucketManagerTest {
 
         manager.put(singleton(KeyValueEntity.of(KEY_OTAVIO, userOtavio)), Duration.ofSeconds(1L));
         Optional<Value> otavio = manager.get(KEY_OTAVIO);
-        assertTrue(otavio.isPresent());
+        assertThat(otavio.isPresent()).isTrue();
         Thread.sleep(2_000);
         otavio = manager.get(KEY_OTAVIO);
-        assertFalse(otavio.isPresent());
+        assertThat(otavio.isPresent()).isFalse();
     }
 
 
@@ -134,8 +131,8 @@ public class CouchbaseBucketManagerTest {
     public void shouldPutKeyValue() {
         manager.put(entityOtavio);
         Optional<Value> otavio = manager.get(KEY_OTAVIO);
-        assertTrue(otavio.isPresent());
-        assertEquals(userOtavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(userOtavio);
     }
 
     @Test
@@ -144,12 +141,12 @@ public class CouchbaseBucketManagerTest {
 
         manager.put(asList(soroEntity, entityOtavio));
         Optional<Value> otavio = manager.get(KEY_OTAVIO);
-        assertTrue(otavio.isPresent());
-        assertEquals(userOtavio, otavio.get().get(User.class));
+        assertThat(otavio.isPresent()).isTrue();
+        assertThat(otavio.get().get(User.class)).isEqualTo(userOtavio);
 
         Optional<Value> soro = manager.get(KEY_SORO);
-        assertTrue(soro.isPresent());
-        assertEquals(userSoro, soro.get().get(User.class));
+        assertThat(soro.isPresent()).isTrue();
+        assertThat(soro.get().get(User.class)).isEqualTo(userSoro);
     }
 
     @Test
@@ -157,7 +154,7 @@ public class CouchbaseBucketManagerTest {
         User user = new User(KEY_OTAVIO);
         KeyValueEntity keyValue = KeyValueEntity.of(KEY_OTAVIO, Value.of(user));
         manager.put(keyValue);
-        assertNotNull(manager.get(KEY_OTAVIO));
+        assertThat(manager.get(KEY_OTAVIO)).isNotNull();
 
 
     }
@@ -165,9 +162,9 @@ public class CouchbaseBucketManagerTest {
     @Test
     public void shouldRemoveKey() {
         manager.put(entityOtavio);
-        assertTrue(manager.get(KEY_OTAVIO).isPresent());
+        assertThat(manager.get(KEY_OTAVIO).isPresent()).isTrue();
         manager.delete(KEY_OTAVIO);
-        assertFalse(manager.get(KEY_OTAVIO).isPresent());
+        assertThat(manager.get(KEY_OTAVIO).isPresent()).isFalse();
     }
 
     @Test
@@ -180,7 +177,7 @@ public class CouchbaseBucketManagerTest {
                 .map(value -> value.get(User.class)).collect(Collectors.toList()))
                 .contains(userOtavio, userSoro);
         manager.delete(keys);
-        assertEquals(0L, StreamSupport.stream(manager.get(keys).spliterator(), false).count());
+        assertThat(StreamSupport.stream(manager.get(keys).spliterator(), false).count()).isEqualTo(0L);
     }
 
 

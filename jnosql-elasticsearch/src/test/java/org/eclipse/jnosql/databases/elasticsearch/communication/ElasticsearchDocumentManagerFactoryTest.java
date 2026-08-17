@@ -19,7 +19,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 public class ElasticsearchDocumentManagerFactoryTest {
@@ -28,7 +28,7 @@ public class ElasticsearchDocumentManagerFactoryTest {
     @Test
     public void shouldCreateEntityManager() {
         ElasticsearchDocumentManagerFactory factory = DocumentDatabase.INSTANCE.get();
-        assertNotNull(factory.apply("database"));
+        assertThat(factory.apply("database")).isNotNull();
     }
 
 }

@@ -27,8 +27,9 @@ import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, EntityConverter.class, DocumentTemplate.class, MongoDBTemplate.class})
@@ -46,11 +47,11 @@ class DocumentEntityConverterTest {
         ObjectId id = new ObjectId();
         Music music = new Music(id.toString(), "Music", 2021);
         CommunicationEntity entity = converter.toCommunication(music);
-        Assertions.assertNotNull(entity);
-        Assertions.assertEquals(Music.class.getSimpleName(), entity.name());
-        Assertions.assertEquals(id, entity.find("_id", ObjectId.class).get());
-        Assertions.assertEquals("Music", entity.find("name", String.class).get());
-        Assertions.assertEquals(2021, entity.find("year", int.class).get());
+        assertThat(entity).isNotNull();
+        assertThat(entity.name()).isEqualTo(Music.class.getSimpleName());
+        assertThat(entity.find("_id", ObjectId.class).get()).isEqualTo(id);
+        assertThat(entity.find("name", String.class).get()).isEqualTo("Music");
+        assertThat(entity.find("year", int.class).get()).isEqualTo(2021);
     }
 
     @Test
@@ -62,9 +63,9 @@ class DocumentEntityConverterTest {
         entity.add("_id", id);
 
         Music music = converter.toEntity(entity);
-        Assertions.assertNotNull(music);
-        Assertions.assertEquals("Music", music.getName());
-        Assertions.assertEquals(2022, music.getYear());
-        Assertions.assertEquals(id.toString(), music.getId());
+        assertThat(music).isNotNull();
+        assertThat(music.getName()).isEqualTo("Music");
+        assertThat(music.getYear()).isEqualTo(2022);
+        assertThat(music.getId()).isEqualTo(id.toString());
     }
 }

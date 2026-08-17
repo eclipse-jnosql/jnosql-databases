@@ -58,9 +58,6 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnableAutoWeld
 @AddPackages(value = {Converters.class, ColumnTemplate.class, EntityConverter.class,
@@ -103,8 +100,8 @@ public class CassandraColumnEntityConverterTest {
                 .withPhones(asList("234", "2342")).build();
 
         CommunicationEntity entity = converter.toCommunication(artist);
-        assertEquals("Artist", entity.name());
-        assertEquals(5, entity.size());
+        assertThat(entity.name()).isEqualTo("Artist");
+        assertThat(entity.size()).isEqualTo(5);
     }
 
     @Test
@@ -112,8 +109,8 @@ public class CassandraColumnEntityConverterTest {
 
 
         var entity = converter.toCommunication(actor);
-        assertEquals("Actor", entity.name());
-        assertEquals(7, entity.size());
+        assertThat(entity.name()).isEqualTo("Actor");
+        assertThat(entity.size()).isEqualTo(7);
 
 
         assertThat(entity.elements()).contains(columns);
@@ -125,12 +122,12 @@ public class CassandraColumnEntityConverterTest {
         Stream.of(columns).forEach(entity::add);
 
         Actor actor = converter.toEntity(Actor.class, entity);
-        assertNotNull(actor);
-        assertEquals(10, actor.getAge());
-        assertEquals(12L, actor.getId());
-        assertEquals(asList("234", "2342"), actor.getPhones());
-        assertEquals(Collections.singletonMap("JavaZone", "Jedi"), actor.getMovieCharacter());
-        assertEquals(Collections.singletonMap("JavaZone", 10), actor.getMovieRating());
+        assertThat(actor).isNotNull();
+        assertThat(actor.getAge()).isEqualTo(10);
+        assertThat(actor.getId()).isEqualTo(12L);
+        assertThat(actor.getPhones()).isEqualTo(asList("234", "2342"));
+        assertThat(actor.getMovieCharacter()).isEqualTo(Collections.singletonMap("JavaZone", "Jedi"));
+        assertThat(actor.getMovieRating()).isEqualTo(Collections.singletonMap("JavaZone", 10));
     }
 
     @Test
@@ -139,12 +136,12 @@ public class CassandraColumnEntityConverterTest {
         Stream.of(columns).forEach(entity::add);
 
         Actor actor = converter.toEntity(entity);
-        assertNotNull(actor);
-        assertEquals(10, actor.getAge());
-        assertEquals(12L, actor.getId());
-        assertEquals(asList("234", "2342"), actor.getPhones());
-        assertEquals(Collections.singletonMap("JavaZone", "Jedi"), actor.getMovieCharacter());
-        assertEquals(Collections.singletonMap("JavaZone", 10), actor.getMovieRating());
+        assertThat(actor).isNotNull();
+        assertThat(actor.getAge()).isEqualTo(10);
+        assertThat(actor.getId()).isEqualTo(12L);
+        assertThat(actor.getPhones()).isEqualTo(asList("234", "2342"));
+        assertThat(actor.getMovieCharacter()).isEqualTo(Collections.singletonMap("JavaZone", "Jedi"));
+        assertThat(actor.getMovieRating()).isEqualTo(Collections.singletonMap("JavaZone", 10));
     }
 
 
@@ -158,23 +155,23 @@ public class CassandraColumnEntityConverterTest {
                 .withPhones(asList("234", "2342")).withMovie(movie).build();
 
         var entity = converter.toCommunication(director);
-        assertEquals(6, entity.size());
+        assertThat(entity.size()).isEqualTo(6);
 
-        assertEquals(getValue(entity.find("name")), director.getName());
-        assertEquals(getValue(entity.find("age")), director.getAge());
-        assertEquals(getValue(entity.find("_id")), director.getId());
-        assertEquals(getValue(entity.find("phones")), director.getPhones());
+        assertThat(director.getName()).isEqualTo(getValue(entity.find("name")));
+        assertThat(director.getAge()).isEqualTo(getValue(entity.find("age")));
+        assertThat(director.getId()).isEqualTo(getValue(entity.find("_id")));
+        assertThat(director.getPhones()).isEqualTo(getValue(entity.find("phones")));
 
 
         Element subColumn = entity.find("movie").get();
         List<Element> columns = subColumn.get(new TypeReference<>() {
         });
 
-        assertEquals(3, columns.size());
-        assertEquals("movie", subColumn.name());
-        assertEquals(movie.getTitle(), columns.stream().filter(c -> "title".equals(c.name())).findFirst().get().get());
-        assertEquals(movie.getYear(), columns.stream().filter(c -> "year".equals(c.name())).findFirst().get().get());
-        assertEquals(movie.getActors(), columns.stream().filter(c -> "actors".equals(c.name())).findFirst().get().get());
+        assertThat(columns.size()).isEqualTo(3);
+        assertThat(subColumn.name()).isEqualTo("movie");
+        assertThat(columns.stream().filter(c -> "title".equals(c.name())).findFirst().get().get()).isEqualTo(movie.getTitle());
+        assertThat(columns.stream().filter(c -> "year".equals(c.name())).findFirst().get().get()).isEqualTo(movie.getYear());
+        assertThat(columns.stream().filter(c -> "actors".equals(c.name())).findFirst().get().get()).isEqualTo(movie.getActors());
 
 
     }
@@ -190,10 +187,10 @@ public class CassandraColumnEntityConverterTest {
         var entity = converter.toCommunication(director);
         Director director1 = converter.toEntity(entity);
 
-        assertEquals(movie, director1.getMovie());
-        assertEquals(director.getName(), director1.getName());
-        assertEquals(director.getAge(), director1.getAge());
-        assertEquals(director.getId(), director1.getId());
+        assertThat(director1.getMovie()).isEqualTo(movie);
+        assertThat(director1.getName()).isEqualTo(director.getName());
+        assertThat(director1.getAge()).isEqualTo(director.getAge());
+        assertThat(director1.getId()).isEqualTo(director.getId());
     }
 
     @Test
@@ -213,10 +210,10 @@ public class CassandraColumnEntityConverterTest {
 
         Director director1 = converter.toEntity(entity);
 
-        assertEquals(movie, director1.getMovie());
-        assertEquals(director.getName(), director1.getName());
-        assertEquals(director.getAge(), director1.getAge());
-        assertEquals(director.getId(), director1.getId());
+        assertThat(director1.getMovie()).isEqualTo(movie);
+        assertThat(director1.getName()).isEqualTo(director.getName());
+        assertThat(director1.getAge()).isEqualTo(director.getAge());
+        assertThat(director1.getId()).isEqualTo(director.getId());
     }
 
 
@@ -238,10 +235,10 @@ public class CassandraColumnEntityConverterTest {
         entity.add(Element.of("movie", map));
         Director director1 = converter.toEntity(entity);
 
-        assertEquals(movie, director1.getMovie());
-        assertEquals(director.getName(), director1.getName());
-        assertEquals(director.getAge(), director1.getAge());
-        assertEquals(director.getId(), director1.getId());
+        assertThat(director1.getMovie()).isEqualTo(movie);
+        assertThat(director1.getName()).isEqualTo(director.getName());
+        assertThat(director1.getAge()).isEqualTo(director.getAge());
+        assertThat(director1.getId()).isEqualTo(director.getId());
     }
 
 
@@ -255,9 +252,9 @@ public class CassandraColumnEntityConverterTest {
         worker.setSalary(new Money("BRL", BigDecimal.TEN));
         worker.setJob(job);
         var entity = converter.toCommunication(worker);
-        assertEquals("Worker", entity.name());
-        assertEquals("Bob", entity.find("name").get().get());
-        assertEquals("BRL 10", entity.find("money").get().get());
+        assertThat(entity.name()).isEqualTo("Worker");
+        assertThat(entity.find("name").get().get()).isEqualTo("Bob");
+        assertThat(entity.find("money").get().get()).isEqualTo("BRL 10");
     }
 
     @Test
@@ -271,9 +268,9 @@ public class CassandraColumnEntityConverterTest {
         worker.setJob(job);
         var entity = converter.toCommunication(worker);
         Worker worker1 = converter.toEntity(entity);
-        assertEquals(worker.getSalary(), worker1.getSalary());
-        assertEquals(job.getCity(), worker1.getJob().getCity());
-        assertEquals(job.getDescription(), worker1.getJob().getDescription());
+        assertThat(worker1.getSalary()).isEqualTo(worker.getSalary());
+        assertThat(worker1.getJob().getCity()).isEqualTo(job.getCity());
+        assertThat(worker1.getJob().getDescription()).isEqualTo(job.getDescription());
     }
 
 
@@ -289,12 +286,12 @@ public class CassandraColumnEntityConverterTest {
         contact.setHome(address);
 
         var entity = converter.toCommunication(contact);
-        assertEquals("ContactCassandra", entity.name());
+        assertThat(entity.name()).isEqualTo("ContactCassandra");
         Element column = entity.find("home").get();
         UDT udt = UDT.class.cast(column);
 
-        assertEquals("address", udt.userType());
-        assertEquals("home", udt.name());
+        assertThat(udt.userType()).isEqualTo("address");
+        assertThat(udt.name()).isEqualTo("home");
         assertThat((List<Element>) udt.get())
                 .contains(Element.of("city", "California"), Element.of("street", "Street"));
 
@@ -313,12 +310,12 @@ public class CassandraColumnEntityConverterTest {
         entity.add(udt);
 
         ContactCassandra contact = converter.toEntity(entity);
-        assertNotNull(contact);
+        assertThat(contact).isNotNull();
         Address home = contact.getHome();
-        assertEquals("Poliana", contact.getName());
-        assertEquals(Integer.valueOf(20), contact.getAge());
-        assertEquals("Salvador", home.getCity());
-        assertEquals("Jose Anasoh", home.getStreet());
+        assertThat(contact.getName()).isEqualTo("Poliana");
+        assertThat(contact.getAge()).isEqualTo(Integer.valueOf(20));
+        assertThat(home.getCity()).isEqualTo("Salvador");
+        assertThat(home.getStreet()).isEqualTo("Jose Anasoh");
 
     }
 
@@ -332,9 +329,9 @@ public class CassandraColumnEntityConverterTest {
         history.setNumber(new java.util.Date().getTime());
 
         var entity = converter.toCommunication(history);
-        assertEquals("History2", entity.name());
+        assertThat(entity.name()).isEqualTo("History2");
         History2 historyConverted = converter.toEntity(entity);
-        assertNotNull(historyConverted);
+        assertThat(historyConverted).isNotNull();
 
     }
 
@@ -346,14 +343,14 @@ public class CassandraColumnEntityConverterTest {
                 new org.eclipse.jnosql.databases.cassandra.mapping.model.Contact("Ada", "ada@lovelace.com")));
 
         var entity = converter.toCommunication(appointmentBook);
-        assertEquals("AppointmentBook", entity.name());
-        assertEquals("otaviojava", entity.find("user").get().get());
+        assertThat(entity.name()).isEqualTo("AppointmentBook");
+        assertThat(entity.find("user").get().get()).isEqualTo("otaviojava");
         UDT column = (UDT) entity.find("contacts").get();
 
         List<List<Element>> contacts = (List<List<Element>>) column.get();
-        assertEquals(2, contacts.size());
-        assertTrue(contacts.stream().allMatch(c -> c.size() == 2));
-        assertEquals("Contact", column.userType());
+        assertThat(contacts.size()).isEqualTo(2);
+        assertThat(contacts.stream().allMatch(c -> c.size() == 2)).isTrue();
+        assertThat(column.userType()).isEqualTo("Contact");
 
     }
 
@@ -370,7 +367,7 @@ public class CassandraColumnEntityConverterTest {
         entity.add(UDT.builder("Contact").withName("contacts").addUDTs(columns).build());
         AppointmentBook appointmentBook = converter.toEntity(entity);
         List<org.eclipse.jnosql.databases.cassandra.mapping.model.Contact> contacts = appointmentBook.getContacts();
-        assertEquals("otaviojava", appointmentBook.getUser());
+        assertThat(appointmentBook.getUser()).isEqualTo("otaviojava");
 
         assertThat(contacts).contains(new org.eclipse.jnosql.databases.cassandra.mapping.model.Contact("Poliana", "poliana"),
                 new org.eclipse.jnosql.databases.cassandra.mapping.model.Contact("Ada", "ada@lovelace.com"));

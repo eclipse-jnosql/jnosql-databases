@@ -28,7 +28,6 @@ import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Human;
 import org.eclipse.jnosql.databases.tinkerpop.mapping.entities.Magazine;
 import org.eclipse.jnosql.mapping.PreparedStatement;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -43,14 +42,8 @@ import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public abstract class AbstractTinkerpopTemplateTest {
 
@@ -66,7 +59,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
     @Test
     void shouldReturnErrorWhenEntityIsNull() {
-        assertThrows(NullPointerException.class, () -> getGraphTemplate().insert(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> getGraphTemplate().insert(null));
     }
 
     @Test
@@ -82,16 +75,14 @@ public abstract class AbstractTinkerpopTemplateTest {
     void shouldReturnErrorWhenInsertWithTTL() {
         Human human = Human.builder().withAge()
                 .withName("Otavio").build();
-        Assertions.assertThrows(UnsupportedOperationException.class,
-                () -> getGraphTemplate().insert(human, Duration.ZERO));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> getGraphTemplate().insert(human, Duration.ZERO));
     }
 
     @Test
     void shouldReturnErrorWhenInsertIterableWithTTL() {
         Human human = Human.builder().withAge()
                 .withName("Otavio").build();
-        Assertions.assertThrows(UnsupportedOperationException.class,
-                () -> getGraphTemplate().insert(Collections.singleton(human), Duration.ZERO));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> getGraphTemplate().insert(Collections.singleton(human), Duration.ZERO));
     }
 
     @Test
@@ -108,7 +99,7 @@ public abstract class AbstractTinkerpopTemplateTest {
         final boolean allHasId = StreamSupport.stream(people.spliterator(), false)
                 .map(Human::getId)
                 .allMatch(Objects::nonNull);
-        assertTrue(allHasId);
+        assertThat(allHasId).isTrue();
     }
 
     @Test
@@ -116,12 +107,12 @@ public abstract class AbstractTinkerpopTemplateTest {
         Human human = Human.builder().withAge()
                 .withName("Otavio").build();
         Human updated = getGraphTemplate().insert(human);
-        assertSame(human, updated);
+        assertThat(updated).isSameAs(human);
     }
 
     @Test
     void shouldGetErrorWhenIdIsNullWhenUpdate() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
             Human human = Human.builder().withAge()
                     .withName("Otavio").build();
             getGraphTemplate().update(human);
@@ -130,7 +121,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
     @Test
     void shouldGetErrorWhenEntityIsNotSavedYet() {
-        assertThrows(EmptyResultException.class, () -> {
+        assertThatExceptionOfType(EmptyResultException.class).isThrownBy(() -> {
             Human human = Human.builder().withAge()
                     .withId("10")
                     .withName("Otavio").build();
@@ -151,7 +142,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
         Human update = getGraphTemplate().update(newHuman);
 
-        assertEquals(newHuman, update);
+        assertThat(update).isEqualTo(newHuman);
 
         getGraphTemplate().delete(update.getId());
     }
@@ -175,7 +166,7 @@ public abstract class AbstractTinkerpopTemplateTest {
         final boolean allUpdated = StreamSupport.stream(update.spliterator(), false)
                 .map(Human::getName).allMatch(name -> name.contains(" updated"));
 
-        assertTrue(allUpdated);
+        assertThat(allUpdated).isTrue();
     }
 
 
@@ -191,12 +182,12 @@ public abstract class AbstractTinkerpopTemplateTest {
 
         Human update = getGraphTemplate().update(newHuman);
 
-        assertSame(update, newHuman);
+        assertThat(newHuman).isSameAs(update);
     }
 
     @Test
     void shouldReturnErrorInFindWhenIdIsNull() {
-        assertThrows(NullPointerException.class, () -> getGraphTemplate().find(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> getGraphTemplate().find(null));
     }
 
     @Test
@@ -206,8 +197,8 @@ public abstract class AbstractTinkerpopTemplateTest {
         Human updated = getGraphTemplate().insert(human);
         Optional<Human> personFound = getGraphTemplate().find(updated.getId());
 
-        assertTrue(personFound.isPresent());
-        assertEquals(updated, personFound.get());
+        assertThat(personFound.isPresent()).isTrue();
+        assertThat(personFound.get()).isEqualTo(updated);
 
         getGraphTemplate().delete(updated.getId());
     }
@@ -215,7 +206,7 @@ public abstract class AbstractTinkerpopTemplateTest {
     @Test
     void shouldNotFindAnEntity() {
         Optional<Human> personFound = getGraphTemplate().find("0");
-        assertFalse(personFound.isPresent());
+        assertThat(personFound.isPresent()).isFalse();
     }
 
     @Test
@@ -224,9 +215,9 @@ public abstract class AbstractTinkerpopTemplateTest {
         Human human = getGraphTemplate().insert(Human.builder().withAge()
                 .withName("Otavio").build());
 
-        assertTrue(getGraphTemplate().find(human.getId()).isPresent());
+        assertThat(getGraphTemplate().find(human.getId()).isPresent()).isTrue();
         getGraphTemplate().delete(human.getId());
-        assertFalse(getGraphTemplate().find(human.getId()).isPresent());
+        assertThat(getGraphTemplate().find(human.getId()).isPresent()).isFalse();
     }
 
 
@@ -236,9 +227,9 @@ public abstract class AbstractTinkerpopTemplateTest {
         Human human = getGraphTemplate().insert(Human.builder().withAge()
                 .withName("Otavio").build());
 
-        assertTrue(getGraphTemplate().find(human.getId()).isPresent());
+        assertThat(getGraphTemplate().find(human.getId()).isPresent()).isTrue();
         getGraphTemplate().delete(Human.class, human.getId());
-        assertFalse(getGraphTemplate().find(human.getId()).isPresent());
+        assertThat(getGraphTemplate().find(human.getId()).isPresent()).isFalse();
     }
 
     @Test
@@ -247,11 +238,11 @@ public abstract class AbstractTinkerpopTemplateTest {
         Human human = getGraphTemplate().insert(Human.builder().withAge()
                 .withName("Otavio").build());
 
-        assertTrue(getGraphTemplate().find(human.getId()).isPresent());
+        assertThat(getGraphTemplate().find(human.getId()).isPresent()).isTrue();
         getGraphTemplate().delete(Magazine.class, human.getId());
-        assertTrue(getGraphTemplate().find(human.getId()).isPresent());
+        assertThat(getGraphTemplate().find(human.getId()).isPresent()).isTrue();
         getGraphTemplate().delete(Human.class, human.getId());
-        assertFalse(getGraphTemplate().find(human.getId()).isPresent());
+        assertThat(getGraphTemplate().find(human.getId()).isPresent()).isFalse();
     }
 
 
@@ -264,26 +255,26 @@ public abstract class AbstractTinkerpopTemplateTest {
         Human poliana = getGraphTemplate().insert(Human.builder().withAge()
                 .withName("Poliana").build());
 
-        assertTrue(getGraphTemplate().find(otavio.getId()).isPresent());
+        assertThat(getGraphTemplate().find(otavio.getId()).isPresent()).isTrue();
         getGraphTemplate().delete(Arrays.asList(otavio.getId(), poliana.getId()));
-        assertFalse(getGraphTemplate().find(otavio.getId()).isPresent());
-        assertFalse(getGraphTemplate().find(poliana.getId()).isPresent());
+        assertThat(getGraphTemplate().find(otavio.getId()).isPresent()).isFalse();
+        assertThat(getGraphTemplate().find(poliana.getId()).isPresent()).isFalse();
     }
 
     @Test
     void shouldReturnErrorWhenGetEdgesIdHasNullId() {
-        assertThrows(NullPointerException.class, () -> getGraphTemplate().edgesById(null, Direction.BOTH));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> getGraphTemplate().edgesById(null, Direction.BOTH));
     }
 
     @Test
     void shouldReturnErrorWhenGetEdgesIdHasNullDirection() {
-        assertThrows(NullPointerException.class, () -> getGraphTemplate().edgesById("10", null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> getGraphTemplate().edgesById("10", null));
     }
 
     @Test
     void shouldReturnEmptyWhenVertexDoesNotExist() {
         Collection<EdgeEntity> edges = getGraphTemplate().edgesById("10", Direction.BOTH);
-        assertTrue(edges.isEmpty());
+        assertThat(edges.isEmpty()).isTrue();
     }
 
     @Test
@@ -303,7 +294,7 @@ public abstract class AbstractTinkerpopTemplateTest {
         Collection<EdgeEntity> edgesById3 = getGraphTemplate().edgesById(otavio.getId(), Direction.OUT);
         Collection<EdgeEntity> edgesById4 = getGraphTemplate().edgesById(cleanCode.getId(), Direction.IN);
 
-        assertEquals(edgesById, edgesById3);
+        assertThat(edgesById3).isEqualTo(edgesById);
         assertThat(edgesById).contains(likes, reads);
         assertThat(edgesById1).contains(reads);
         assertThat(edgesById2).contains(likes);
@@ -320,10 +311,10 @@ public abstract class AbstractTinkerpopTemplateTest {
         EdgeEntity likes = getGraphTemplate().edge(otavio, "likes", dog);
 
         final Optional<EdgeEntity> edge = getGraphTemplate().edge(likes.id());
-        Assertions.assertTrue(edge.isPresent());
+        assertThat(edge.isPresent()).isTrue();
 
         getGraphTemplate().deleteEdge(likes.id());
-        assertFalse(getGraphTemplate().edge(likes.id()).isPresent());
+        assertThat(getGraphTemplate().edge(likes.id()).isPresent()).isFalse();
     }
 
     @Test
@@ -337,16 +328,16 @@ public abstract class AbstractTinkerpopTemplateTest {
         EdgeEntity reads = getGraphTemplate().edge(otavio, "reads", cleanCode);
 
         final Optional<EdgeEntity> edge = getGraphTemplate().edge(likes.id());
-        Assertions.assertTrue(edge.isPresent());
+        assertThat(edge.isPresent()).isTrue();
 
         getGraphTemplate().deleteEdge(Arrays.asList(likes.id(), reads.id()));
-        assertFalse(getGraphTemplate().edge(likes.id()).isPresent());
-        assertFalse(getGraphTemplate().edge(reads.id()).isPresent());
+        assertThat(getGraphTemplate().edge(likes.id()).isPresent()).isFalse();
+        assertThat(getGraphTemplate().edge(reads.id()).isPresent()).isFalse();
     }
 
     @Test
     void shouldReturnErrorWhenGetEdgesHasNullId() {
-        assertThrows(NullPointerException.class, () -> getGraphTemplate().edges(null, Direction.BOTH));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> getGraphTemplate().edges(null, Direction.BOTH));
     }
 
     @Test
@@ -358,7 +349,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
     @Test
     void shouldReturnErrorWhenGetEdgesHasNullDirection() {
-        assertThrows(NullPointerException.class, () -> {
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
             Human otavio = getGraphTemplate().insert(Human.builder().withAge()
                     .withName("Otavio").build());
             getGraphTemplate().edges(otavio, null);
@@ -369,7 +360,7 @@ public abstract class AbstractTinkerpopTemplateTest {
     void shouldReturnEmptyWhenEntityDoesNotExist() {
         Human otavio = Human.builder().withAge().withName("Otavio").withId("10").build();
         Collection<EdgeEntity> edges = getGraphTemplate().edges(otavio, Direction.BOTH);
-        assertTrue(edges.isEmpty());
+        assertThat(edges.isEmpty()).isTrue();
     }
 
 
@@ -403,7 +394,7 @@ public abstract class AbstractTinkerpopTemplateTest {
     void shouldGetTransaction() {
         assumeTrue(getGraph().features().graph().supportsTransactions(), "transactions not supported");
         Transaction transaction = getGraphTemplate().transaction();
-        assertNotNull(transaction);
+        assertThat(transaction).isNotNull();
     }
 
     @Test
@@ -434,7 +425,7 @@ public abstract class AbstractTinkerpopTemplateTest {
     @Test
     void shouldReturnEmpty() {
         Optional<Human> person = getGraphTemplate().gremlinSingleResult("g.V().hasLabel('person')");
-        assertFalse(person.isPresent());
+        assertThat(person.isPresent()).isFalse();
     }
 
     @Test
@@ -443,7 +434,7 @@ public abstract class AbstractTinkerpopTemplateTest {
                 .withName("Otavio").build();
         getGraphTemplate().insert(otavio);
         Optional<Human> person = getGraphTemplate().gremlinSingleResult("g.V().hasLabel('Human')");
-        assertTrue(person.isPresent());
+        assertThat(person.isPresent()).isTrue();
     }
 
     @Test
@@ -451,7 +442,7 @@ public abstract class AbstractTinkerpopTemplateTest {
 
         getGraphTemplate().insert(Human.builder().withAge().withName("Otavio").build());
         getGraphTemplate().insert(Human.builder().withAge().withName("Poliana").build());
-        assertThrows(NonUniqueResultException.class, () -> getGraphTemplate().gremlinSingleResult("g.V().hasLabel('Human')"));
+        assertThatExceptionOfType(NonUniqueResultException.class).isThrownBy(() -> getGraphTemplate().gremlinSingleResult("g.V().hasLabel('Human')"));
     }
 
     @Test
@@ -469,7 +460,7 @@ public abstract class AbstractTinkerpopTemplateTest {
         PreparedStatement prepare = getGraphTemplate().gremlinPrepare("g.V().hasLabel(@param)");
         prepare.bind("param", "Human");
         Optional<Human> otavio = prepare.singleResult();
-        assertTrue(otavio.isPresent());
+        assertThat(otavio.isPresent()).isTrue();
     }
 
     @Test
@@ -477,7 +468,7 @@ public abstract class AbstractTinkerpopTemplateTest {
         PreparedStatement prepare = getGraphTemplate().gremlinPrepare("g.V().hasLabel(@param)");
         prepare.bind("param", "Person");
         Optional<Human> otavio = prepare.singleResult();
-        assertFalse(otavio.isPresent());
+        assertThat(otavio.isPresent()).isFalse();
     }
 
     @Test
@@ -486,28 +477,28 @@ public abstract class AbstractTinkerpopTemplateTest {
         getGraphTemplate().insert(Human.builder().withAge().withName("Poliana").build());
         PreparedStatement prepare = getGraphTemplate().gremlinPrepare("g.V().hasLabel(@param)");
         prepare.bind("param", "Human");
-        assertThrows(NonUniqueResultException.class, prepare::singleResult);
+        assertThatExceptionOfType(NonUniqueResultException.class).isThrownBy(prepare::singleResult);
     }
 
     @Test
     void shouldCount() {
         getGraphTemplate().insert(Human.builder().withAge().withName("Otavio").build());
         getGraphTemplate().insert(Human.builder().withAge().withName("Poliana").build());
-        assertEquals(2L, getGraphTemplate().count("Human"));
+        assertThat(getGraphTemplate().count("Human")).isEqualTo(2L);
     }
 
     @Test
     void shouldCountFromEntity() {
         getGraphTemplate().insert(Human.builder().withAge().withName("Otavio").build());
         getGraphTemplate().insert(Human.builder().withAge().withName("Poliana").build());
-        assertEquals(2L, getGraphTemplate().count(Human.class));
+        assertThat(getGraphTemplate().count(Human.class)).isEqualTo(2L);
     }
 
     @Test
     void shouldCountFromSelectQuery() {
         getGraphTemplate().insert(Human.builder().withAge().withName("Otavio").build());
         getGraphTemplate().insert(Human.builder().withAge().withName("Poliana").build());
-        assertEquals(2L, getGraphTemplate().count(SelectQuery.builder().select().from("Human").build()));
+        assertThat(getGraphTemplate().count(SelectQuery.builder().select().from("Human").build())).isEqualTo(2L);
     }
 
 
@@ -517,9 +508,9 @@ public abstract class AbstractTinkerpopTemplateTest {
                 .withName("Otavio").build());
 
         final Optional<Human> person = getGraphTemplate().find(Human.class, otavio.getId());
-        assertNotNull(person);
-        assertTrue(person.isPresent());
-        assertEquals(otavio.getName(), person.map(Human::getName).get());
+        assertThat(person).isNotNull();
+        assertThat(person.isPresent()).isTrue();
+        assertThat(person.map(Human::getName).get()).isEqualTo(otavio.getName());
     }
 
     @Test
@@ -552,8 +543,8 @@ public abstract class AbstractTinkerpopTemplateTest {
     @Test
     void shouldReturnEmptyWhenFindByIdNotFound() {
         final Optional<Human> person = getGraphTemplate().find(Human.class, "-2");
-        assertNotNull(person);
-        assertFalse(person.isPresent());
+        assertThat(person).isNotNull();
+        assertThat(person.isPresent()).isFalse();
     }
 
     @Test
@@ -561,10 +552,10 @@ public abstract class AbstractTinkerpopTemplateTest {
         final Human otavio = getGraphTemplate().insert(Human.builder().withAge()
                 .withName("Otavio").build());
 
-        assertEquals("Otavio", otavio.getName());
+        assertThat(otavio.getName()).isEqualTo("Otavio");
         otavio.setName(null);
         final Human human = getGraphTemplate().update(otavio);
-        assertNull(human.getName());
+        assertThat(human.getName()).isNull();
 
     }
 

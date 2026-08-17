@@ -26,16 +26,16 @@ class UUIDValueWriterTest {
     private final UUIDValueWriter writer = new UUIDValueWriter();
 
     @Nested
-    @DisplayName("When evaluating supported types via test()")
-    class WhenRecognizingSupportedTypes {
+    @DisplayName("When validating supported UUID types")
+    class WhenTheValidation {
 
         @Test
         @DisplayName("Should return true when the class type is exactly UUID")
         void shouldReturnTrueWhenClassIsUUID() {
-            // Act
+            // When
             boolean result = writer.test(UUID.class);
 
-            // Assert
+            // Then
             assertThat(result)
                     .isTrue();
         }
@@ -43,11 +43,11 @@ class UUIDValueWriterTest {
         @Test
         @DisplayName("Should return false when the class type is not UUID")
         void shouldReturnFalseWhenClassIsNotUUID() {
-            // Act
+            // When
             boolean resultWithString = writer.test(String.class);
             boolean resultWithInteger = writer.test(Integer.class);
 
-            // Assert
+            // Then
             assertThat(resultWithString).isFalse();
 
             assertThat(resultWithInteger).isFalse();
@@ -56,39 +56,39 @@ class UUIDValueWriterTest {
         @Test
         @DisplayName("Should return false when the class type is null")
         void shouldReturnFalseWhenClassIsNull() {
-            // Act
+            // When
             boolean result = writer.test(null);
 
-            // Assert
+            // Then
             assertThat(result).isFalse();
         }
     }
 
     @Nested
-    @DisplayName("When converting UUID data via write()")
-    class WriteMethodScenarios {
+    @DisplayName("When converting UUID values")
+    class WhenTheConversion {
 
         @Test
         @DisplayName("Should return a valid canonical String representation when UUID is provided")
         void shouldReturnStringRepresentationWhenUUIDIsNotNull() {
-            // Arrange
+            // Given
             UUID sampleUuid = UUID.randomUUID();
             String expectedString = sampleUuid.toString();
 
-            // Act
+            // When
             String actualString = writer.write(sampleUuid);
 
-            // Assert
+            // Then
             assertThat(actualString).isNotNull().isEqualTo(expectedString);
         }
 
         @Test
         @DisplayName("Should return null when the provided UUID parameter is null")
         void shouldReturnNullWhenUUIDIsNull() {
-            // Act
+            // When
             String actualString = writer.write(null);
 
-            // Assert
+            // Then
             assertThat(actualString).isNull();
         }
     }

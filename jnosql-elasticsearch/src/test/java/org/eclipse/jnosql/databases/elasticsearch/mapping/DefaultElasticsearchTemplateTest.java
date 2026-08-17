@@ -43,8 +43,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 
@@ -102,33 +100,33 @@ public class DefaultElasticsearchTemplateTest {
 
     @Test
     public void shouldGetConverter() {
-        assertNotNull(template.converter());
-        assertEquals(converter, template.converter());
+        assertThat(template.converter()).isNotNull();
+        assertThat(template.converter()).isEqualTo(converter);
     }
 
     @Test
     public void shouldGetManager() {
-        assertNotNull(template.manager());
-        assertEquals(manager, template.manager());
+        assertThat(template.manager()).isNotNull();
+        assertThat(template.manager()).isEqualTo(manager);
     }
 
 
     @Test
     public void shouldGetPersistManager() {
-        assertNotNull(template.eventManager());
-        assertEquals(persistManager, template.eventManager());
+        assertThat(template.eventManager()).isNotNull();
+        assertThat(template.eventManager()).isEqualTo(persistManager);
     }
 
 
     @Test
     public void shouldGetClassMappings() {
-        assertNotNull(template.entities());
-        assertEquals(entities, template.entities());
+        assertThat(template.entities()).isNotNull();
+        assertThat(template.entities()).isEqualTo(entities);
     }
 
     @Test
     public void shouldGetConverters() {
-        assertNotNull(template.converters());
-        assertEquals(converters, template.converters());
+        assertThat(template.converters()).isNotNull();
+        assertThat(template.converters()).isEqualTo(converters);
     }
 }

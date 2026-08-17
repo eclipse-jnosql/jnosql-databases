@@ -50,7 +50,6 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -103,10 +102,10 @@ public class DefaultCassandraTemplateTest {
         ContactCassandra contact = new ContactCassandra();
         contact.setName("Name");
         contact.setAge(20);
-        assertEquals(contact, template.save(contact, level));
+        assertThat(template.save(contact, level)).isEqualTo(contact);
 
         Mockito.verify(manager).save(captor.capture(), Mockito.eq(level));
-        assertEquals(entity, captor.getValue());
+        assertThat(captor.getValue()).isEqualTo(entity);
 
     }
 
@@ -127,7 +126,7 @@ public class DefaultCassandraTemplateTest {
         contact.setAge(20);
         assertThat(template.save(Collections.singletonList(contact), level)).contains(contact);
         Mockito.verify(manager).save(captor.capture(), Mockito.eq(level));
-        assertEquals(entity, captor.getValue());
+        assertThat(captor.getValue()).isEqualTo(entity);
 
     }
 
@@ -147,10 +146,10 @@ public class DefaultCassandraTemplateTest {
         ContactCassandra contact = new ContactCassandra();
         contact.setName("Name");
         contact.setAge(20);
-        assertEquals(contact, template.save(contact, duration, level));
+        assertThat(template.save(contact, duration, level)).isEqualTo(contact);
 
         Mockito.verify(manager).save(captor.capture(), Mockito.eq(duration), Mockito.eq(level));
-        assertEquals(entity, captor.getValue());
+        assertThat(captor.getValue()).isEqualTo(entity);
     }
 
     @Test
@@ -171,7 +170,7 @@ public class DefaultCassandraTemplateTest {
         contact.setAge(20);
         assertThat(template.save(Collections.singletonList(contact), duration, level)).contains(contact);
         Mockito.verify(manager).save(captor.capture(), Mockito.eq(duration), Mockito.eq(level));
-        assertEquals(entity, captor.getValue());
+        assertThat(captor.getValue()).isEqualTo(entity);
     }
 
     @Test

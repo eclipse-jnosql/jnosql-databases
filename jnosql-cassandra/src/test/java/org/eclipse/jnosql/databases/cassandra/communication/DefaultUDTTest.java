@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DefaultUDTTest {
 
@@ -35,8 +34,8 @@ public class DefaultUDTTest {
         UDT udt = UDT.builder("fullname").withName("name")
                 .addUDT(columns).build();
 
-        assertEquals("fullname", udt.userType());
-        assertEquals("name", udt.name());
+        assertThat(udt.userType()).isEqualTo("fullname");
+        assertThat(udt.name()).isEqualTo("name");
     }
 
     @Test
