@@ -48,11 +48,7 @@ import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 import static org.eclipse.jnosql.databases.tinkerpop.communication.TinkerpopGraphDatabaseManager.ID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 abstract class DefaultTinkerpopGraphDatabaseManagerTest {
 
@@ -110,7 +106,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         entity.add("name", name);
         entity.add("age", age);
         var communicationEntity = entityManager.insert(entity);
-        assertNotNull(communicationEntity);
+        assertThat(communicationEntity).isNotNull();
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(communicationEntity.find("name", String.class)).get().isEqualTo(name);
@@ -136,7 +132,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         var communicationEntities = StreamSupport
                 .stream(entityManager.insert(List.of(entity, entity2)).spliterator(), false).toList();
 
-        assertNotNull(communicationEntities);
+        assertThat(communicationEntities).isNotNull();
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(communicationEntities).hasSize(2);
             softly.assertThat(communicationEntities.getFirst().find("name", String.class)).get().isEqualTo(name);
@@ -154,14 +150,14 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
     void shouldInsert() {
         var entity = getEntity();
         var documentEntity = entityManager.insert(entity);
-        assertTrue(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals(ID)));
+        assertThat(documentEntity.elements().stream().map(Element::name).anyMatch(s -> s.equals(ID))).isTrue();
     }
 
     @Test
     void shouldThrowExceptionWhenInsertWithTTL() {
         var entity = getEntity();
         var ttl = Duration.ofSeconds(10);
-        assertThrows(UnsupportedOperationException.class, () -> entityManager.insert(entity, ttl));
+        assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> entityManager.insert(entity, ttl));
     }
 
     @Test
@@ -170,7 +166,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         var newField = Elements.of("newField", "10");
         entity.add(newField);
         var updated = entityManager.update(entity);
-        assertEquals(newField, updated.find("newField").orElseThrow());
+        assertThat(updated.find("newField").orElseThrow()).isEqualTo(newField);
     }
 
     @Test
@@ -186,7 +182,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         entityManager.delete(deleteQuery);
-        assertTrue(entityManager.select(query).findAny().isEmpty());
+        assertThat(entityManager.select(query).findAny().isEmpty()).isTrue();
     }
 
     @Test
@@ -199,7 +195,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         var entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
@@ -215,7 +211,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
@@ -230,7 +226,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
@@ -247,7 +243,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
@@ -264,7 +260,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         assertThat(entitiesFound).isNotIn(entities.getFirst());
     }
 
@@ -282,7 +278,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(1, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(1);
         assertThat(entitiesFound).contains(entities.getFirst());
     }
 
@@ -299,7 +295,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         assertThat(entitiesFound).contains(entities.get(0), entities.get(2));
     }
 
@@ -354,7 +350,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(1, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(1);
         assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
@@ -364,7 +360,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertTrue(entitiesFound.isEmpty());
+        assertThat(entitiesFound.isEmpty()).isTrue();
 
     }
 
@@ -382,7 +378,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(1, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(1);
         assertThat(entitiesFound).isNotIn(entities.getFirst());
 
         query = select().from(COLLECTION_NAME)
@@ -392,7 +388,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
 
     }
 
@@ -409,7 +405,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         List<Integer> ages = entitiesFound.stream()
                 .map(e -> e.find("age").orElseThrow().get(Integer.class))
                 .collect(Collectors.toList());
@@ -426,7 +422,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         ages = entitiesFound.stream()
                 .map(e -> e.find("age").orElseThrow().get(Integer.class))
                 .collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         assertThat(ages).contains(25, 23);
 
     }
@@ -436,7 +432,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         entityManager.insert(getEntity());
         SelectQuery query = select().from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
     }
 
     @Test
@@ -444,11 +440,11 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         entityManager.insert(getEntity());
         SelectQuery query = select().from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         DeleteQuery deleteQuery = delete().from(COLLECTION_NAME).build();
         entityManager.delete(deleteQuery);
         entities = entityManager.select(query).toList();
-        assertTrue(entities.isEmpty());
+        assertThat(entities.isEmpty()).isTrue();
     }
 
     @Test
@@ -456,9 +452,9 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         entityManager.insert(getEntity());
         SelectQuery query = select("name").from(COLLECTION_NAME).build();
         List<CommunicationEntity> entities = entityManager.select(query).toList();
-        assertFalse(entities.isEmpty());
+        assertThat(entities.isEmpty()).isFalse();
         final CommunicationEntity entity = entities.getFirst();
-        assertEquals(3, entity.size());
+        assertThat(entity.size()).isEqualTo(3);
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(entity.find("name")).isPresent();
             softly.assertThat(entity.find(ID)).isPresent();
@@ -522,11 +518,11 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
 
         var edge = entityManager.edge(person1, label, person2, properties);
 
-        assertNotNull(edge);
-        assertEquals(label, edge.label());
-        assertEquals(person1.find(ID).orElseThrow().get(), edge.source().find(ID).orElseThrow().get());
-        assertEquals(person2.find(ID).orElseThrow().get(), edge.target().find(ID).orElseThrow().get());
-        assertEquals(properties, edge.properties());
+        assertThat(edge).isNotNull();
+        assertThat(edge.label()).isEqualTo(label);
+        assertThat(edge.source().find(ID).orElseThrow().get()).isEqualTo(person1.find(ID).orElseThrow().get());
+        assertThat(edge.target().find(ID).orElseThrow().get()).isEqualTo(person2.find(ID).orElseThrow().get());
+        assertThat(edge.properties()).isEqualTo(properties);
     }
 
     @Test
@@ -553,7 +549,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
         entityManager.deleteEdge(edge.id());
 
         Optional<CommunicationEdge> foundEdge = entityManager.findEdgeById(edge.id());
-        assertFalse(foundEdge.isPresent());
+        assertThat(foundEdge.isPresent()).isFalse();
     }
 
     @Test
@@ -565,11 +561,11 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
 
         Optional<CommunicationEdge> foundEdge = entityManager.findEdgeById(edge.id());
 
-        assertTrue(foundEdge.isPresent());
-        assertEquals(edge.id(), foundEdge.get().id());
-        assertEquals(edge.label(), foundEdge.get().label());
-        assertEquals(edge.source().find(ID).orElseThrow().get(), foundEdge.get().source().find(ID).orElseThrow().get());
-        assertEquals(edge.target().find(ID).orElseThrow().get(), foundEdge.get().target().find(ID).orElseThrow().get());
+        assertThat(foundEdge.isPresent()).isTrue();
+        assertThat(foundEdge.get().id()).isEqualTo(edge.id());
+        assertThat(foundEdge.get().label()).isEqualTo(edge.label());
+        assertThat(foundEdge.get().source().find(ID).orElseThrow().get()).isEqualTo(edge.source().find(ID).orElseThrow().get());
+        assertThat(foundEdge.get().target().find(ID).orElseThrow().get()).isEqualTo(edge.target().find(ID).orElseThrow().get());
     }
 
     @Test
@@ -630,7 +626,7 @@ abstract class DefaultTinkerpopGraphDatabaseManagerTest {
                 .build();
 
         List<CommunicationEntity> entitiesFound = entityManager.select(query).collect(Collectors.toList());
-        assertEquals(2, entitiesFound.size());
+        assertThat(entitiesFound.size()).isEqualTo(2);
         assertThat(entitiesFound).contains(entities.get(0), entities.get(2));
     }
 
