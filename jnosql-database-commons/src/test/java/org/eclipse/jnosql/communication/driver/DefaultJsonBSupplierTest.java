@@ -17,21 +17,21 @@ package org.eclipse.jnosql.communication.driver;
 import jakarta.json.bind.Jsonb;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class DefaultJsonBSupplierTest {
 
     @Test
     public void shouldReturnDefaultInstance() {
-        assertNotNull(JsonbSupplier.getInstance());
+        assertThat(JsonbSupplier.getInstance()).isNotNull();
     }
 
     @Test
     public void shouldProvideJSON() {
         JsonbSupplier supplier = JsonbSupplier.getInstance();
-        assertNotNull(supplier);
-        assertNotNull(supplier.get());
+        assertThat(supplier).isNotNull();
+        assertThat(supplier.get()).isNotNull();
     }
 
     @Test
@@ -39,7 +39,7 @@ public class DefaultJsonBSupplierTest {
         Jsonb jsonb = JsonbSupplier.getInstance().get();
         User user = new User("Ada", 32);
         String json = jsonb.toJson(user);
-        assertNotNull(json);
-        assertEquals(user, jsonb.fromJson(json, User.class));
+        assertThat(json).isNotNull();
+        assertThat(jsonb.fromJson(json, User.class)).isEqualTo(user);
     }
 }
