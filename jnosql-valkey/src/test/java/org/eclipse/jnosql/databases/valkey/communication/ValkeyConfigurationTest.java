@@ -17,14 +17,14 @@ package org.eclipse.jnosql.databases.valkey.communication;
 
 import org.eclipse.jnosql.communication.keyvalue.BucketManagerFactory;
 import org.eclipse.jnosql.communication.keyvalue.KeyValueConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class ValkeyConfigurationTest {
 
@@ -40,23 +40,23 @@ public class ValkeyConfigurationTest {
         Map<String, String> map = new HashMap<>();
         map.put("redis-master-hoster", "localhost");
         BucketManagerFactory managerFactory = configuration.getManagerFactory(map);
-        assertNotNull(managerFactory);
+        assertThat(managerFactory).isNotNull();
     }
 
 
     @Test
     public void shouldReturnFromConfiguration() {
         KeyValueConfiguration configuration = KeyValueConfiguration.getConfiguration();
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof KeyValueConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof KeyValueConfiguration).isTrue();
     }
 
     @Test
     public void shouldReturnFromConfigurationQuery() {
         ValkeyConfiguration configuration = KeyValueConfiguration
                 .getConfiguration(ValkeyConfiguration.class);
-        Assertions.assertNotNull(configuration);
-        Assertions.assertTrue(configuration instanceof ValkeyConfiguration);
+        assertThat(configuration).isNotNull();
+        assertThat(configuration instanceof ValkeyConfiguration).isTrue();
     }
 
 }
