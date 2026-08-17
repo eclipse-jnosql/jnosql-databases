@@ -28,9 +28,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class QueryAQLConverterTest {
 
@@ -42,8 +42,8 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.select(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals("value", values.get("name"));
-        assertEquals("FOR c IN collection FILTER  c.name == @name RETURN c", aql);
+        assertThat(values.get("name")).isEqualTo("value");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER  c.name == @name RETURN c");
 
     }
 
@@ -57,8 +57,8 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.select(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals("value", values.get("name"));
-        assertEquals("FOR c IN collection FILTER  c.name == @name AND  c.age <= @age RETURN c", aql);
+        assertThat(values.get("name")).isEqualTo("value");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER  c.name == @name AND  c.age <= @age RETURN c");
 
     }
 
@@ -72,8 +72,8 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.select(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals("value", values.get("name"));
-        assertEquals("FOR c IN collection FILTER  c.name == @name OR  c.age <= @age RETURN c", aql);
+        assertThat(values.get("name")).isEqualTo("value");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER  c.name == @name OR  c.age <= @age RETURN c");
 
     }
 
@@ -86,8 +86,8 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.select(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals("value", values.get("name"));
-        assertEquals("FOR c IN collection FILTER  c.name == @name SORT  c.name ASC RETURN c", aql);
+        assertThat(values.get("name")).isEqualTo("value");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER  c.name == @name SORT  c.name ASC RETURN c");
     }
 
     @Test
@@ -100,8 +100,8 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.select(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals("value", values.get("name"));
-        assertEquals("FOR c IN collection FILTER  c.name == @name SORT  c.name ASC , c.age DESC RETURN c", aql);
+        assertThat(values.get("name")).isEqualTo("value");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER  c.name == @name SORT  c.name ASC , c.age DESC RETURN c");
     }
 
 
@@ -114,8 +114,8 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.select(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals("value", values.get("name"));
-        assertEquals("FOR c IN collection FILTER  c.name == @name LIMIT 5 RETURN c", aql);
+        assertThat(values.get("name")).isEqualTo("value");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER  c.name == @name LIMIT 5 RETURN c");
 
     }
 
@@ -128,8 +128,8 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.select(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals("value", values.get("name"));
-        assertEquals("FOR c IN collection FILTER  c.name == @name LIMIT 1, 5 RETURN c", aql);
+        assertThat(values.get("name")).isEqualTo("value");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER  c.name == @name LIMIT 1, 5 RETURN c");
     }
 
     @Test
@@ -140,8 +140,8 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.select(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals("value", values.get("name"));
-        assertEquals("FOR c IN collection FILTER  NOT ( c.name == @name) RETURN c", aql);
+        assertThat(values.get("name")).isEqualTo("value");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER  NOT ( c.name == @name) RETURN c");
 
     }
 
@@ -156,11 +156,11 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.select(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals(3, values.size());
-        assertEquals("Assis", values.get("city"));
-        assertEquals("Otavio", values.get("name"));
-        assertEquals("Lucas", values.get("name_1"));
-        assertEquals("FOR c IN collection FILTER  NOT ( c.city == @city) AND  c.name == @name OR  NOT ( c.name == @name_1) RETURN c", aql);
+        assertThat(values.size()).isEqualTo(3);
+        assertThat(values.get("city")).isEqualTo("Assis");
+        assertThat(values.get("name")).isEqualTo("Otavio");
+        assertThat(values.get("name_1")).isEqualTo("Lucas");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER  NOT ( c.city == @city) AND  c.name == @name OR  NOT ( c.name == @name_1) RETURN c");
 
     }
 
@@ -172,8 +172,8 @@ public class QueryAQLConverterTest {
         AQLQueryResult convert = QueryAQLConverter.count(query);
         String aql = convert.query();
         Map<String, Object> values = convert.values();
-        assertEquals("value", values.get("name"));
-        assertEquals("RETURN LENGTH(FOR c IN collection FILTER  c.name == @name RETURN c)", aql);
+        assertThat(values.get("name")).isEqualTo("value");
+        assertThat(aql).isEqualTo("RETURN LENGTH(FOR c IN collection FILTER  c.name == @name RETURN c)");
 
     }
 
