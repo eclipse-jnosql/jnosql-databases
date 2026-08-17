@@ -22,8 +22,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+
 
 class MongoDBDocumentManagerFactoryTest {
 
@@ -37,22 +38,22 @@ class MongoDBDocumentManagerFactoryTest {
     @Test
     void shouldCreateEntityManager() {
         MongoDBDocumentManagerFactory mongoDBFactory = configuration.apply(Settings.builder().build());
-        assertNotNull(mongoDBFactory.apply("database"));
+        assertThat(mongoDBFactory.apply("database")).isNotNull();
     }
 
     @Test
     void shouldReturnNPEWhenSettingsIsNull() {
-        assertThrows(NullPointerException.class, () -> configuration.apply((Settings) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.apply((Settings) null));
     }
 
     @Test
     void shouldReturnNPEWhenMapSettingsIsNull() {
-        assertThrows(NullPointerException.class, () -> configuration.get((Map<String, String>) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.get((Map<String, String>) null));
     }
 
     @Test
     void shouldReturnNPEWhenMongoClientIsNull() {
-        assertThrows(NullPointerException.class, () -> configuration.get((MongoClient) null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> configuration.get((MongoClient) null));
     }
 
 }
