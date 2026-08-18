@@ -224,7 +224,22 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
     }
 
     private void predicateNull(StringBuilder query, Element document, boolean negated) {
-        query.append(identifierOf(document.name())).append(negated ? "IS NOT NULL " : "IS NULL ");
+        String identifier = identifierOf(document.name()).trim();
+        if (DefaultOracleNoSQLDocumentManager.ID.equals(document.name())) {
+            query.append(identifier).append(negated ? " IS NOT NULL " : " IS NULL ");
+            return;
+        }
+
+        // A JSON path can be explicitly JSON null, missing, or SQL null through a null parent.
+        if (negated) {
+            query.append('(').append(identifier).append(" != null AND EXISTS ")
+                    .append(identifier).append(" AND ")
+                    .append(identifier).append(" IS NOT NULL) ");
+        } else {
+            query.append('(').append(identifier).append(" = null OR NOT EXISTS ")
+                    .append(identifier).append(" OR ")
+                    .append(identifier).append(" IS NULL) ");
+        }
     }
 
     private void predicateIgnoreCase(StringBuilder query,
