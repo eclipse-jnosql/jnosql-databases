@@ -46,11 +46,12 @@ class ArangoDBRepositoryBean<T, K> extends AbstractBean<ArangoDBRepository<T, K>
         return type;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ArangoDBRepository<T, K> create(CreationalContext<ArangoDBRepository<T, K>> creationalContext) {
         var template = getInstance(ArangoDBTemplate.class);
         var semiStructuredConverter = getInstance(SemistructuredRepositoryProducer.class);
-        return semiStructuredConverter.get(type, template);
+        return (ArangoDBRepository<T, K>) semiStructuredConverter.get(type, template);
     }
 
     @Override
