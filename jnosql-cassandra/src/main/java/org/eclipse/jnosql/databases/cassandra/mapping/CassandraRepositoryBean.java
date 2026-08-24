@@ -45,11 +45,12 @@ class CassandraRepositoryBean<T, K> extends AbstractBean<CassandraRepository<T, 
         return type;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public CassandraRepository<T, K> create(CreationalContext<CassandraRepository<T, K>> creationalContext) {
         var template = getInstance(CassandraTemplate.class);
         var semiStructuredConverter = getInstance(SemistructuredRepositoryProducer.class);
-        return semiStructuredConverter.get(type, template);
+        return (CassandraRepository<T, K>) semiStructuredConverter.get(type, template);
     }
 
 
