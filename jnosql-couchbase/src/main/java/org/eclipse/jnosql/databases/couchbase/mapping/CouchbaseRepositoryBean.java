@@ -47,11 +47,12 @@ class CouchbaseRepositoryBean<T, K> extends AbstractBean<CouchbaseRepository<T, 
     }
 
 
+    @SuppressWarnings("unchecked")
     @Override
     public CouchbaseRepository<T, K> create(CreationalContext<CouchbaseRepository<T, K>> creationalContext) {
         var template = getInstance(CouchbaseTemplate.class);
         var semiStructuredConverter = getInstance(SemistructuredRepositoryProducer.class);
-        return semiStructuredConverter.get(type, template);
+        return (CouchbaseRepository<T, K>) semiStructuredConverter.get(type, template);
     }
 
 
