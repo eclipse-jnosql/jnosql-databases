@@ -1,10 +1,10 @@
 /*
  *  Copyright (c) 2022 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
- *   are made available under the terms of the Eclipse Public License v1.0
+ *   are made available under the terms of the Eclipse Public License 2.0
  *   and Apache License v2.0 which accompanies this distribution.
- *   The Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html
- *   and the Apache License v2.0 is available at http://www.opensource.org/licenses/apache2.0.php.
+ *   The Eclipse Public License is available at https://www.eclipse.org/legal/epl-2.0
+ *   and the Apache License v2.0 is available at https://www.apache.org/licenses/LICENSE-2.0.
  *
  *   You may elect to redistribute this code under either of these licenses.
  *
@@ -46,11 +46,12 @@ class ArangoDBRepositoryBean<T, K> extends AbstractBean<ArangoDBRepository<T, K>
         return type;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ArangoDBRepository<T, K> create(CreationalContext<ArangoDBRepository<T, K>> creationalContext) {
         var template = getInstance(ArangoDBTemplate.class);
         var semiStructuredConverter = getInstance(SemistructuredRepositoryProducer.class);
-        return semiStructuredConverter.get(type, template);
+        return (ArangoDBRepository<T, K>) semiStructuredConverter.get(type, template);
     }
 
     @Override
