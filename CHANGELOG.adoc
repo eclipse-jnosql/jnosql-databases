@@ -39,7 +39,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Validate update query parameters in Couchbase driver
 - Update jakarta data engine
 - Upgraded Elasticsearch to 9.5.2
-- Upgraded Jedis to 7.5.3
+- Upgraded Jedis to 8.0.0 and migrated pooled and sentinel clients to connection providers
 - Updated OrientDB to 3.2.55
 - Updated MongoDB to 5.10.0
 - Updated HBase to 3.0.0
