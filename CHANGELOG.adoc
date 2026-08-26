@@ -10,7 +10,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 === Changed
 
+- Upgraded Elasticsearch to 9.5.2
 - Updated DynamoDB to 2.54.4
+
 == [1.1.16] - 2026-08-10
 
 === Changed
