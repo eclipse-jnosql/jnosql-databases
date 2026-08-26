@@ -41,7 +41,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Upgraded Elasticsearch to 9.5.2
 - Upgraded Jedis to 7.5.3
 - Updated OrientDB to 3.2.55
-- Updated MongoDB to 5.9.1
+- Updated MongoDB to 5.10.0
 - Updated HBase to 3.0.0
 - Updated DynamoDB to 2.54.4
 - Updated Couchbase to 3.12.2
