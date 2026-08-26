@@ -15,6 +15,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Updated MongoDB to 5.10.0
 - Updated HBase to 3.0.0
 - Updated DynamoDB to 2.54.4
+- Updated Neo4J to 6.2.1
 
 == [1.1.16] - 2026-08-10
 
