@@ -25,10 +25,11 @@ import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPooled;
-import redis.clients.jedis.JedisSentineled;
 import redis.clients.jedis.RedisProtocol;
 import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.providers.ConnectionProvider;
+import redis.clients.jedis.providers.PooledConnectionProvider;
+import redis.clients.jedis.providers.SentineledConnectionProvider;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -85,10 +86,11 @@ public final class RedisConfiguration implements KeyValueConfiguration {
 
         ConnectionPoolConfig connectionPoolConfig = getConnectionPoolConfig(settings);
 
-        UnifiedJedis jedis = new JedisPooled(
-                connectionPoolConfig,
+        var connectionProvider = new PooledConnectionProvider(
                 hostAndPort,
-                simpleJedisConfig);
+                simpleJedisConfig,
+                connectionPoolConfig);
+        UnifiedJedis jedis = new ConfiguredUnifiedJedis(connectionProvider, simpleJedisConfig.getRedisProtocol());
 
         return new DefaultRedisBucketManagerFactory(jedis);
     }
@@ -155,11 +157,13 @@ public final class RedisConfiguration implements KeyValueConfiguration {
         var slaveJedisClientConfig = getJedisClientConfig(
                 RedisSentinelConfigurations.SentinelMasterConfigurationsResolver.INSTANCE, settings);
 
-        JedisSentineled jedis = new JedisSentineled(masterName,
+        var connectionProvider = new SentineledConnectionProvider(masterName,
                 masterJedisClientConfig,
                 connectionPoolConfig,
                 hostAndPorts,
                 slaveJedisClientConfig);
+        UnifiedJedis jedis = new ConfiguredUnifiedJedis(
+                connectionProvider, masterJedisClientConfig.getRedisProtocol());
 
         return new DefaultRedisBucketManagerFactory(jedis);
     }
@@ -236,4 +240,10 @@ public final class RedisConfiguration implements KeyValueConfiguration {
         return poolConfig;
     }
 
+    private static final class ConfiguredUnifiedJedis extends UnifiedJedis {
+
+        private ConfiguredUnifiedJedis(ConnectionProvider provider, RedisProtocol protocol) {
+            super(provider, protocol);
+        }
+    }
 }
