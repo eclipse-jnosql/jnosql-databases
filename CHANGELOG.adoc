@@ -53,6 +53,23 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Fix Solr Document Manager operations to target the configured collection and avoid random ID collisions in integration tests
 - Escape Solr query values and native query parameters to prevent Lucene query injection
 
+== 1.1.17 - 2026-08-29
+
+=== Changed
+
+* Upgraded Elasticsearch to `9.5.2`.
+* Upgraded Jedis to `8.0.1` and migrated pooled and Sentinel clients to connection providers.
+* Upgraded MongoDB to `5.11.0`.
+* Upgraded HBase to `3.0.0`.
+* Upgraded DynamoDB to `2.54.7`.
+* Upgraded Neo4j to `6.2.1`.
+* Updated database backports for the `1.1.x` release line.
+* Updated license references across modules to Eclipse Public License 2.0.
+
+=== Fixed
+
+* Fixed Oracle NoSQL JSON `null` predicates to preserve the expected query semantics.
+
 == [1.1.16] - 2026-08-10
 
 === Changed
