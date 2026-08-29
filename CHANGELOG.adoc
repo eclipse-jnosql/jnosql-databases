@@ -11,10 +11,10 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 === Changed
 
 - Upgraded Elasticsearch to 9.5.2
-- Upgraded Jedis to 8.0.0 and migrated pooled and sentinel clients to connection providers
-- Updated MongoDB to 5.10.0
+- Upgraded Jedis to 8.0.1 and migrated pooled and sentinel clients to connection providers
+- Updated MongoDB to 5.11.0
 - Updated HBase to 3.0.0
-- Updated DynamoDB to 2.54.4
+- Updated DynamoDB to 2.54.7
 - Updated Neo4J to 6.2.1
 
 == [1.1.16] - 2026-08-10
