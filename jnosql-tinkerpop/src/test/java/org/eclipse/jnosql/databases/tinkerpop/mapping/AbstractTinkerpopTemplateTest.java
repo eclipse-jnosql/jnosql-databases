@@ -19,6 +19,7 @@ import jakarta.data.exceptions.NonUniqueResultException;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.assertj.core.api.SoftAssertions;
@@ -459,6 +460,33 @@ public abstract class AbstractTinkerpopTemplateTest {
         prepare.bind("param", "Human");
         List<Human> people = prepare.<Human>result().toList();
         assertThat(people.stream().map(Human::getName).collect(toList())).contains("Otavio");
+    }
+
+    @Test
+    void shouldNotExposeGraphDataThroughGremlinParameter() {
+        getGraph().addVertex(T.label, "Human", "name", "Alice");
+        getGraph().addVertex(T.label, "Secret", "token", "TOP-SECRET");
+
+        List<String> result = getGraphTemplate().<String>gremlin(
+                "g.V().hasLabel('Human').has('name', @name)",
+                Map.of("name", "Alice').V().hasLabel('Secret').values('token"))
+                .toList();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void shouldNotModifyGraphThroughPreparedStatementParameter() {
+        getGraph().addVertex(T.label, "Human", "name", "Alice");
+        getGraph().addVertex(T.label, "Human", "name", "Bob");
+        PreparedStatement prepare = getGraphTemplate()
+                .gremlinPrepare("g.V().hasLabel('Human').has('name', @name)");
+
+        prepare.bind("name", "Alice').V().hasLabel('Human').sideEffect(drop()).hasLabel('x")
+                .result()
+                .toList();
+
+        assertThat(getGraph().traversal().V().hasLabel("Human").count().next()).isEqualTo(2L);
     }
 
     @Test

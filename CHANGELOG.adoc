@@ -17,6 +17,10 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Updated DynamoDB to 2.54.7
 - Updated Neo4J to 6.2.1
 
+=== Fixed
+
+- Bind TinkerPop Gremlin parameters through the script engine instead of interpolating values, preventing Gremlin query injection
+
 == [1.1.16] - 2026-08-10
 
 === Changed
