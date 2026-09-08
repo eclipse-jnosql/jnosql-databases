@@ -49,9 +49,9 @@ final class GremlinExecutor {
             Bindings bindings = ENGINE.createBindings();
             bindings.put("g", traversalSource);
 
-
-            String query = GremlinParamParser.INSTANCE.apply(gremlin, params);
-            Object eval = ENGINE.eval(query, bindings);
+            GremlinParamParser.ParsedQuery parsedQuery = GremlinParamParser.INSTANCE.parse(gremlin, params);
+            bindings.putAll(parsedQuery.bindings());
+            Object eval = ENGINE.eval(parsedQuery.query(), bindings);
             if (eval instanceof GraphTraversal graphTraversal) {
                 return convertToStream(graphTraversal.toStream());
             }
