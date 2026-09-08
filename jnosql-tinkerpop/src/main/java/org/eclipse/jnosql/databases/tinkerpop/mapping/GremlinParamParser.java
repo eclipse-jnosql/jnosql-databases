@@ -14,57 +14,63 @@
  */
 package org.eclipse.jnosql.databases.tinkerpop.mapping;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This singleton has the goal to interpolate params inside the Gremlin query.
+ * This singleton replaces JNoSQL parameters with Gremlin binding variables.
  * Thus, given the query:
  * "g.V().hasLabel(@param)" where the params is {"param":"Otavio"}
- * It should return the query to: g.V().hasLabel("Otavio")
- * It should check the Gremlin query options:
- * <a href="https://github.com/apache/tinkerpop/blob/e1396223ea9e1d6240c1f051036cbb5507f47f8d/gremlin-language/src/main/antlr4/Gremlin.g4">Gremlin.g4</a>
- * <p>
- * Thus, given a current query with params it should convert to Gremlin compatible syntax.
+ * it returns a query such as g.V().hasLabel(jnosqlParam0), with "Otavio"
+ * supplied separately through the script engine bindings.
  */
-enum GremlinParamParser implements BiFunction<String, Map<String, Object>, String> {
+enum GremlinParamParser {
     INSTANCE;
 
     private final Pattern pattern = Pattern.compile("@\\w+");
 
-    @Override
-    public String apply(String query, Map<String, Object> params) {
+    ParsedQuery parse(String query, Map<String, Object> params) {
         Objects.requireNonNull(query, "query is required");
-        Objects.requireNonNull(query, "params is required");
+        Objects.requireNonNull(params, "params is required");
         Matcher matcher = pattern.matcher(query);
-        List<String> leftParams = new ArrayList<>(params.keySet());
+        Map<String, Object> leftParams = new HashMap<>(params);
+        Map<String, String> variables = new HashMap<>();
+        Map<String, Object> bindings = new LinkedHashMap<>();
         StringBuilder gremlin = new StringBuilder();
         while (matcher.find()) {
             String param = matcher.group().substring(1);
-            leftParams.remove(param);
             Object value = params.get(param);
             if (value == null) {
                 throw new GremlinQueryException("The param is " + param + " is required on the query " + query);
             }
-            matcher.appendReplacement(gremlin, toString(value));
+            leftParams.remove(param);
+            String variable = variables.computeIfAbsent(param,
+                    key -> nextVariable(query, bindings));
+            bindings.put(variable, value);
+            matcher.appendReplacement(gremlin, variable);
         }
         matcher.appendTail(gremlin);
         if (leftParams.isEmpty()) {
-            return gremlin.toString();
+            return new ParsedQuery(gremlin.toString(), Map.copyOf(bindings));
         }
 
-        throw new GremlinQueryException("There are params missing on the parser: " + leftParams + " on the query" + query);
+        throw new GremlinQueryException("There are params missing on the parser: " + leftParams.keySet()
+                + " on the query" + query);
     }
 
-    private String toString(Object value) {
-        if (value instanceof Number) {
-            return value.toString();
+    private String nextVariable(String query, Map<String, Object> bindings) {
+        int index = bindings.size();
+        String variable = "jnosqlParam" + index;
+        while (query.contains(variable) || bindings.containsKey(variable)) {
+            variable = "jnosqlParam" + ++index;
         }
-        return '\'' + value.toString() + '\'';
+        return variable;
+    }
+
+    record ParsedQuery(String query, Map<String, Object> bindings) {
     }
 }
