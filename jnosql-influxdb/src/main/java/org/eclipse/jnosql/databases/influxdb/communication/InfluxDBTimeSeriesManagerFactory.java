@@ -14,6 +14,7 @@ import com.influxdb.v3.client.InfluxDBClient;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,6 +32,8 @@ public class InfluxDBTimeSeriesManagerFactory implements DatabaseManagerFactory 
 
     private final List<InfluxDBClient> clients = new ArrayList<>();
 
+    private boolean closed;
+
     InfluxDBTimeSeriesManagerFactory(String url, char[] token) {
         this.url = url;
         this.token = token.clone();
@@ -43,12 +46,16 @@ public class InfluxDBTimeSeriesManagerFactory implements DatabaseManagerFactory 
      * @return a manager connected to the requested database
      * @throws NullPointerException if {@code database} is {@code null}
      * @throws IllegalArgumentException if {@code database} is blank
+     * @throws IllegalStateException if this factory is closed
      */
     @Override
     public synchronized InfluxDBTimeSeriesManager apply(String database) {
         Objects.requireNonNull(database, "database is required");
         if (database.isBlank()) {
             throw new IllegalArgumentException("database is required");
+        }
+        if (closed) {
+            throw new IllegalStateException("InfluxDB manager factory is closed");
         }
         InfluxDBClient client = InfluxDBClient.getInstance(url, token, database);
         clients.add(client);
@@ -60,6 +67,7 @@ public class InfluxDBTimeSeriesManagerFactory implements DatabaseManagerFactory 
      */
     @Override
     public synchronized void close() {
+        closed = true;
         IllegalStateException failure = null;
         for (InfluxDBClient client : clients) {
             try {
@@ -73,6 +81,7 @@ public class InfluxDBTimeSeriesManagerFactory implements DatabaseManagerFactory 
             }
         }
         clients.clear();
+        Arrays.fill(token, '\0');
         if (failure != null) {
             throw failure;
         }
