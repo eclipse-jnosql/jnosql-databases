@@ -97,6 +97,25 @@ class InfluxDBTimeSeriesManagerTest {
     }
 
     @Test
+    void shouldCountOnServer() {
+        when(client.queryRows(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyMap()))
+                .thenReturn(Stream.of(Map.of(InfluxDBQueryConverter.COUNT_COLUMN, 42L)));
+        SelectQuery query = SelectQuery.select().from("temperature")
+                .where("location").eq("Lisbon").build();
+
+        assertThat(manager.count(query)).isEqualTo(42L);
+
+        ArgumentCaptor<String> statement = ArgumentCaptor.forClass(String.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> parameters = ArgumentCaptor.forClass(Map.class);
+        verify(client).queryRows(statement.capture(), parameters.capture());
+        assertThat(statement.getValue()).isEqualTo(
+                "SELECT COUNT(*) AS \"jnosql_count\" FROM \"temperature\" WHERE \"location\" = $p0");
+        assertThat(parameters.getValue()).containsExactlyEntriesOf(Map.of("p0", "Lisbon"));
+    }
+
+    @Test
     void shouldRejectDeleteByExactTemporalIdentifier() {
         DeleteQuery query = DeleteQuery.delete().from("temperature")
                 .where("_id").eq(TIMESTAMP).build();
