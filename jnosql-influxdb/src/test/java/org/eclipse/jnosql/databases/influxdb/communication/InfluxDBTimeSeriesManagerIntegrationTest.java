@@ -51,6 +51,8 @@ class InfluxDBTimeSeriesManagerIntegrationTest {
                     assertThat(entity.find("_id", Instant.class)).contains(second);
                     assertThat(entity.find("value", Double.class)).contains(22.5D);
                 });
+        assertThat(manager.count(SelectQuery.select().from("temperature")
+                .where("location").eq("Lisbon").build())).isGreaterThanOrEqualTo(2L);
 
     }
 
