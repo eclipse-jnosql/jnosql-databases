@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -58,6 +59,23 @@ class InfluxDBQueryConverterTest {
                 .containsEntry("p0", timestamp.toString())
                 .containsEntry("p1", "Lisbon")
                 .containsEntry("p2", "Porto");
+    }
+
+    @Test
+    void shouldConvertCountWithPredicatesWithoutPaginationOrOrdering() {
+        SelectQuery query = SelectQuery.select("location")
+                .from("temperature")
+                .where("location").eq("Lisbon")
+                .orderBy("_id").desc()
+                .limit(10)
+                .skip(2)
+                .build();
+
+        InfluxDBQueryConverter.InfluxDBQuery sql = InfluxDBQueryConverter.count(query);
+
+        assertThat(sql.statement()).isEqualTo(
+                "SELECT COUNT(*) AS \"jnosql_count\" FROM \"temperature\" WHERE \"location\" = $p0");
+        assertThat(sql.parameters()).containsExactlyEntriesOf(Map.of("p0", "Lisbon"));
     }
 
     @Test
