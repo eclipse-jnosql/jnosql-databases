@@ -26,6 +26,8 @@ import static org.eclipse.jnosql.databases.influxdb.communication.InfluxDBEntity
 
 final class InfluxDBQueryConverter {
 
+    static final String COUNT_COLUMN = "jnosql_count";
+
     private InfluxDBQueryConverter() {
     }
 
@@ -41,6 +43,18 @@ final class InfluxDBQueryConverter {
                 .append(condition(condition, parameters)));
         appendSort(sql, query.sorts());
         appendLimit(sql, query.limit(), query.skip());
+        return new InfluxDBQuery(sql.toString(), parameters);
+    }
+
+    static InfluxDBQuery count(SelectQuery query) {
+        Map<String, Object> parameters = new LinkedHashMap<>();
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS ")
+                .append(identifier(COUNT_COLUMN))
+                .append(" FROM ")
+                .append(identifier(query.name()));
+
+        query.condition().ifPresent(condition -> sql.append(" WHERE ")
+                .append(condition(condition, parameters)));
         return new InfluxDBQuery(sql.toString(), parameters);
     }
 
