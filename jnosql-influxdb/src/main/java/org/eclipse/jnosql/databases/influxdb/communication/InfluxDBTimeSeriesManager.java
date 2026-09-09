@@ -120,7 +120,16 @@ public class InfluxDBTimeSeriesManager implements DatabaseManager {
     @Override
     public long count(SelectQuery query) {
         Objects.requireNonNull(query, "query is required");
-        return select(query).count();
+        InfluxDBQueryConverter.InfluxDBQuery sql = InfluxDBQueryConverter.count(query);
+        try (Stream<java.util.Map<String, Object>> rows = client.queryRows(sql.statement(), sql.parameters())) {
+            Object value = rows.findFirst()
+                    .map(row -> row.get(InfluxDBQueryConverter.COUNT_COLUMN))
+                    .orElse(0L);
+            if (value instanceof Number number) {
+                return number.longValue();
+            }
+            throw new IllegalArgumentException("InfluxDB count result is not numeric");
+        }
     }
 
     @Override
