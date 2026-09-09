@@ -8,6 +8,10 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+=== Added
+
+- Add InfluxDB 3 driver for the JNoSQL Time Series Mapping API, with temporal identifiers, point conversion, batch writes, parameterized SQL queries, ordering, and limits
+
 === Changed
 
 - Upgraded Elasticsearch to 9.5.2

@@ -972,6 +972,189 @@ jnosql.keyvalue.database=heroes
 jnosql.infinispan.config=infinispan.xml
 ----
 
+== InfluxDB
+
+https://www.influxdata.com/[InfluxDB] is a time-series database optimized for timestamped metrics, events, monitoring, and IoT data.
+
+The Eclipse JNoSQL InfluxDB driver connects the *Time Series* Mapping API to InfluxDB 3. Applications can use `TimeSeriesTemplate` and Jakarta Data repositories while keeping InfluxDB connection and data-model details in the driver.
+
+=== How To Install
+
+Add the driver to the application. It already includes the JNoSQL Time Series Mapping API:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-influxdb</artifactId>
+  <version>1.1.18</version>
+</dependency>
+----
+
+The driver uses the official InfluxDB 3 Java client and translates JNoSQL queries to parameterized SQL.
+
+=== Configure the Connection
+
+Create an InfluxDB 3 database and a database token with read and write access.
+
+Configure the server and database with MicroProfile Config:
+
+[source,properties]
+----
+jnosql.timeseries.provider=org.eclipse.jnosql.databases.influxdb.communication.InfluxDBTimeSeriesConfiguration
+jnosql.timeseries.database=metrics
+jnosql.influxdb.url=http://localhost:8181
+jnosql.influxdb.token=${INFLUXDB_TOKEN}
+----
+
+`jnosql.timeseries.database` is the InfluxDB 3 database. The provider property is optional when InfluxDB is the only time-series driver on the classpath.
+
+[cols="InfluxDB"]
+|===
+|Configuration property |Description
+
+|`jnosql.influxdb.url`
+|Base URL of the InfluxDB 3 server, such as `http://localhost:8181`.
+
+|`jnosql.influxdb.token`
+|Database token used for reads and writes.
+
+|===
+
+Applications that manage the InfluxDB client themselves can create a manager programmatically:
+
+[source,java]
+----
+Settings settings = Settings.builder()
+        .put(InfluxDBTimeSeriesConfigurations.URL, "http://localhost:8181")
+        .put(InfluxDBTimeSeriesConfigurations.TOKEN, token)
+        .build();
+
+InfluxDBTimeSeriesConfiguration configuration = new InfluxDBTimeSeriesConfiguration();
+InfluxDBTimeSeriesManagerFactory factory = configuration.apply(settings);
+InfluxDBTimeSeriesManager manager = factory.apply("metrics");
+----
+
+Close the factory when the application shuts down. The factory owns the InfluxDB clients created for its databases.
+
+The InfluxDB 3 query client uses Apache Arrow Flight. Start the application with:
+
+[source,text]
+----
+--add-opens=java.base/java.nio=ALL-UNNAMED
+----
+
+When building an executable uber JAR, merge dependency files under `META-INF/services`. For example, configure the Maven Shade Plugin with `ServicesResourceTransformer`; otherwise, the Arrow Flight gRPC transport may not initialize.
+
+=== Map a Measurement
+
+Use the standard Jakarta NoSQL annotations. No InfluxDB-specific annotations are required:
+
+[source,java]
+----
+@Entity("temperature")
+public class Temperature {
+
+    @Id
+    private Instant time;
+
+    @Column
+    private String location;
+
+    @Column
+    private double value;
+}
+----
+
+The mapping is:
+
+* The entity name, `temperature`, is the InfluxDB measurement.
+* The `@Id` value is the point timestamp and is required before insertion.
+* Every `@Column` is stored as an InfluxDB field.
+
+Supported identifier types are `Instant`, `LocalDateTime`, `OffsetDateTime`, and `ZonedDateTime`. Prefer `Instant` when possible. A `LocalDateTime` has no offset, so the driver interprets it as UTC.
+
+Fields must be strings, numbers, booleans, or characters. Null fields, nested objects, collections, and arrays cannot be represented by this initial mapping. Columns are not stored as InfluxDB tags, so tag-oriented filtering and grouping are not available yet.
+
+IMPORTANT: In this initial mapping, a point is uniquely identified by its measurement and timestamp because the driver does not create tags. Inserting another entity with the same entity type and timestamp writes to the same InfluxDB point and can replace fields with the same names.
+
+=== Insert and Query Data
+
+Inject the time-series template:
+
+[source,java]
+----
+@Inject
+@Database(DatabaseType.TIME_SERIES)
+TimeSeriesTemplate template;
+----
+
+Insert an entity whose timestamp is already assigned:
+
+[source,java]
+----
+Temperature reading = new Temperature(
+        Instant.parse("2026-09-09T07:30:00Z"),
+        "warehouse-1",
+        21.5);
+
+template.insert(reading);
+----
+
+Find a reading by its timestamp:
+
+[source,java]
+----
+Optional<Temperature> reading = template.find(
+        Temperature.class,
+        Instant.parse("2026-09-09T07:30:00Z"));
+----
+
+Use a `SelectQuery` for filtering, ordering, and limiting results:
+
+[source,java]
+----
+SelectQuery query = SelectQuery.select()
+        .from("temperature")
+        .where("location").eq("warehouse-1")
+        .and("value").gte(20.0)
+        .orderBy("_id").desc()
+        .limit(100)
+        .build();
+
+List<Temperature> readings = template.<Temperature>select(query).toList();
+----
+
+Equality, comparison, `IN`, `BETWEEN`, `AND`, `OR`, and `NOT` predicates are supported for values that map to InfluxDB fields. Query values are sent as SQL parameters instead of being interpolated into the statement. Ordering and limits are supported. Offset pagination requires a finite limit.
+
+Jakarta Data repositories can be used for lookup and derived queries:
+
+[source,java]
+----
+@Repository
+public interface TemperatureRepository
+        extends BasicRepository<Temperature, Instant> {
+
+    Stream<Temperature> findByLocation(String location);
+}
+
+@Inject
+@Database(DatabaseType.TIME_SERIES)
+TemperatureRepository temperatures;
+----
+
+=== Operation Limitations
+
+The driver rejects operations that cannot preserve their expected JNoSQL semantics:
+
+* Identifiers are never generated. Set a supported temporal `@Id` before inserting.
+* Update operations are unsupported because InfluxDB writes do not provide document replacement semantics.
+* Delete operations are unsupported because the InfluxDB 3 Java client does not provide an entity deletion operation that preserves JNoSQL semantics.
+* Per-entity TTL is unsupported. Configure retention when creating the InfluxDB 3 database instead.
+* `LIKE`, `CONTAINS`, `STARTS_WITH`, and `ENDS_WITH` predicates are unsupported.
+
+These operations throw `UnsupportedOperationException` instead of issuing misleading or potentially destructive operations.
+
 == Memcached
 
 image::https://www.jnosql.org/img/logos/memcached.png[Memcached Project,align="center" width=25%,height=25%]
