@@ -45,6 +45,18 @@ class InfluxDBTimeSeriesConfigurationTest {
     }
 
     @Test
+    void shouldRejectManagerCreationAfterClose() {
+        InfluxDBTimeSeriesManagerFactory factory =
+                new InfluxDBTimeSeriesManagerFactory("http://localhost:8181", "token".toCharArray());
+
+        factory.close();
+
+        assertThatExceptionOfType(IllegalStateException.class)
+                .isThrownBy(() -> factory.apply("metrics"))
+                .withMessageContaining("closed");
+    }
+
+    @Test
     void shouldRequireEveryConnectionSetting() {
         InfluxDBTimeSeriesConfiguration configuration = new InfluxDBTimeSeriesConfiguration();
 
