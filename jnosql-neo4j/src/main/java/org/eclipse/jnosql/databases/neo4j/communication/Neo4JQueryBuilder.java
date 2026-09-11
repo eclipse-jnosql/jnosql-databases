@@ -29,6 +29,7 @@ import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 enum Neo4JQueryBuilder {
@@ -36,6 +37,7 @@ enum Neo4JQueryBuilder {
     INSTANCE;
 
     private static final String INTERNAL_ID = "_id";
+    private static final Pattern IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
 
     String buildQuery(DeleteQuery query, Map<String, Object> parameters) {
         StringBuilder cypher = buildCypher(query.name(), query.condition(), parameters);
@@ -60,8 +62,8 @@ enum Neo4JQueryBuilder {
         if (!query.sorts().isEmpty()) {
             cypher.append(" ORDER BY ");
             cypher.append(query.sorts().stream()
-                    .map(sort -> "e." + sort.property() + (sort.isAscending() ? " ASC" : " DESC"))
-                    .collect(Collectors.joining(", "))); // Fix double "e."
+                    .map(sort -> translateField(sort.property()) + (sort.isAscending() ? " ASC" : " DESC"))
+                    .collect(Collectors.joining(", ")));
         }
         if (query.skip() > 0) {
             cypher.append(" SKIP ").append(query.skip());
@@ -102,7 +104,7 @@ enum Neo4JQueryBuilder {
         cypher.append(elements.stream()
                 .map(element -> {
                     String field = translateField(element.name());
-                    String paramName = element.name().replace(".", "_");
+                    String paramName = nextParameter(element.name().replace(".", "_"), parameters);
                     parameters.put(paramName, element.get());
                     return field + " = $" + paramName;
                 })
@@ -115,7 +117,7 @@ enum Neo4JQueryBuilder {
                                       Optional<CriteriaCondition> condition,
                                       Map<String, Object> parameters) {
         StringBuilder cypher = new StringBuilder("MATCH (e:");
-        cypher.append(entityName).append(")");
+        cypher.append(identifier(entityName)).append(")");
         condition.ifPresent(c -> {
             cypher.append(" WHERE ");
             createWhereClause(cypher, c, parameters);
@@ -139,7 +141,8 @@ enum Neo4JQueryBuilder {
             case ENDS_WITH:
             case CONTAINS:
             case IN:
-                String paramName = INTERNAL_ID.equals(fieldName) ? "id" : fieldName; // Ensure valid parameter name
+                String paramName = nextParameter(INTERNAL_ID.equals(fieldName) ? "id" : fieldName.replace(".", "_"),
+                        parameters);
                 parameters.put(paramName, value(element.get(), condition.condition()));
                 cypher.append(queryField).append(" ")
                         .append(getConditionOperator(condition.condition()))
@@ -180,9 +183,27 @@ enum Neo4JQueryBuilder {
             return "elementId(e)";
         }
         if (field.startsWith("e.")) {
-            return field;
+            field = field.substring(2);
         }
-        return "e." + field;
+        return "e." + java.util.Arrays.stream(field.split("\\.", -1))
+                .map(this::identifier)
+                .collect(Collectors.joining("."));
+    }
+
+    String identifier(String value) {
+        if (!IDENTIFIER.matcher(value).matches()) {
+            throw new IllegalArgumentException("Invalid Cypher identifier: " + value);
+        }
+        return value;
+    }
+
+    private String nextParameter(String preferredName, Map<String, Object> parameters) {
+        String name = preferredName;
+        int index = 1;
+        while (parameters.containsKey(name)) {
+            name = preferredName + "_" + index++;
+        }
+        return name;
     }
 
     private String getConditionOperator(Condition condition) {
