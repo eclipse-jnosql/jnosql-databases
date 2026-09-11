@@ -172,7 +172,8 @@ public class MongoDBDocumentManager implements DatabaseManager {
         MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
         Bson mongoDBQuery = query.condition().map(DocumentQueryConversor::convert).orElse(EMPTY);
         FindIterable<Document> documents = collection.find(mongoDBQuery);
-        documents.projection(Projections.include(query.columns()));
+        documents.projection(Projections.include(query.columns().stream()
+                .map(DocumentQueryConversor::field).toList()));
 
         if (!query.sorts().isEmpty()) {
             documents.sort(sort(query.sorts()));
@@ -283,7 +284,8 @@ public class MongoDBDocumentManager implements DatabaseManager {
     }
 
     private Bson sort(Sort<?> sort) {
-        return sort.isAscending() ? Sorts.ascending(sort.property()) : Sorts.descending(sort.property());
+        String property = DocumentQueryConversor.field(sort.property());
+        return sort.isAscending() ? Sorts.ascending(property) : Sorts.descending(property);
     }
 
     private Bson sort(List<Sort<?>> sorts) {
