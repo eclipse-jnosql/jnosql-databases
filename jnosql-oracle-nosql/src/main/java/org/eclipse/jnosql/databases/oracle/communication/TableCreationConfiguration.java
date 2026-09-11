@@ -35,7 +35,7 @@ record TableCreationConfiguration(int readLimit,
     static final String ID_FIELD = "id";
 
     public void createTable(String tableName, NoSQLHandle serviceHandle){
-        String table = String.format(CREATE_TABLE, tableName);
+        String table = String.format(CREATE_TABLE, AbstractQueryBuilder.validateIdentifierPath(tableName));
         LOGGER.fine("starting the bucket manager, creating a table Running query: " + table);
         TableRequest tableRequest = new TableRequest().setStatement(table);
         tableRequest.setTableLimits(new TableLimits(this.readLimit, this.writeLimit, this.storageGB));
