@@ -166,6 +166,7 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     @Override
     public long count(String documentCollection) {
         requireNonNull(documentCollection, "document collection is required");
+        QueryAQLConverter.validateIdentifier(documentCollection);
         String aql = "RETURN LENGTH(" + documentCollection + ")";
         ArangoCursor<Object> query = db.query(aql, Object.class, emptyMap(), null);
         return StreamSupport.stream(query.spliterator(), false).findFirst().map(Number.class::cast)

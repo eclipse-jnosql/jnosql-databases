@@ -94,7 +94,8 @@ class DefaultOracleNoSQLDocumentManagerDeleteCountTest {
         ArgumentCaptor<PrepareRequest> request = ArgumentCaptor.forClass(PrepareRequest.class);
         verify(handle).prepare(request.capture());
         assertThat(request.getValue().getStatement())
-                .isEqualTo("DELETE from database WHERE database.entity= 'person'");
+                .isEqualTo("DELETE from database WHERE database.entity= ?");
+        verify(preparedStatement).setVariable(1, new oracle.nosql.driver.values.StringValue(ENTITY));
         assertThat(deleted).isEqualTo(3L);
         verify(handle, times(2)).query(any(QueryRequest.class));
         verify(handle, never()).delete(any(DeleteRequest.class));
@@ -109,13 +110,15 @@ class DefaultOracleNoSQLDocumentManagerDeleteCountTest {
                 .build());
 
         ArgumentCaptor<FieldValue> parameter = ArgumentCaptor.forClass(FieldValue.class);
-        verify(preparedStatement).setVariable(eq(1), parameter.capture());
-        assertThat(parameter.getValue().asString().getValue()).isEqualTo("V");
+        verify(preparedStatement, times(2)).setVariable(any(Integer.class), parameter.capture());
+        assertThat(parameter.getAllValues())
+                .extracting(value -> value.asString().getValue())
+                .containsExactly(ENTITY, "V");
 
         ArgumentCaptor<PrepareRequest> request = ArgumentCaptor.forClass(PrepareRequest.class);
         verify(handle).prepare(request.capture());
         assertThat(request.getValue().getStatement())
-                .contains("DELETE from database WHERE database.entity= 'person' AND")
+                .contains("DELETE from database WHERE database.entity= ? AND")
                 .contains("database.content.type")
                 .contains(" =  ?");
         assertThat(deleted).isEqualTo(2L);

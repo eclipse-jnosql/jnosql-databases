@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -172,6 +173,49 @@ class Neo4JQueryBuilderTest {
 
         assertThat(cypher).isEqualTo("MATCH (e:Person) WHERE elementId(e) = $id RETURN e.name, elementId(e)");
         assertThat(parameters).containsEntry("id", "12345");
+    }
+
+    @Test
+    void shouldBindCypherPayloadAsValue() {
+        String payload = "Alice') MATCH (secret) DETACH DELETE secret //";
+        SelectQuery query = SelectQuery.builder().from("Person")
+                .where(CriteriaCondition.eq("name", payload))
+                .build();
+        Map<String, Object> parameters = new HashMap<>();
+
+        String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
+
+        assertThat(cypher).isEqualTo("MATCH (e:Person) WHERE e.name = $name RETURN e");
+        assertThat(cypher).doesNotContain(payload);
+        assertThat(parameters).containsEntry("name", payload);
+    }
+
+    @Test
+    void shouldRejectExecutableCypherIdentifiers() {
+        SelectQuery query = SelectQuery.builder().from("Person) MATCH (secret")
+                .build();
+
+        assertThatThrownBy(() -> Neo4JQueryBuilder.INSTANCE.buildQuery(query, new HashMap<>()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid Cypher identifier");
+    }
+
+    @Test
+    void shouldRejectExecutableSortSyntax() {
+        SelectQuery query = SelectQuery.builder().from("Person")
+                .sort(jakarta.data.Sort.asc("name DESC MATCH (secret)"))
+                .build();
+
+        assertThatThrownBy(() -> Neo4JQueryBuilder.INSTANCE.buildQuery(query, new HashMap<>()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid Cypher identifier");
+    }
+
+    @Test
+    void shouldRejectExecutableRelationshipType() {
+        assertThatThrownBy(() -> Neo4JQueryBuilder.INSTANCE.identifier("FRIEND]->(x) DELETE x //"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid Cypher identifier");
     }
 
 }

@@ -43,7 +43,7 @@ final class SelectBuilder extends AbstractQueryBuilder {
         query.append("select ");
         query.append(select()).append(' ');
         query.append("from ").append(table);
-        entityCondition(query, documentQuery.name());
+        FieldValue entity = entityCondition(query, documentQuery.name());
         this.documentQuery.condition().ifPresent(c -> {
             query.append(" AND ");
             condition(c, query, params, ids, false, hasOnlyIdConditions(c));
@@ -66,7 +66,7 @@ final class SelectBuilder extends AbstractQueryBuilder {
         if (this.documentQuery.skip() > ORIGIN) {
             query.append(" OFFSET ").append(this.documentQuery.skip());
         }
-        return new OracleQuery(query.toString(), params, ids);
+        return new OracleQuery(query.toString(), params, ids, entity);
     }
 
     private String select() {

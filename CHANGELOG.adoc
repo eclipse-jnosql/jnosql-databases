@@ -23,6 +23,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 === Fixed
 
+- Fixed potential query injection vulnerabilities and hardened parameter and identifier handling across generated database queries, including Gremlin, Oracle NoSQL, and Hazelcast predicates
 - Bind TinkerPop Gremlin parameters through the script engine instead of interpolating values, preventing Gremlin query injection
 
 == [1.1.16] - 2026-08-10

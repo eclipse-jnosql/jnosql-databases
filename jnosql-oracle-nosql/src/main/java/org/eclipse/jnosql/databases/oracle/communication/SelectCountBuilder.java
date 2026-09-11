@@ -41,11 +41,11 @@ final class SelectCountBuilder extends AbstractQueryBuilder {
         query.append("select ");
         query.append("count(*) as ").append(COUNT).append(' ');
         query.append("from ").append(table);
-        entityCondition(query, documentQuery.name());
+        FieldValue entity = entityCondition(query, documentQuery.name());
         this.documentQuery.condition().ifPresent(c -> {
             query.append(" AND ");
             condition(c, query, params, ids, true);
         });
-        return new OracleQuery(query.toString(), params, ids);
+        return new OracleQuery(query.toString(), params, ids, entity);
     }
 }

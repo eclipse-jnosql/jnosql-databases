@@ -89,9 +89,15 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
         Map<String, Object> entityMap = entity.toMap();
         StringBuilder cypher = new StringBuilder("MATCH (e) WHERE elementId(e) = $elementId SET ");
 
+        Map<String, Object> params = new HashMap<>();
         entityMap.entrySet().stream()
                 .filter(entry -> !ID.equals(entry.getKey()))
-                .forEach(entry -> cypher.append("e.").append(entry.getKey()).append(" = $").append(entry.getKey()).append(", "));
+                .forEach(entry -> {
+                    String parameter = "p" + params.size();
+                    cypher.append("e.`").append(entry.getKey().replace("`", "``"))
+                            .append("` = $").append(parameter).append(", ");
+                    params.put(parameter, entry.getValue());
+                });
 
         if (cypher.toString().endsWith(", ")) {
             cypher.setLength(cypher.length() - 2);
@@ -104,7 +110,6 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
                     .orElseThrow(() -> new CommunicationException("Entity must have an ID"))
                     .get(String.class);
 
-            Map<String, Object> params = new HashMap<>(entityMap);
             params.put("elementId", elementId);
 
             tx.run(cypher.toString(), Values.parameters(flattenMap(params)));
@@ -187,7 +192,7 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
     public long count(String entity) {
         Objects.requireNonNull(entity, "entity is required");
         try (Transaction tx = session.beginTransaction()) {
-            String cypher = "MATCH (e:" + entity + ") RETURN count(e) AS count";
+            String cypher = "MATCH (e:" + Neo4JQueryBuilder.INSTANCE.identifier(entity) + ") RETURN count(e) AS count";
             LOGGER.fine("Executing Cypher Query for counting: " + cypher);
             long count = tx.run(cypher).single().get("count").asLong();
             tx.commit();
@@ -247,9 +252,10 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
     public Stream<CommunicationEntity> traverse(String startNodeId, String label, int depth) {
         Objects.requireNonNull(startNodeId, "Start node ID is required");
         Objects.requireNonNull(label, "Relationship type is required");
+        String relationship = Neo4JQueryBuilder.INSTANCE.identifier(label);
 
         String cypher = "MATCH (startNode) WHERE elementId(startNode) = $elementId " +
-                "MATCH (startNode)-[r:" + label + "*1.." + depth + "]-(endNode) " +
+                "MATCH (startNode)-[r:" + relationship + "*1.." + depth + "]-(endNode) " +
                 "RETURN endNode";
 
         try (Transaction tx = session.beginTransaction()) {
@@ -267,12 +273,13 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
         Objects.requireNonNull(source, "Source entity is required");
         Objects.requireNonNull(target, "Target entity is required");
         Objects.requireNonNull(label, "Relationship type is required");
+        String relationship = Neo4JQueryBuilder.INSTANCE.identifier(label);
 
         String cypher = "MATCH (s) WHERE elementId(s) = $sourceElementId " +
                         "MATCH (t) WHERE elementId(t) = $targetElementId " +
                         "WITH s, t " +
-                        "WHERE NOT EXISTS { MATCH (s)-[r:" + label + "]->(t) } " +
-                        "CREATE (s)-[r:" + label + "]->(t)";
+                        "WHERE NOT EXISTS { MATCH (s)-[r:" + relationship + "]->(t) } " +
+                        "CREATE (s)-[r:" + relationship + "]->(t)";
 
         try (Transaction tx = session.beginTransaction()) {
             var sourceId = source.find(ID).orElseThrow(() ->
@@ -295,10 +302,11 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
         Objects.requireNonNull(source, "Source entity is required");
         Objects.requireNonNull(target, "Target entity is required");
         Objects.requireNonNull(label, "Relationship type is required");
+        String relationship = Neo4JQueryBuilder.INSTANCE.identifier(label);
 
         String cypher = "MATCH (s) WHERE elementId(s) = $sourceElementId " +
                 "MATCH (t) WHERE elementId(t) = $targetElementId " +
-                "MATCH (s)-[r:" + label + "]-(t) DELETE r";
+                "MATCH (s)-[r:" + relationship + "]-(t) DELETE r";
 
         var sourceId = source.find(ID).orElseThrow(() ->
                 new EdgeCommunicationException("The source entity should have the " + ID + " property")).get();
@@ -358,6 +366,7 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
         Objects.requireNonNull(target, "Target entity is required");
         Objects.requireNonNull(label, "Relationship type is required");
         Objects.requireNonNull(properties, "Properties map is required");
+        String relationshipType = Neo4JQueryBuilder.INSTANCE.identifier(label);
 
         source = ensureEntityExists(source);
         target = ensureEntityExists(target);
@@ -371,7 +380,7 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
 
             String findEdge = "MATCH (s) WHERE elementId(s) = $sourceElementId " +
                     "MATCH (t) WHERE elementId(t) = $targetElementId " +
-                    "MATCH (s)-[r:" + label + "]->(t) RETURN r";
+                    "MATCH (s)-[r:" + relationshipType + "]->(t) RETURN r";
 
             LOGGER.fine(() -> "Finding existing edge with ID: " + sourceId + " to " + targetId);
             LOGGER.fine(() -> "Cypher Query: " + findEdge);
@@ -383,7 +392,7 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
             org.neo4j.driver.types.Relationship relationship;
 
             if (result.hasNext()) {
-                String updateQuery = "MATCH (s)-[r:" + label + "]->(t) " +
+                String updateQuery = "MATCH (s)-[r:" + relationshipType + "]->(t) " +
                         "WHERE elementId(s) = $sourceElementId AND elementId(t) = $targetElementId " +
                         "SET r += $props " +
                         "RETURN r";
@@ -400,7 +409,7 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
             } else {
                 String createEdge = "MATCH (s) WHERE elementId(s) = $sourceElementId " +
                         "MATCH (t) WHERE elementId(t) = $targetElementId " +
-                        "CREATE (s)-[r:" + label + " $props]->(t) RETURN r";
+                        "CREATE (s)-[r:" + relationshipType + " $props]->(t) RETURN r";
 
                 LOGGER.fine(() -> "Creating new edge with ID: " + sourceId + " to " + targetId);
                 LOGGER.fine(() -> "Cypher Query: " + createEdge);
@@ -449,10 +458,16 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
             for (CommunicationEntity entity : entities) {
 
                 Map<String, Object> properties = entity.toMap();
+                Map<String, Object> parameters = new HashMap<>();
                 StringBuilder cypher = new StringBuilder("CREATE (e:");
-                cypher.append(entity.name()).append(" {");
+                cypher.append(Neo4JQueryBuilder.INSTANCE.identifier(entity.name())).append(" {");
 
-                properties.keySet().forEach(key -> cypher.append(key).append(": $").append(key).append(", "));
+                properties.forEach((key, value) -> {
+                    String parameter = "p" + parameters.size();
+                    cypher.append(Neo4JQueryBuilder.INSTANCE.identifier(key))
+                            .append(": $").append(parameter).append(", ");
+                    parameters.put(parameter, value);
+                });
 
                 if (!properties.isEmpty()) {
                     cypher.setLength(cypher.length() - 2);
@@ -460,7 +475,7 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
                 cypher.append("}) RETURN e");
                 LOGGER.fine("Executing Cypher Query to insert entities: " + cypher);
 
-                var result = tx.run(cypher.toString(), Values.parameters(flattenMap(properties)));
+                var result = tx.run(cypher.toString(), Values.parameters(flattenMap(parameters)));
                 var record = result.hasNext() ? result.next() : null;
                 var insertedNode = record.get("e").asNode();
                 entity.add(ID, insertedNode.elementId());

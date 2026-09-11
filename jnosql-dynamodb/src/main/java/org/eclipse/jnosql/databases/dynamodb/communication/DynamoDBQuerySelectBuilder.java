@@ -60,18 +60,22 @@ class DynamoDBQuerySelectBuilder extends DynamoDBQueryBuilder {
 
         return new DynamoDBQuery(
                 table,
-                projectionExpression(),
+                projectionExpression(expressionAttributeNames),
                 filterExpression.toString(),
                 expressionAttributeNames,
                 expressionAttributeValues);
     }
 
-    String projectionExpression() {
+    String projectionExpression(HashMap<String, String> expressionAttributeNames) {
         var columns = selectQuery.columns();
         if (columns.isEmpty()) {
             return null;
         }
-        return String.join(", ", columns);
+        return columns.stream().map(column -> {
+            String alias = nextAttributeName(expressionAttributeNames);
+            expressionAttributeNames.put(alias, column);
+            return alias;
+        }).collect(java.util.stream.Collectors.joining(", "));
     }
 
 

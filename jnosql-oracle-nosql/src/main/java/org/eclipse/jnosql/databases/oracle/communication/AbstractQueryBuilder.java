@@ -24,6 +24,7 @@ import org.eclipse.jnosql.communication.semistructured.Element;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 import java.util.function.Supplier;
 
 import static org.eclipse.jnosql.databases.oracle.communication.TableCreationConfiguration.ID_FIELD;
@@ -32,11 +33,12 @@ import static org.eclipse.jnosql.databases.oracle.communication.TableCreationCon
 abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
 
     static final int ORIGIN = 0;
+    private static final Pattern IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
     private final String table;
     private final String entityName;
 
     AbstractQueryBuilder(String table, String entityName) {
-        this.table = table;
+        this.table = validateIdentifierPath(table);
         this.entityName = entityName;
     }
 
@@ -78,16 +80,16 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
                 predicateRelational(query, " >= ", document, params);
                 return;
             case LIKE:
-                predicateLike(query, document);
+                predicateLike(query, document, params);
                 return;
             case CONTAINS:
-                predicateContains(query, document);
+                predicateContains(query, document, params);
                 return;
             case STARTS_WITH:
-                predicateStartsWith(query, document);
+                predicateStartsWith(query, document, params);
                 return;
             case ENDS_WITH:
-                predicateEndsWith(query, document);
+                predicateEndsWith(query, document, params);
                 return;
             case NOT: {
                 var negated = document.get(CriteriaCondition.class);
@@ -274,34 +276,40 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
     }
 
     protected void predicateLike(StringBuilder query,
-                                 Element document) {
+                                 Element document,
+                                 List<FieldValue> params) {
         String name = relationalIdentifierOf(document.name());
         Object value = OracleNoSqlLikeConverter.INSTANCE.convert(document.get());
-        query.append("regex_like(").append(name).append(", \"").append(value).append("\")");
+        predicateRegex(query, params, name, value);
     }
 
     protected void predicateStartsWith(StringBuilder query,
-                                       Element document) {
+                                       Element document,
+                                       List<FieldValue> params) {
         String name = relationalIdentifierOf(document.name());
         var value = document.get() == null ? "" : document.get(String.class);
-        query.append("regex_like(").append(name).append(", \"").append(OracleNoSqlLikeConverter.INSTANCE.startsWith(value)).append(
-                "\")");
+        predicateRegex(query, params, name, OracleNoSqlLikeConverter.INSTANCE.startsWith(value));
     }
 
     protected void predicateEndsWith(StringBuilder query,
-                                     Element document) {
+                                     Element document,
+                                     List<FieldValue> params) {
         String name = relationalIdentifierOf(document.name());
         var value = document.get() == null ? "" : document.get(String.class);
-        query.append("regex_like(").append(name).append(", \"").append(OracleNoSqlLikeConverter.INSTANCE.endsWith(value)).append(
-                "\")");
+        predicateRegex(query, params, name, OracleNoSqlLikeConverter.INSTANCE.endsWith(value));
     }
 
     protected void predicateContains(StringBuilder query,
-                                     Element document) {
+                                     Element document,
+                                     List<FieldValue> params) {
         String name = relationalIdentifierOf(document.name());
         var value = document.get() == null ? "" : document.get(String.class);
-        query.append("regex_like(").append(name).append(", \"").append(OracleNoSqlLikeConverter.INSTANCE.contains(value)).append(
-                "\")");
+        predicateRegex(query, params, name, OracleNoSqlLikeConverter.INSTANCE.contains(value));
+    }
+
+    private void predicateRegex(StringBuilder query, List<FieldValue> params, String name, Object value) {
+        query.append("regex_like(").append(name).append(", ?)");
+        params.add(FieldValueConverter.INSTANCE.of(value));
     }
 
     protected String identifierOf(String name) {
@@ -316,8 +324,23 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
     }
 
     private String relationalIdentifierOf(String name) {
-        String field = DefaultOracleNoSQLDocumentManager.ID.equals(name) ? '"' + name + '"' : name;
+        String field = validateIdentifier(name);
         return ' ' + table + "." + JSON_FIELD + "." + field + ' ';
+    }
+
+    private String validateIdentifier(String name) {
+        return DefaultOracleNoSQLDocumentManager.ID.equals(name)
+                ? '"' + name + '"'
+                : validateIdentifierPath(name);
+    }
+
+    static String validateIdentifierPath(String name) {
+        for (String part : name.split("\\.", -1)) {
+            if (!IDENTIFIER.matcher(part).matches()) {
+                throw new IllegalArgumentException("Invalid Oracle NoSQL identifier: " + name);
+            }
+        }
+        return name;
     }
 
     private Object sqlValueOf(Element document) {
@@ -352,7 +375,8 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
         return entityName + ":" + id;
     }
 
-    protected void entityCondition(StringBuilder query, String tableName) {
-        query.append(" WHERE ").append(table).append(".entity= '").append(tableName).append("'");
+    protected FieldValue entityCondition(StringBuilder query, String tableName) {
+        query.append(" WHERE ").append(table).append(".entity= ?");
+        return FieldValueConverter.INSTANCE.of(tableName);
     }
 }
