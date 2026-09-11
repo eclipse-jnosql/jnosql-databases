@@ -40,12 +40,12 @@ final class DeleteBuilder extends AbstractQueryBuilder {
         List<String> ids = new ArrayList<>();
 
         query.append("DELETE from ").append(table);
-        entityCondition(query, documentQuery.name());
+        FieldValue entity = entityCondition(query, documentQuery.name());
         this.documentQuery.condition().ifPresent(c -> {
             query.append(" AND ");
             condition(c, query, params, ids,false);
         });
-        return new OracleQuery(query.toString(), params, ids);
+        return new OracleQuery(query.toString(), params, ids, entity);
     }
 
 
