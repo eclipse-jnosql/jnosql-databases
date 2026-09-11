@@ -97,7 +97,7 @@ final class QueryUtils {
         List<Assignment> assignments = new LinkedList<>();
 
         final BiConsumer<String, Term> valueConsumer = (name, value) ->
-                assignments.add(Assignment.setColumn("\"%s\"".formatted(name), value));
+                assignments.add(Assignment.setColumn(getName(name), value));
 
         UpdateStart updateStart = QueryBuilder.update(keyspace, updateQuery.name());
 
@@ -222,7 +222,7 @@ final class QueryUtils {
 
 
     public static String count(String columnFamily, String keyspace) {
-        return String.format("select count(*) from %s.%s", keyspace, columnFamily);
+        return "select count(*) from " + getName(keyspace) + "." + getName(columnFamily);
     }
 
     static String getName(Element column) {
@@ -230,10 +230,7 @@ final class QueryUtils {
     }
 
     static String getName(String name) {
-        if (name.charAt(0) == '_') {
-            return "\"" + name + "\"";
-        }
-        return name;
+        return CqlIdentifier.fromInternal(name).asCql(true);
     }
 
     private static Object[] getIinValue(Value value) {
