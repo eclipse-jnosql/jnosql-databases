@@ -53,7 +53,8 @@ final class MongoDBUtils {
 
     static Bson updateDocument(Supplier<List<Element>> elementsSupplier) {
         List<Bson> fields = new ArrayList<>();
-        elementsSupplier.get().forEach(d -> fields.add(Updates.set(d.name(), convert(d.value()))));
+        elementsSupplier.get().forEach(d -> fields.add(Updates.set(DocumentQueryConversor.field(d.name()),
+                convert(d.value()))));
         return Updates.combine(fields);
     }
 
