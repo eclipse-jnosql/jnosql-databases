@@ -85,13 +85,13 @@ abstract class DynamoDBQueryBuilder implements Supplier<DynamoDBQuery> {
                              Map<String, AttributeValue> expressionAttributeValues) {
         var name = element.name();
 
-        var attributeName = "#" + name;
+        var attributeName = nextAttributeName(expressionAttributeNames);
         expressionAttributeNames.put(attributeName, name);
         filterExpression.append(attributeName).append(" IN (");
 
         List<String> valuesExpressionNames = new LinkedList<>();
         ((Iterable<?>) element.get()).forEach(value -> {
-            var attributeValueName = ":" + name + "_" + expressionAttributeValues.size();
+            var attributeValueName = nextAttributeValue(expressionAttributeValues);
             valuesExpressionNames.add(attributeValueName);
             expressionAttributeValues.put(attributeValueName, toAttributeValue(value));
         });
@@ -143,16 +143,16 @@ abstract class DynamoDBQueryBuilder implements Supplier<DynamoDBQuery> {
         List<Object> values = new ArrayList<>();
         ((Iterable<?>) element.get()).forEach(values::add);
 
-        var attributeName = "#" + name;
+        var attributeName = nextAttributeName(expressionAttributeNames);
         expressionAttributeNames.put(attributeName, name);
 
         filterExpression.append(attributeName).append(" BETWEEN ");
 
-        var fistAttributeValueName = ":" + name + "_" + expressionAttributeValues.size();
+        var fistAttributeValueName = nextAttributeValue(expressionAttributeValues);
         expressionAttributeValues.put(fistAttributeValueName, toAttributeValue(values.getFirst()));
         filterExpression.append(fistAttributeValueName).append(" AND ");
 
-        var secondAttributeValueName = ":" + name + "_" + expressionAttributeValues.size();
+        var secondAttributeValueName = nextAttributeValue(expressionAttributeValues);
         expressionAttributeValues.put(secondAttributeValueName, toAttributeValue(values.get(1)));
         filterExpression.append(secondAttributeValueName);
 
@@ -166,8 +166,8 @@ abstract class DynamoDBQueryBuilder implements Supplier<DynamoDBQuery> {
         var name = element.name();
         var value = toAttributeValue(element.get());
 
-        var attributeName = "#" + name;
-        var attributeValueName = ":" + name + "_" + expressionAttributeValues.size();
+        var attributeName = nextAttributeName(expressionAttributeNames);
+        var attributeValueName = nextAttributeValue(expressionAttributeValues);
 
         filterExpression.append("begins_with(")
                 .append(attributeName).append(',')
@@ -186,13 +186,21 @@ abstract class DynamoDBQueryBuilder implements Supplier<DynamoDBQuery> {
         var name = element.name();
         var value = toAttributeValue(element.get());
 
-        var attributeName = "#" + name;
-        var attributeValueName = ":" + name + "_" + expressionAttributeValues.size();
+        var attributeName = nextAttributeName(expressionAttributeNames);
+        var attributeValueName = nextAttributeValue(expressionAttributeValues);
 
         filterExpression.append(attributeName).append(operator).append(attributeValueName);
         expressionAttributeNames.put(attributeName, name);
         expressionAttributeValues.put(attributeValueName, value);
 
+    }
+
+    protected String nextAttributeName(Map<String, String> expressionAttributeNames) {
+        return "#n" + expressionAttributeNames.size();
+    }
+
+    protected String nextAttributeValue(Map<String, AttributeValue> expressionAttributeValues) {
+        return ":v" + expressionAttributeValues.size();
     }
 
 }
