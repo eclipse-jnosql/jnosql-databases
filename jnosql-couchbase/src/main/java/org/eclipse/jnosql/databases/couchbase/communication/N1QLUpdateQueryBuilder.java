@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) implements N1QLBuilder {
@@ -46,18 +45,17 @@ record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) 
         var n1ql = new StringBuilder();
         var params = JsonObject.create();
         n1ql.append("UPDATE ")
-                .append(database).append(".")
-                .append(scope).append(".")
-                .append(query.name())
+                .append(quoteIdentifier(database)).append(".")
+                .append(quoteIdentifier(scope)).append(".")
+                .append(quoteIdentifier(query.name()))
                 .append(" AS ").append(alias);
 
         n1ql.append(" SET ");
         String updates = query.sets().stream()
                 .map(element -> {
-                    ThreadLocalRandom random = ThreadLocalRandom.current();
                     String name =  identifierOf(alias, element.name());
                     Object value = element.get();
-                    String param = "$".concat(element.name()).concat("_").concat(Integer.toString(random.nextInt(0, 100)));
+                    String param = nextParam(params);
                     params.put(param, value);
                     return name + " = " + param;
                 })
@@ -128,18 +126,16 @@ record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) 
     }
 
     private void predicateBetween(String alias, StringBuilder n1ql, JsonObject params, Element document) {
-        n1ql.append(" BETWEEN ");
-        ThreadLocalRandom random = ThreadLocalRandom.current();
         String name = identifierOf(alias, document.name());
 
         List<Object> values = new ArrayList<>();
         ((Iterable<?>) document.get()).forEach(values::add);
 
-        String param = "$".concat(document.name()).concat("_").concat(Integer.toString(random.nextInt(0, 100)));
-        String param2 = "$".concat(document.name()).concat("_").concat(Integer.toString(random.nextInt(0, 100)));
-        n1ql.append(name).append(" ").append(param).append(" AND ").append(param2);
+        String param = nextParam(params);
         params.put(param, values.get(0));
+        String param2 = nextParam(params);
         params.put(param2, values.get(1));
+        n1ql.append(name).append(" BETWEEN ").append(param).append(" AND ").append(param2);
     }
 
     private void appendCondition(String alias, StringBuilder n1ql, JsonObject params,
@@ -163,16 +159,29 @@ record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) 
                            String condition,
                            Element document,
                            JsonObject params) {
-        ThreadLocalRandom random = ThreadLocalRandom.current();
         String name = identifierOf(alias,document.name());
         Object value = document.get();
-        String param = "$".concat(document.name()).concat("_").concat(Integer.toString(random.nextInt(0, 100)));
+        String param = nextParam(params);
         n1ql.append(name).append(condition).append(param);
         params.put(param, value);
     }
 
     private String identifierOf(String alias, String field) {
-        return "%s.%s".formatted(alias, field);
+        return "%s.%s".formatted(alias, identifierOf(field));
+    }
+
+    private String identifierOf(String name) {
+        return java.util.Arrays.stream(name.split("\\.", -1))
+                .map(this::quoteIdentifier)
+                .collect(Collectors.joining("."));
+    }
+
+    private String quoteIdentifier(String name) {
+        return "`" + name.replace("`", "``") + "`";
+    }
+
+    private String nextParam(JsonObject params) {
+        return "$p" + params.getNames().size();
     }
 
 }
