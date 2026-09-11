@@ -42,7 +42,7 @@ class SelectBuilderTest {
         var oracleQuery = new SelectBuilder(query, "entity_data").get();
 
         assertThat(normalize(oracleQuery.query()))
-                .contains("entity_data.entity= 'AsciiCharacter' AND")
+                .contains("entity_data.entity= ? AND")
                 .contains("lower( entity_data.content.hexadecimal ) = ?");
         assertThat(oracleQuery.params()).hasSize(1);
         assertThat(oracleQuery.params().get(0).asString().getValue()).isEqualTo(expectedBind);
@@ -64,7 +64,7 @@ class SelectBuilderTest {
         var oracleQuery = new SelectBuilder(query, "entity_data").get();
 
         assertThat(normalize(oracleQuery.query())).isEqualTo(
-                "select * from entity_data WHERE entity_data.entity= 'AsciiCharacter' AND "
+                "select * from entity_data WHERE entity_data.entity= ? AND "
                         + "(lower( entity_data.content.hexadecimal ) BETWEEN ? AND ? AND "
                         + "NOT entity_data.content.hexadecimal IN ?[] ) "
                         + "ORDER BY entity_data.content.hexadecimal ASC");
@@ -129,7 +129,7 @@ class SelectBuilderTest {
         var oracleQuery = new SelectBuilder(query, "people").get();
 
         assertThat(oracleQuery.query())
-                .contains("people.entity= 'person' AND (")
+                .contains("people.entity= ? AND (")
                 .contains(" OR ")
                 .endsWith(")");
     }
