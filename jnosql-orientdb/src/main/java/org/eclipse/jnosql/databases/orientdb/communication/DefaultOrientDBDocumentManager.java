@@ -186,7 +186,7 @@ class DefaultOrientDBDocumentManager implements OrientDBDocumentManager {
     public long count(String documentCollection) {
         requireNonNull(documentCollection, "query is required");
         try (ODatabaseSession tx = pool.acquire()) {
-            String query = "select count(*) from ".concat(documentCollection);
+            String query = "select count(*) from ".concat(QueryOSQLConverter.identifier(documentCollection));
             OResultSet command = tx.command(query);
             OResult next = command.next();
             Object count = next.getProperty("count(*)");
