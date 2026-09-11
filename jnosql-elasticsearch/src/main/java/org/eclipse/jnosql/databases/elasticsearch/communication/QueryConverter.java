@@ -21,15 +21,14 @@ import co.elastic.clients.elasticsearch._types.mapping.Property;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch._types.query_dsl.QueryStringQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery;
 import co.elastic.clients.elasticsearch.indices.get_mapping.IndexMappingRecord;
 import co.elastic.clients.json.JsonData;
 import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.ValueUtil;
-import org.eclipse.jnosql.communication.driver.StringMatch;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
@@ -156,29 +155,13 @@ final class QueryConverter {
                                         .field(fieldName)
                                         .gte(value))));
             case LIKE:
-                return (Query.Builder) new Query.Builder()
-                        .queryString(QueryStringQuery.of(rq -> rq
-                                .query(document.value().get(String.class))
-                                .allowLeadingWildcard(true)
-                                .fields(fieldName)));
+                return wildcard(fieldName, likePattern(document.value().get(String.class)));
             case CONTAINS:
-                return (Query.Builder) new Query.Builder()
-                        .queryString(QueryStringQuery.of(rq -> rq
-                                .query(StringMatch.CONTAINS.format(document.value().get(String.class)))
-                                .allowLeadingWildcard(true)
-                                .fields(fieldName)));
+                return wildcard(fieldName, "*" + wildcardLiteral(document.value().get(String.class)) + "*");
             case STARTS_WITH:
-                return (Query.Builder) new Query.Builder()
-                        .queryString(QueryStringQuery.of(rq -> rq
-                                .query(StringMatch.STARTS_WITH.format(document.value().get(String.class)))
-                                .allowLeadingWildcard(true)
-                                .fields(fieldName)));
+                return wildcard(fieldName, wildcardLiteral(document.value().get(String.class)) + "*");
             case ENDS_WITH:
-                return (Query.Builder) new Query.Builder()
-                        .queryString(QueryStringQuery.of(rq -> rq
-                                .query(StringMatch.ENDS_WITH.format(document.value().get(String.class)))
-                                .allowLeadingWildcard(true)
-                                .fields(fieldName)));
+                return wildcard(fieldName, "*" + wildcardLiteral(document.value().get(String.class)));
 
             case IN:
                 return (Query.Builder) ValueUtil.convertToList(document.value())
@@ -234,6 +217,36 @@ final class QueryConverter {
 
     private static boolean isIdField(Element document) {
         return EntityConverter.ID_FIELD.equals(document.name());
+    }
+
+    private static Query.Builder wildcard(String field, String value) {
+        return (Query.Builder) new Query.Builder()
+                .wildcard(WildcardQuery.of(query -> query.field(field).value(value)));
+    }
+
+    static String likePattern(String value) {
+        StringBuilder pattern = new StringBuilder();
+        for (char character : value.toCharArray()) {
+            switch (character) {
+                case '%' -> pattern.append('*');
+                case '_' -> pattern.append('?');
+                default -> appendWildcardLiteral(pattern, character);
+            }
+        }
+        return pattern.toString();
+    }
+
+    static String wildcardLiteral(String value) {
+        StringBuilder literal = new StringBuilder();
+        value.chars().forEach(character -> appendWildcardLiteral(literal, (char) character));
+        return literal.toString();
+    }
+
+    private static void appendWildcardLiteral(StringBuilder value, char character) {
+        if (character == '*' || character == '?' || character == '\\') {
+            value.append('\\');
+        }
+        value.append(character);
     }
 
 
