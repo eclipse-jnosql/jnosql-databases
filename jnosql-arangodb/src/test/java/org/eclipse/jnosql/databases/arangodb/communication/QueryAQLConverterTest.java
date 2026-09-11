@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -207,6 +209,37 @@ public class QueryAQLConverterTest {
                                     "RETURN NEW");
         });
 
+    }
+
+    @Test
+    void shouldBindInjectionPayloadAsValue() {
+        String payload = "' OR true RETURN secret";
+        SelectQuery query = select().from("collection")
+                .where("name").eq(payload)
+                .build();
+
+        AQLQueryResult generated = QueryAQLConverter.select(query);
+
+        assertThat(generated.query()).doesNotContain(payload).contains("c.name == @name");
+        assertThat(generated.values()).containsEntry("name", payload);
+    }
+
+    @Test
+    void shouldRejectExecutableIdentifierSyntax() {
+        SelectQuery query = select().from("collection")
+                .where("name) OR true").eq("safe")
+                .build();
+
+        assertThatThrownBy(() -> QueryAQLConverter.select(query))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid AQL identifier");
+    }
+
+    @Test
+    void shouldRejectExecutableCollectionSyntax() {
+        assertThatThrownBy(() -> QueryAQLConverter.validateIdentifier("collection) RETURN secret"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid AQL identifier");
     }
 
 
