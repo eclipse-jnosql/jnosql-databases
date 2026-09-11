@@ -118,4 +118,30 @@ public class HazelcastBucketManagerQueryTest {
         assertThat(result.size()).isEqualTo(1);
     }
 
+    @Test
+    public void shouldTreatInjectionPayloadAsLiteralData() {
+        String payload = "missing' OR active";
+
+        Collection<Value> result = bucketManager.sql("name = :name", singletonMap("name", payload));
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void shouldBindStringContainingSpaces() {
+        Collection<Value> result = bucketManager.sql("name = :name",
+                singletonMap("name", "Star Wars: The Last Jedi"));
+
+        assertThat(result).singleElement()
+                .satisfies(value -> assertThat(value.get(Movie.class).getName())
+                        .isEqualTo("Star Wars: The Last Jedi"));
+    }
+
+    @Test
+    public void shouldIgnoreColonTextInsideQueryLiteral() {
+        assertThat(DefaultHazelcastBucketManager.bind("name = 'urn:isbn' AND year = :year",
+                singletonMap("year", 2017)))
+                .isEqualTo("name = 'urn:isbn' AND year = 2017");
+    }
+
 }
