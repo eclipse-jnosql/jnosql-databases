@@ -173,7 +173,7 @@ class DefaultSolrDocumentManager implements SolrDocumentManager {
 
     private static Function<Sort<?>, SortClause> convertSortToClause() {
         return sort -> new SortClause(
-                sort.property(),
+                DocumentQueryConverter.sortField(sort.property()),
                 sort.isAscending()
                         ? SolrQuery.ORDER.asc
                         : SolrQuery.ORDER.desc);
