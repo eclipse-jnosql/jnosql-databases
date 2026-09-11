@@ -29,6 +29,7 @@ import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.eclipse.jnosql.databases.orientdb.communication.OrientDBConverter.ID_FIELD;
 import static org.eclipse.jnosql.databases.orientdb.communication.OrientDBConverter.RID_FIELD;
@@ -50,6 +51,7 @@ final class QueryOSQLConverter {
     private static final String SORT = " ORDER BY";
     private static final String SPACE = " ";
     private static final char PARAM_APPENDER = '?';
+    private static final Pattern IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
 
     private QueryOSQLConverter() {
     }
@@ -59,7 +61,7 @@ final class QueryOSQLConverter {
         List<Object> params = new java.util.ArrayList<>();
         List<ORecordId> ids = new ArrayList<>();
         query.append("SELECT FROM ");
-        query.append(documentQuery.name());
+        query.append(identifier(documentQuery.name()));
 
         if (documentQuery.condition().isPresent()) {
             query.append(WHERE);
@@ -79,7 +81,7 @@ final class QueryOSQLConverter {
         List<Object> params = new java.util.ArrayList<>();
         List<ORecordId> ids = new ArrayList<>();
         query.append("SELECT COUNT(*) FROM ");
-        query.append(documentQuery.name());
+        query.append(identifier(documentQuery.name()));
         if (documentQuery.condition().isPresent()) {
             query.append(WHERE);
             definesCondition(documentQuery.condition().get(), query, params, 0, ids, true);
@@ -175,7 +177,7 @@ final class QueryOSQLConverter {
                 attributeName = RID_FIELD;
             }
         }
-        query.append(attributeName)
+        query.append(identifier(attributeName))
                 .append(condition).append(PARAM_APPENDER);
         if (IN.equals(condition)) {
             params.add(ValueUtil.convertToList(document.value()));
@@ -189,7 +191,7 @@ final class QueryOSQLConverter {
         String separator = SPACE;
         for (Sort<?> sort : sorts) {
             query.append(separator)
-                    .append(sort.property())
+                    .append(identifier(sort.property()))
                     .append(SPACE)
                     .append(sort.isAscending() ? Direction.ASC : Direction.DESC);
             separator = ", ";
@@ -204,6 +206,18 @@ final class QueryOSQLConverter {
         if (documentQuery.limit() > 0) {
             query.append(LIMIT).append(documentQuery.limit());
         }
+    }
+
+    static String identifier(String name) {
+        if (RID_FIELD.equals(name)) {
+            return name;
+        }
+        for (String part : name.split("\\.", -1)) {
+            if (!IDENTIFIER.matcher(part).matches()) {
+                throw new IllegalArgumentException("Invalid OrientDB identifier: " + name);
+            }
+        }
+        return name;
     }
 
     record Query(String query, List<Object> params, List<ORecordId> ids) {
