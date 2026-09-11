@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 final class QueryAQLConverter {
 
@@ -54,6 +55,7 @@ final class QueryAQLConverter {
     private static final String LIKE = " LIKE ";
     private static final String NOT = " NOT ";
     private static final char PARAM_APPENDER = '@';
+    private static final Pattern IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
 
     private QueryAQLConverter() {
     }
@@ -118,7 +120,7 @@ final class QueryAQLConverter {
             for (Element element : query.set()) {
                 String nameParam = getNameParam(element.name(), params);
                 updatePart.append(separator)
-                        .append(element.name())
+                        .append(identifier(element.name()))
                         .append(": ")
                         .append(PARAM_APPENDER)
                         .append(nameParam);
@@ -156,6 +158,7 @@ final class QueryAQLConverter {
                                           ConclusionFunction conclusion) {
         StringBuilder aql = new StringBuilder();
         Map<String, Object> params = new HashMap<>();
+        validateIdentifier(documentCollection);
         char entity = Character.toLowerCase(documentCollection.charAt(0));
         aql.append("FOR ").append(entity).append(IN).append(documentCollection);
 
@@ -185,7 +188,7 @@ final class QueryAQLConverter {
         for (Sort<?> sort : sorts) {
             aql.append(separator)
                     .append(entity).append('.')
-                    .append(sort.property())
+                    .append(identifier(sort.property()))
                     .append(SEPARATOR).append(sort.isAscending() ? Direction.ASC : Direction.DESC);
             separator = " , ";
         }
@@ -274,7 +277,7 @@ final class QueryAQLConverter {
     private static void appendCondition(StringBuilder aql, Map<String, Object> params,
                                         char entity, Element document, String condition) {
         String nameParam = getNameParam(document.name(), params);
-        aql.append(SEPARATOR).append(entity).append('.').append(document.name())
+        aql.append(SEPARATOR).append(entity).append('.').append(identifier(document.name()))
                 .append(condition).append(PARAM_APPENDER).append(nameParam);
         if (IN.equals(condition)) {
             params.put(nameParam, ValueUtil.convertToList(document.value(), ArangoDBValueWriteDecorator.ARANGO_DB_VALUE_WRITER));
@@ -300,6 +303,19 @@ final class QueryAQLConverter {
             return name.substring(1);
         }
         return name;
+    }
+
+    private static String identifier(String name) {
+        for (String part : name.split("\\.", -1)) {
+            validateIdentifier(part);
+        }
+        return name;
+    }
+
+    static void validateIdentifier(String name) {
+        if (!IDENTIFIER.matcher(name).matches()) {
+            throw new IllegalArgumentException("Invalid AQL identifier: " + name);
+        }
     }
 
 
