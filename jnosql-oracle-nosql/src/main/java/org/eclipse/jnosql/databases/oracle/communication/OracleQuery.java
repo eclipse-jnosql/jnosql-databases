@@ -17,9 +17,14 @@ package org.eclipse.jnosql.databases.oracle.communication;
 import oracle.nosql.driver.values.FieldValue;
 
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
-record OracleQuery(String query, List<FieldValue> params, List<String> ids) {
+record OracleQuery(String query, List<FieldValue> params, List<String> ids, FieldValue entity) {
+
+    OracleQuery(String query, List<FieldValue> params, List<String> ids) {
+        this(query, params, ids, null);
+    }
 
     @Override
     public List<String> ids() {
@@ -36,6 +41,16 @@ record OracleQuery(String query, List<FieldValue> params, List<String> ids) {
 
     public boolean hasIds() {
         return !this.ids.isEmpty();
+    }
+
+    List<FieldValue> bindings() {
+        if (entity == null) {
+            return params;
+        }
+        List<FieldValue> bindings = new ArrayList<>(params.size() + 1);
+        bindings.add(entity);
+        bindings.addAll(params);
+        return bindings;
     }
 
     @Override

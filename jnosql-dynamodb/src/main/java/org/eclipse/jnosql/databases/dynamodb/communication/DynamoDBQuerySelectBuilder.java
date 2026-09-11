@@ -62,7 +62,7 @@ class DynamoDBQuerySelectBuilder extends DynamoDBQueryBuilder {
         }
         List<String> projectionAttributes = new ArrayList<>(columns.size());
         columns.forEach(column -> {
-            var alias = "#%s".formatted(column);
+            var alias = nextAttributeName(expressionAttributeNames);
             expressionAttributeNames.computeIfAbsent(alias, k -> column);
             projectionAttributes.add(alias);
         });

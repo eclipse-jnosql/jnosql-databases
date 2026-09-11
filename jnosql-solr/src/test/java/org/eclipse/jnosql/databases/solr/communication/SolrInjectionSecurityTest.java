@@ -24,6 +24,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.jnosql.communication.semistructured.DeleteQuery.delete;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 
@@ -81,6 +82,25 @@ class SolrInjectionSecurityTest {
 
             assertThat(solr).isEqualTo("_entity:Public AND name:Lu*\\ OR\\ _entity\\:Secret");
             assertThat(solr).doesNotContain(" OR _entity");
+        }
+
+        @Test
+        @DisplayName("Should reject executable field syntax")
+        void shouldRejectExecutableFieldSyntax() {
+            var query = select().from("Public").where("name:* OR *").eq("safe").build();
+
+            assertThatThrownBy(() -> DocumentQueryConverter.convert(query))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Invalid Solr field name");
+        }
+
+        @Test
+        @DisplayName("Should escape valid field punctuation")
+        void shouldEscapeValidFieldPunctuation() {
+            var query = select().from("Public").where("last-name").eq("Ada").build();
+
+            assertThat(DocumentQueryConverter.convert(query))
+                    .isEqualTo("_entity:Public AND last\\-name:Ada");
         }
     }
 

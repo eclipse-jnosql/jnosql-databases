@@ -26,7 +26,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -115,14 +116,7 @@ class DefaultHazelcastBucketManager implements HazelcastBucketManager {
     public Collection<Value> sql(String query, Map<String, Object> params) throws NullPointerException {
         requireNonNull(query, "sql is required");
         requireNonNull(params, "params is required");
-        final StringBuilder finalQuery = new StringBuilder(query);
-        final Consumer<Map.Entry<String, Object>> consumer = e -> {
-            String key = ":" + e.getKey();
-            int indexOf = query.indexOf(key);
-            finalQuery.replace(indexOf, indexOf + key.length(), e.getValue().toString());
-        };
-        params.entrySet().forEach(consumer);
-        return sql(new SqlPredicate(finalQuery.toString()));
+        return sql(new SqlPredicate(bind(query, params)));
     }
 
     @Override
@@ -130,5 +124,63 @@ class DefaultHazelcastBucketManager implements HazelcastBucketManager {
         requireNonNull(predicate, "predicate is required");
         Collection<V> values = map.values(predicate);
         return values.stream().map(Value::of).collect(toList());
+    }
+
+    static String bind(String query, Map<String, Object> params) {
+        StringBuilder bound = new StringBuilder();
+        Set<String> used = new HashSet<>();
+        boolean quoted = false;
+        for (int index = 0; index < query.length(); index++) {
+            char character = query.charAt(index);
+            if (character == '\'') {
+                bound.append(character);
+                if (quoted && index + 1 < query.length() && query.charAt(index + 1) == '\'') {
+                    bound.append(query.charAt(++index));
+                } else {
+                    quoted = !quoted;
+                }
+                continue;
+            }
+            if (!quoted && character == ':' && index + 1 < query.length()
+                    && isParameterStart(query.charAt(index + 1))) {
+                int end = index + 2;
+                while (end < query.length() && isParameterPart(query.charAt(end))) {
+                    end++;
+                }
+                String name = query.substring(index + 1, end);
+                if (!params.containsKey(name)) {
+                    throw new IllegalArgumentException("Missing Hazelcast query parameter: " + name);
+                }
+                used.add(name);
+                bound.append(literal(params.get(name)));
+                index = end - 1;
+                continue;
+            }
+            bound.append(character);
+        }
+        if (!used.containsAll(params.keySet())) {
+            Set<String> unused = new HashSet<>(params.keySet());
+            unused.removeAll(used);
+            throw new IllegalArgumentException("Unused Hazelcast query parameters: " + unused);
+        }
+        return bound.toString();
+    }
+
+    private static boolean isParameterStart(char character) {
+        return Character.isLetter(character) || character == '_';
+    }
+
+    private static boolean isParameterPart(char character) {
+        return Character.isLetterOrDigit(character) || character == '_';
+    }
+
+    private static String literal(Object value) {
+        if (value == null) {
+            return "null";
+        }
+        if (value instanceof Number || value instanceof Boolean) {
+            return value.toString();
+        }
+        return "'" + value.toString().replace("'", "''") + "'";
     }
 }

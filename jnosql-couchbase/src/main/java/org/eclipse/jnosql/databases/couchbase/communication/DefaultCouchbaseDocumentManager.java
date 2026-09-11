@@ -210,9 +210,9 @@ class DefaultCouchbaseDocumentManager implements CouchbaseDocumentManager {
         Objects.requireNonNull(documentCollection, "documentCollection is required");
         return waitBucketBeReadyAndGet(() -> {
             SelectQuery countQuery = SelectQuery
-                    .select("COUNT(*)").from(documentCollection).build();
+                    .select().from(documentCollection).build();
             N1QLQuery n1QLQuery = N1QLBuilder
-                    .of(countQuery, database, bucket.defaultScope().name()).get();
+                    .countOf(countQuery, database, bucket.defaultScope().name()).get();
             QueryResult query = cluster.query(n1QLQuery.query());
             List<JsonObject> result = query.rowsAsObject();
             var count = result.stream().findFirst()

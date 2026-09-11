@@ -284,4 +284,5 @@ class QueryConverterTest {
     private void insertData(Map<String, Object> map) {
         DocumentDatabase.insertData(INDEX, map);
     }
+
 }

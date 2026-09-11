@@ -42,8 +42,7 @@ class NullPredicateQueryBuilderTest {
 
         assertThat(normalize(generated.query()))
                 .contains("(" + JSON_PATH + " = null OR NOT EXISTS " + JSON_PATH
-                        + " OR " + JSON_PATH + " IS NULL)")
-                .doesNotContain("?");
+                        + " OR " + JSON_PATH + " IS NULL)");
         assertThat(generated.params()).isEmpty();
     }
 
@@ -54,8 +53,7 @@ class NullPredicateQueryBuilderTest {
 
         assertThat(normalize(generated.query()))
                 .contains("(" + JSON_PATH + " != null AND EXISTS " + JSON_PATH
-                        + " AND " + JSON_PATH + " IS NOT NULL)")
-                .doesNotContain("?");
+                        + " AND " + JSON_PATH + " IS NOT NULL)");
         assertThat(generated.params()).isEmpty();
     }
 
@@ -65,7 +63,7 @@ class NullPredicateQueryBuilderTest {
         var generated = queryCase.build(CriteriaCondition.eq(nullElement(ID)));
 
         assertThat(normalize(generated.query())).contains(ID_PATH + " IS NULL")
-                .doesNotContain("content." + ID, "= null", "EXISTS", "?");
+                .doesNotContain("content." + ID, "= null", "EXISTS");
         assertThat(generated.params()).isEmpty();
     }
 
@@ -75,7 +73,7 @@ class NullPredicateQueryBuilderTest {
         var generated = queryCase.build(CriteriaCondition.eq(nullElement(ID)).negate());
 
         assertThat(normalize(generated.query())).contains(ID_PATH + " IS NOT NULL")
-                .doesNotContain("content." + ID, "!= null", "EXISTS", "?");
+                .doesNotContain("content." + ID, "!= null", "EXISTS");
         assertThat(generated.params()).isEmpty();
     }
 

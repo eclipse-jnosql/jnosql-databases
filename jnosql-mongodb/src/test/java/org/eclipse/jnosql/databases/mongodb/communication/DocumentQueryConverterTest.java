@@ -19,6 +19,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class DocumentQueryConverterTest {
 
@@ -44,5 +45,18 @@ class DocumentQueryConverterTest {
         assertThat(DocumentQueryConversor.prepareRegexValue(null))
                 .as("should return a never-matching regex when the raw value is null")
                 .isEqualTo("(?!)");
+    }
+
+    @Test
+    void shouldRejectMongoOperatorAsFieldName() {
+        assertThatThrownBy(() -> DocumentQueryConversor.field("$where"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid MongoDB field name");
+    }
+
+    @Test
+    void shouldAllowNestedDollarPrefixedField() {
+        assertThat(DocumentQueryConversor.field("pricing.$discount"))
+                .isEqualTo("pricing.$discount");
     }
 }

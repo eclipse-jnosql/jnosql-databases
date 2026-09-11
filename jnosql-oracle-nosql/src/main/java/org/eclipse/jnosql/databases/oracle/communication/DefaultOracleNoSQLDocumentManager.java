@@ -76,7 +76,7 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
 
     private final Jsonb jsonB;
     public DefaultOracleNoSQLDocumentManager(String table, NoSQLHandle serviceHandle, Jsonb jsonB) {
-        this.table = table;
+        this.table = AbstractQueryBuilder.validateIdentifierPath(table);
         this.serviceHandle = serviceHandle;
         this.jsonB = jsonB;
     }
@@ -162,8 +162,9 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
             var prepReq = new PrepareRequest().setStatement(oracleQuery.query());
             var prepRes = serviceHandle.prepare(prepReq);
             PreparedStatement preparedStatement = prepRes.getPreparedStatement();
-            for (int index = 0; index < oracleQuery.params().size(); index++) {
-                preparedStatement.setVariable((index + 1), oracleQuery.params().get(index));
+            List<FieldValue> bindings = oracleQuery.bindings();
+            for (int index = 0; index < bindings.size(); index++) {
+                preparedStatement.setVariable((index + 1), bindings.get(index));
             }
 
             QueryRequest queryRequest = new QueryRequest().setPreparedStatement(prepRes);
@@ -194,7 +195,7 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
         }
         if (!oracleQuery.hasOnlyIds()) {
             LOGGER.finest("Executing Oracle Query: " + oracleQuery.query());
-            entities.addAll(executeSQL(oracleQuery.query(), oracleQuery.params()));
+            entities.addAll(executeSQL(oracleQuery.query(), oracleQuery.bindings()));
         }
         return entities.stream();
     }
@@ -226,8 +227,9 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
         var prepReq = new PrepareRequest().setStatement(oracleQuery.query());
         var prepRes = serviceHandle.prepare(prepReq);
         var preparedStatement = prepRes.getPreparedStatement();
-        for (int index = 0; index < oracleQuery.params().size(); index++) {
-            preparedStatement.setVariable((index + 1), oracleQuery.params().get(index));
+        List<FieldValue> bindings = oracleQuery.bindings();
+        for (int index = 0; index < bindings.size(); index++) {
+            preparedStatement.setVariable((index + 1), bindings.get(index));
         }
         QueryResult queryResult = serviceHandle.query(new QueryRequest().setPreparedStatement(prepRes));
         List<MapValue> results = queryResult.getResults();

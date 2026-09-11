@@ -25,11 +25,13 @@ import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 final class DocumentQueryConverter {
 
     private static final String SELECT_ALL_QUERY = "_entity:";
+    private static final Pattern FIELD = Pattern.compile("[A-Za-z_][A-Za-z0-9_.-]*");
 
     private DocumentQueryConverter() {
     }
@@ -54,15 +56,15 @@ final class DocumentQueryConverter {
         Object value = ValueUtil.convert(document.value());
 
         return switch (condition.condition()) {
-            case EQUALS -> document.name() + ':' + escape(value);
-            case LIKE -> document.name() + ':' + escapeLike(value);
-            case GREATER_EQUALS_THAN, GREATER_THAN -> document.name() + ":[" + escape(value) + " TO *]";
-            case LESSER_EQUALS_THAN, LESSER_THAN -> document.name() + ":[* TO " + escape(value) + "]";
+            case EQUALS -> field(document.name()) + ':' + escape(value);
+            case LIKE -> field(document.name()) + ':' + escapeLike(value);
+            case GREATER_EQUALS_THAN, GREATER_THAN -> field(document.name()) + ":[" + escape(value) + " TO *]";
+            case LESSER_EQUALS_THAN, LESSER_THAN -> field(document.name()) + ":[* TO " + escape(value) + "]";
             case IN -> {
                 final String inConditions = ValueUtil.convertToList(document.value())
                         .stream()
                         .map(DocumentQueryConverter::escape).collect(Collectors.joining(" OR "));
-                yield document.name() + ":(" + inConditions + ')';
+                yield field(document.name()) + ":(" + inConditions + ')';
             }
             case NOT -> " NOT " + convert(document.get(CriteriaCondition.class));
             case AND -> getDocumentConditions(condition).stream()
@@ -93,6 +95,22 @@ final class DocumentQueryConverter {
         return escape(value)
                 .replace("\\*", "*")
                 .replace("\\?", "?");
+    }
+
+    static String field(String name) {
+        validateField(name);
+        return ClientUtils.escapeQueryChars(name);
+    }
+
+    static String sortField(String name) {
+        validateField(name);
+        return name;
+    }
+
+    private static void validateField(String name) {
+        if (!FIELD.matcher(name).matches()) {
+            throw new IllegalArgumentException("Invalid Solr field name: " + name);
+        }
     }
 
 }
