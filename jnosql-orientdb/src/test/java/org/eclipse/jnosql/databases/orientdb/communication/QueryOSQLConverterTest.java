@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select;
 
 public class QueryOSQLConverterTest {
@@ -294,5 +296,46 @@ public class QueryOSQLConverterTest {
 
         });
 
+    }
+
+    @Test
+    void shouldKeepInjectionPayloadInParameters() {
+        String payload = "' OR 1 = 1 --";
+        var query = select().from("collection")
+                .where("name").eq(payload)
+                .build();
+
+        QueryOSQLConverter.Query generated = QueryOSQLConverter.select(query);
+
+        assertThat(generated.query()).isEqualTo("SELECT FROM collection WHERE name = ?");
+        assertThat(generated.params()).containsExactly(payload);
+    }
+
+    @Test
+    void shouldRejectExecutableIdentifierSyntax() {
+        var query = select().from("collection")
+                .where("name OR 1 = 1").eq("safe")
+                .build();
+
+        assertThatThrownBy(() -> QueryOSQLConverter.select(query))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid OrientDB identifier");
+    }
+
+    @Test
+    void shouldRejectExecutableCollectionSyntax() {
+        assertThatThrownBy(() -> QueryOSQLConverter.identifier("collection; DELETE FROM secret"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid OrientDB identifier");
+    }
+
+    @Test
+    void shouldAllowInternalRidForCountPredicates() {
+        var query = select().from("collection")
+                .where("_id").eq("#12:0")
+                .build();
+
+        assertThat(QueryOSQLConverter.selectCount(query).query())
+                .isEqualTo("SELECT COUNT(*) FROM collection WHERE @rid = ?");
     }
 }
