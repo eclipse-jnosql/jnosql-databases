@@ -34,16 +34,17 @@ final class DocumentQueryConversor {
 
     public static Bson convert(CriteriaCondition condition) {
         Element document = condition.element();
+        String field = field(document.name());
         Object value = ValueUtil.convert(document.value(), MongoDBValueWriteDecorator.MONGO_DB_VALUE_WRITER);
         return switch (condition.condition()) {
-            case EQUALS -> Filters.eq(document.name(), value);
-            case GREATER_THAN -> Filters.gt(document.name(), value);
-            case GREATER_EQUALS_THAN -> Filters.gte(document.name(), value);
-            case LESSER_THAN -> Filters.lt(document.name(), value);
-            case LESSER_EQUALS_THAN -> Filters.lte(document.name(), value);
+            case EQUALS -> Filters.eq(field, value);
+            case GREATER_THAN -> Filters.gt(field, value);
+            case GREATER_EQUALS_THAN -> Filters.gte(field, value);
+            case LESSER_THAN -> Filters.lt(field, value);
+            case LESSER_EQUALS_THAN -> Filters.lte(field, value);
             case IN -> {
                 List<Object> inList = ValueUtil.convertToList(document.value(), MongoDBValueWriteDecorator.MONGO_DB_VALUE_WRITER);
-                yield Filters.in(document.name(), inList.toArray());
+                yield Filters.in(field, inList.toArray());
             }
             case NOT -> {
                 var criteriaCondition = document.get(CriteriaCondition.class);
@@ -55,10 +56,10 @@ final class DocumentQueryConversor {
                 }
                 yield Filters.nor(convert(criteriaCondition));
             }
-            case LIKE -> Filters.regex(document.name(), Pattern.compile(prepareRegexValue(value.toString())));
-            case CONTAINS -> Filters.regex(document.name(), Pattern.compile(prepareContains(value.toString())));
-            case STARTS_WITH -> Filters.regex(document.name(), Pattern.compile(prepareStartsWith(value.toString())));
-            case ENDS_WITH -> Filters.regex(document.name(), Pattern.compile(prepareEndsWith(value.toString())));
+            case LIKE -> Filters.regex(field, Pattern.compile(prepareRegexValue(value.toString())));
+            case CONTAINS -> Filters.regex(field, Pattern.compile(prepareContains(value.toString())));
+            case STARTS_WITH -> Filters.regex(field, Pattern.compile(prepareStartsWith(value.toString())));
+            case ENDS_WITH -> Filters.regex(field, Pattern.compile(prepareEndsWith(value.toString())));
             case AND -> {
                 List<CriteriaCondition> andConditions = condition.element().value().get(new TypeReference<>() {
                 });
@@ -73,8 +74,8 @@ final class DocumentQueryConversor {
             }
             case BETWEEN -> {
                 List<Object> betweenList = ValueUtil.convertToList(document.value(), MongoDBValueWriteDecorator.MONGO_DB_VALUE_WRITER);
-                yield Filters.and(Filters.gte(document.name(), betweenList.get(0)),
-                        Filters.lte(document.name(), betweenList.get(1)));
+                yield Filters.and(Filters.gte(field, betweenList.get(0)),
+                        Filters.lte(field, betweenList.get(1)));
 
             }
             default -> throw new UnsupportedOperationException("The condition " + condition.condition()
@@ -115,6 +116,19 @@ final class DocumentQueryConversor {
     static String prepareContains(String raw) {
         if (raw == null) return "(?!)";
         return "^.*" + Pattern.quote(raw) + ".*$";
+    }
+
+    static String field(String name) {
+        String[] parts = name.split("\\.", -1);
+        for (String part : parts) {
+            if (part.isEmpty()) {
+                throw new IllegalArgumentException("Invalid MongoDB field name: " + name);
+            }
+        }
+        if (parts[0].charAt(0) == '$') {
+            throw new IllegalArgumentException("Invalid MongoDB field name: " + name);
+        }
+        return name;
     }
 
 }
