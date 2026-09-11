@@ -24,7 +24,6 @@ import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
@@ -39,9 +38,9 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
         n1ql.append("select ");
         n1ql.append(select()).append(' ');
         n1ql.append("from ")
-                .append(database).append(".")
-                .append(scope).append(".")
-                .append(query.name());
+                .append(quoteIdentifier(database)).append(".")
+                .append(quoteIdentifier(scope)).append(".")
+                .append(quoteIdentifier(query.name()));
 
         query.condition().ifPresent(c -> {
             n1ql.append(" WHERE ");
@@ -55,7 +54,7 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
         if (!query.sorts().isEmpty()) {
             n1ql.append(" ORDER BY ");
             String order = query.sorts().stream()
-                    .map(s -> s.property() + " " + (s.isAscending() ? Direction.ASC : Direction.DESC))
+                    .map(s -> identifierOf(s.property()) + " " + (s.isAscending() ? Direction.ASC : Direction.DESC))
                     .collect(Collectors.joining(", "));
             n1ql.append(order);
         }
@@ -75,7 +74,7 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
         if (shouldCount) {
             return "COUNT(*)";
         }
-        String documents = String.join(", ", query.columns());
+        String documents = query.columns().stream().map(this::identifierOf).collect(Collectors.joining(", "));
         if (documents.isBlank()) {
             return "*";
         }
@@ -145,18 +144,16 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
     }
 
     private void predicateBetween(StringBuilder n1ql, JsonObject params, Element document) {
-        n1ql.append(" BETWEEN ");
-        ThreadLocalRandom random = ThreadLocalRandom.current();
         String name = identifierOf(document.name());
 
         List<Object> values = new ArrayList<>();
         ((Iterable<?>) document.get()).forEach(values::add);
 
-        String param = "$".concat(document.name()).concat("_").concat(Integer.toString(random.nextInt(0, 100)));
-        String param2 = "$".concat(document.name()).concat("_").concat(Integer.toString(random.nextInt(0, 100)));
-        n1ql.append(name).append(" ").append(param).append(" AND ").append(param2);
+        String param = nextParam(params);
         params.put(param, values.get(0));
+        String param2 = nextParam(params);
         params.put(param2, values.get(1));
+        n1ql.append(name).append(" BETWEEN ").append(param).append(" AND ").append(param2);
     }
 
     private void appendCondition(StringBuilder n1ql, JsonObject params,
@@ -179,16 +176,29 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
                            String condition,
                            Element document,
                            JsonObject params) {
-        ThreadLocalRandom random = ThreadLocalRandom.current();
         String name = identifierOf(document.name());
         Object value = document.get();
-        String param = "$".concat(document.name()).concat("_").concat(Integer.toString(random.nextInt(0, 100)));
+        String param = nextParam(params);
         n1ql.append(name).append(condition).append(param);
         params.put(param, value);
     }
 
     private String identifierOf(String name) {
-        return ' ' + name + ' ';
+        return ' ' + quoteIdentifierPath(name) + ' ';
+    }
+
+    private String quoteIdentifierPath(String name) {
+        return java.util.Arrays.stream(name.split("\\.", -1))
+                .map(this::quoteIdentifier)
+                .collect(Collectors.joining("."));
+    }
+
+    private String quoteIdentifier(String name) {
+        return "`" + name.replace("`", "``") + "`";
+    }
+
+    private String nextParam(JsonObject params) {
+        return "$p" + params.getNames().size();
     }
 
 }
