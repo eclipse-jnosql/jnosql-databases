@@ -106,6 +106,25 @@ class IoTDBQueryConverterTest {
     }
 
     @Test
+    void shouldPreserveTemporalValuesInInAndBetweenPredicates() {
+        Instant first = Instant.parse("2026-09-15T03:00:00Z");
+        Instant second = first.plusSeconds(10);
+        SelectQuery in = SelectQuery.builder().select().from("sensor_reading")
+                .where(CriteriaCondition.in("_id", List.of(first, second)))
+                .build();
+        SelectQuery between = SelectQuery.select().from("sensor_reading")
+                .where("_id").between(first, second)
+                .build();
+
+        assertThat(IoTDBQueryConverter.convert(in)).isEqualTo(
+                "SELECT * FROM \"sensor_reading\" WHERE \"time\" IN ("
+                        + first.toEpochMilli() + ", " + second.toEpochMilli() + ")");
+        assertThat(IoTDBQueryConverter.convert(between)).isEqualTo(
+                "SELECT * FROM \"sensor_reading\" WHERE \"time\" BETWEEN "
+                        + first.toEpochMilli() + " AND " + second.toEpochMilli());
+    }
+
+    @Test
     void shouldRejectUnsupportedCondition() {
         SelectQuery unsupported = SelectQuery.builder().select().from("sensor_reading")
                 .where(CriteriaCondition.contains(
