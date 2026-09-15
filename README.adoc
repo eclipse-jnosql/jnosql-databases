@@ -1168,6 +1168,88 @@ The driver rejects operations that cannot preserve their expected JNoSQL semanti
 
 These operations throw `UnsupportedOperationException` instead of issuing misleading or potentially destructive operations.
 
+== QuestDB
+
+https://questdb.com/[QuestDB] is a high-performance time-series database with native ingestion and SQL querying.
+
+The Eclipse JNoSQL QuestDB driver uses the standard Time Series Mapping API and does not require vendor-specific annotations.
+
+=== How To Install
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-questdb</artifactId>
+  <version>1.1.17</version>
+</dependency>
+----
+
+The driver uses only QuestDB's official Java client. Both ingestion and SQL queries run over QWP; no PostgreSQL or
+JDBC driver is required.
+
+=== Configure the Connection
+
+[source,properties]
+----
+jnosql.timeseries.provider=org.eclipse.jnosql.databases.questdb.communication.QuestDBTimeSeriesConfiguration
+jnosql.timeseries.database=qdb
+jnosql.questdb.url=ws::addr=localhost:9000;
+----
+
+QuestDB has one logical database per server. `jnosql.timeseries.database` is retained as the JNoSQL manager name, while
+each entity name maps to a QuestDB table.
+
+[cols="QuestDB"]
+|===
+|Configuration property |Description
+
+|`jnosql.questdb.url`
+|QuestDB Java client connection string. Use `ws::` or `wss::` for QWP and include authentication options in the
+connection string when required.
+
+|===
+
+=== Entity Mapping and Schema
+
+[source,java]
+----
+@Entity("sensor_reading")
+public class SensorReading {
+
+    @Id
+    private Instant timestamp;
+
+    @Column
+    private String sensor;
+
+    @Column
+    private double temperature;
+}
+----
+
+The entity name becomes the table, the `@Id` becomes QuestDB's designated `timestamp` column, and every `@Column`
+becomes a regular QuestDB column. Supported identifier types are `Instant`, `LocalDateTime`, `OffsetDateTime`, and
+`ZonedDateTime`; local date-times are interpreted as UTC and query results expose the canonical `Instant`, matching the
+InfluxDB communication behavior. QuestDB `TIMESTAMP` values have microsecond precision.
+
+The schema strategy is `AUTO`: the driver sends rows directly through QuestDB's native ingestion client and delegates
+table creation and column evolution to QuestDB. It does not execute `CREATE TABLE` or `ALTER TABLE`. If automatic
+creation is disabled by the server, the native QuestDB error is propagated. Partitioning, WAL, deduplication, and other
+table policies remain server-side concerns.
+
+=== Supported Operations
+
+The driver supports single and native batched ingestion, find/select, count, equality and comparison predicates, `IN`,
+`BETWEEN`, `AND`, `OR`, `NOT`, ordering, limits, temporal predicates, entity updates, and update queries. SQL values are
+sent separately from SQL using native typed QWP bind parameters. Table and column identifiers are restricted to letters,
+digits, and underscores and must begin with a letter or underscore.
+
+QuestDB does not support row-level `DELETE`, so delete operations are rejected. The designated timestamp cannot be
+updated. Offset pagination is rejected because QuestDB does not support SQL `OFFSET`, and per-entity TTL is rejected
+because QuestDB retention is partition-based. Updating a column to `null` is also rejected because a native QWP null
+bind requires schema type information that is not available in the communication entity.
+
 == Memcached
 
 image::https://www.jnosql.org/img/logos/memcached.png[Memcached Project,align="center" width=25%,height=25%]
