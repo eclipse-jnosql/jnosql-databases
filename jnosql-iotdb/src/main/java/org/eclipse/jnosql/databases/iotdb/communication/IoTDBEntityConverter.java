@@ -143,7 +143,8 @@ final class IoTDBEntityConverter {
         return switch (value) {
             case Byte number -> number.intValue();
             case Short number -> number.intValue();
-            case BigInteger number when number.bitLength() < 63 -> number.longValue();
+            case BigInteger number when number.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0
+                    && number.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0 -> number.longValue();
             case Character character -> character.toString();
             case CharSequence text -> text.toString();
             case UUID uuid -> uuid.toString();
