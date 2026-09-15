@@ -2362,6 +2362,11 @@ jnosql.timeseries.database=qdb
 jnosql.questdb.url=ws::addr=localhost:9000;
 ----
 
+[[vector]]
+== Vector
+
+Coming soon.
+
 [[graph]]
 == Graph
 
