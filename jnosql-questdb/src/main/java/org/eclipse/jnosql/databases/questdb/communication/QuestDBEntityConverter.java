@@ -275,7 +275,9 @@ final class QuestDBEntityConverter {
                 case Short ignored -> SHORT;
                 case Integer ignored -> INTEGER;
                 case Long ignored -> LONG;
-                case BigInteger bigInteger when bigInteger.bitLength() < Long.SIZE -> LONG;
+case BigInteger bigInteger
+                        when bigInteger.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0
+                                && bigInteger.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0 -> LONG;
                 case Float ignored -> FLOAT;
                 case Double ignored -> DOUBLE;
                 case Character ignored -> CHARACTER;
