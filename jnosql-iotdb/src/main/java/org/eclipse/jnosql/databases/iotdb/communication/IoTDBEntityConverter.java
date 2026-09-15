@@ -62,7 +62,7 @@ final class IoTDBEntityConverter {
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("IoTDB tablet requires at least one row");
         }
-        IoTDBRow first = rows.getFirst();
+        IoTDBRow first = rows.get(0);
         List<String> names = first.columns().stream().map(IoTDBColumn::name).toList();
         List<TSDataType> types = first.columns().stream().map(IoTDBColumn::type).toList();
         List<ColumnCategory> categories = first.columns().stream()
@@ -103,15 +103,23 @@ final class IoTDBEntityConverter {
     static long toEpochMillis(Object value) {
         Object converted = unwrap(value);
         try {
-            return switch (converted) {
-                case Instant instant -> instant.toEpochMilli();
-                case LocalDateTime dateTime -> dateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
-                case OffsetDateTime dateTime -> dateTime.toInstant().toEpochMilli();
-                case ZonedDateTime dateTime -> dateTime.toInstant().toEpochMilli();
-                case null -> throw new IllegalArgumentException("IoTDB identifier cannot be null");
-                default -> throw new IllegalArgumentException(
-                        "IoTDB identifier must be Instant, LocalDateTime, OffsetDateTime, or ZonedDateTime");
-            };
+            if (converted instanceof Instant instant) {
+                return instant.toEpochMilli();
+            }
+            if (converted instanceof LocalDateTime dateTime) {
+                return dateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+            }
+            if (converted instanceof OffsetDateTime dateTime) {
+                return dateTime.toInstant().toEpochMilli();
+            }
+            if (converted instanceof ZonedDateTime dateTime) {
+                return dateTime.toInstant().toEpochMilli();
+            }
+            if (converted == null) {
+                throw new IllegalArgumentException("IoTDB identifier cannot be null");
+            }
+            throw new IllegalArgumentException(
+                    "IoTDB identifier must be Instant, LocalDateTime, OffsetDateTime, or ZonedDateTime");
         } catch (ArithmeticException exception) {
             throw new IllegalArgumentException("IoTDB timestamp is outside the supported millisecond range", exception);
         }
@@ -140,43 +148,66 @@ final class IoTDBEntityConverter {
     }
 
     private static Object normalize(Object value) {
-        return switch (value) {
-            case Byte number -> number.intValue();
-            case Short number -> number.intValue();
-            case BigInteger number when number.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0
-                    && number.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0 -> number.longValue();
-            case Character character -> character.toString();
-            case CharSequence text -> text.toString();
-            case UUID uuid -> uuid.toString();
-            case Instant instant -> instant.toEpochMilli();
-            case LocalDateTime dateTime -> dateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
-            case OffsetDateTime dateTime -> dateTime.toInstant().toEpochMilli();
-            case ZonedDateTime dateTime -> dateTime.toInstant().toEpochMilli();
-            default -> value;
-        };
+        if (value instanceof Byte number) {
+            return number.intValue();
+        }
+        if (value instanceof Short number) {
+            return number.intValue();
+        }
+        if (value instanceof BigInteger number && isLong(number)) {
+            return number.longValue();
+        }
+        if (value instanceof Character || value instanceof CharSequence || value instanceof UUID) {
+            return value.toString();
+        }
+        if (value instanceof Instant instant) {
+            return instant.toEpochMilli();
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return dateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
+        }
+        if (value instanceof OffsetDateTime dateTime) {
+            return dateTime.toInstant().toEpochMilli();
+        }
+        if (value instanceof ZonedDateTime dateTime) {
+            return dateTime.toInstant().toEpochMilli();
+        }
+        return value;
     }
 
     private static TSDataType type(String name, Object value) {
-        return switch (value) {
-            case Boolean ignored -> TSDataType.BOOLEAN;
-            case Byte ignored -> TSDataType.INT32;
-            case Short ignored -> TSDataType.INT32;
-            case Integer ignored -> TSDataType.INT32;
-            case Long ignored -> TSDataType.INT64;
-            case BigInteger number when number.bitLength() < 63 -> TSDataType.INT64;
-            case Float ignored -> TSDataType.FLOAT;
-            case Double ignored -> TSDataType.DOUBLE;
-            case Character ignored -> TSDataType.STRING;
-            case CharSequence ignored -> TSDataType.STRING;
-            case UUID ignored -> TSDataType.STRING;
-            case Instant ignored -> TSDataType.TIMESTAMP;
-            case LocalDateTime ignored -> TSDataType.TIMESTAMP;
-            case OffsetDateTime ignored -> TSDataType.TIMESTAMP;
-            case ZonedDateTime ignored -> TSDataType.TIMESTAMP;
-            case LocalDate ignored -> TSDataType.DATE;
-            default -> throw new IllegalArgumentException(
-                    "IoTDB column '" + name + "' has an unsupported type: " + value.getClass().getName());
-        };
+        if (value instanceof Boolean) {
+            return TSDataType.BOOLEAN;
+        }
+        if (value instanceof Byte || value instanceof Short || value instanceof Integer) {
+            return TSDataType.INT32;
+        }
+        if (value instanceof Long || value instanceof BigInteger number && isLong(number)) {
+            return TSDataType.INT64;
+        }
+        if (value instanceof Float) {
+            return TSDataType.FLOAT;
+        }
+        if (value instanceof Double) {
+            return TSDataType.DOUBLE;
+        }
+        if (value instanceof Character || value instanceof CharSequence || value instanceof UUID) {
+            return TSDataType.STRING;
+        }
+        if (value instanceof Instant || value instanceof LocalDateTime
+                || value instanceof OffsetDateTime || value instanceof ZonedDateTime) {
+            return TSDataType.TIMESTAMP;
+        }
+        if (value instanceof LocalDate) {
+            return TSDataType.DATE;
+        }
+        throw new IllegalArgumentException(
+                "IoTDB column '" + name + "' has an unsupported type: " + value.getClass().getName());
+    }
+
+    private static boolean isLong(BigInteger number) {
+        return number.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0
+                && number.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0;
     }
 
     private static Object resultValue(Field field, TSDataType type) {

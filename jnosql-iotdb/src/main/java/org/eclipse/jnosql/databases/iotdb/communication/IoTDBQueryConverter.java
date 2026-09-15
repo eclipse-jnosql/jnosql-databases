@@ -174,28 +174,45 @@ final class IoTDBQueryConverter {
         if (ID_FIELD.equals(name)) {
             return Long.toString(IoTDBEntityConverter.toEpochMillis(converted));
         }
-        return switch (converted) {
-            case Boolean bool -> bool.toString().toUpperCase();
-            case Byte number -> number.toString();
-            case Short number -> number.toString();
-            case Integer number -> number.toString();
-            case Long number -> number.toString();
-            case BigInteger number -> number.toString();
-            case Float number when Float.isFinite(number) -> number.toString();
-            case Double number when Double.isFinite(number) -> number.toString();
-            case BigDecimal number -> number.toPlainString();
-            case Character character -> quoted(character.toString());
-            case CharSequence text -> quoted(text.toString());
-            case UUID uuid -> quoted(uuid.toString());
-            case Instant instant -> Long.toString(instant.toEpochMilli());
-            case LocalDateTime dateTime -> Long.toString(dateTime.toInstant(ZoneOffset.UTC).toEpochMilli());
-            case OffsetDateTime dateTime -> Long.toString(dateTime.toInstant().toEpochMilli());
-            case ZonedDateTime dateTime -> Long.toString(dateTime.toInstant().toEpochMilli());
-            case LocalDate date -> "DATE " + quoted(date.toString());
-            case null -> throw new IllegalArgumentException("IoTDB predicates cannot compare null values");
-            default -> throw new IllegalArgumentException(
-                    "Unsupported IoTDB query value type: " + converted.getClass().getName());
-        };
+        if (converted == null) {
+            throw new IllegalArgumentException("IoTDB predicates cannot compare null values");
+        }
+        if (converted instanceof Boolean bool) {
+            return bool ? "TRUE" : "FALSE";
+        }
+        if (converted instanceof Byte || converted instanceof Short || converted instanceof Integer
+                || converted instanceof Long || converted instanceof BigInteger) {
+            return converted.toString();
+        }
+        if (converted instanceof Float number && Float.isFinite(number)) {
+            return number.toString();
+        }
+        if (converted instanceof Double number && Double.isFinite(number)) {
+            return number.toString();
+        }
+        if (converted instanceof BigDecimal number) {
+            return number.toPlainString();
+        }
+        if (converted instanceof Character || converted instanceof CharSequence || converted instanceof UUID) {
+            return quoted(converted.toString());
+        }
+        if (converted instanceof Instant instant) {
+            return Long.toString(instant.toEpochMilli());
+        }
+        if (converted instanceof LocalDateTime dateTime) {
+            return Long.toString(dateTime.toInstant(ZoneOffset.UTC).toEpochMilli());
+        }
+        if (converted instanceof OffsetDateTime dateTime) {
+            return Long.toString(dateTime.toInstant().toEpochMilli());
+        }
+        if (converted instanceof ZonedDateTime dateTime) {
+            return Long.toString(dateTime.toInstant().toEpochMilli());
+        }
+        if (converted instanceof LocalDate date) {
+            return "DATE " + quoted(date.toString());
+        }
+        throw new IllegalArgumentException(
+                "Unsupported IoTDB query value type: " + converted.getClass().getName());
     }
 
     private static String quoted(String value) {

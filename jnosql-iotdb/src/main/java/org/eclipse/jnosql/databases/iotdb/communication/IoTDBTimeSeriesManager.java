@@ -31,11 +31,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static org.eclipse.jnosql.databases.iotdb.communication.IoTDBEntityConverter.ID_FIELD;
 
 /**
  * Stores mapped time-series entities through Apache IoTDB's native Table Model client.
@@ -99,7 +96,7 @@ public class IoTDBTimeSeriesManager implements DatabaseManager {
     }
 
     @Override
-    public void update(UpdateQuery query) {
+    public Iterable<CommunicationEntity> update(UpdateQuery query) {
         throw new UnsupportedOperationException(
                 "IoTDB Table Model updates apply only to TAG and ATTRIBUTE columns; JNoSQL columns map to FIELD");
     }
@@ -131,7 +128,7 @@ public class IoTDBTimeSeriesManager implements DatabaseManager {
                 return 0L;
             }
             RowRecord row = dataSet.next();
-            Field field = row.getFields().getFirst();
+            Field field = row.getFields().get(0);
             return field.getLongV();
         });
     }
@@ -140,11 +137,6 @@ public class IoTDBTimeSeriesManager implements DatabaseManager {
     public long count(String documentCollection) {
         Objects.requireNonNull(documentCollection, "documentCollection is required");
         return count(SelectQuery.select().from(documentCollection).build());
-    }
-
-    @Override
-    public Optional<String> defaultIdFieldName() {
-        return Optional.of(ID_FIELD);
     }
 
     @Override
