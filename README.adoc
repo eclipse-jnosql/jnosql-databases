@@ -3,7 +3,992 @@
 
 The Eclipse JNoSQL Database API is a collection of implementations from the https://github.com/eclipse-ee4j/nosql[Jakarta NoSQL] specification.
 
-== ArangoDB
+[[key-value]]
+== Key-Value
+
+Key-value databases organize data as values addressed by unique keys. This model is well suited to direct lookups, caching, session data, and other access patterns where applications retrieve a value by its key.
+
+Eclipse JNoSQL provides the Key-Value API for portable operations, while individual drivers may expose additional database-specific capabilities.
+
+[[arangodb-key-value]]
+=== ArangoDB
+
+ArangoDB supports both Key-Value and Document APIs in this project. Its full installation, configuration, examples, and database-specific extensions are documented in the canonical xref:#arangodb-document[ArangoDB Document section].
+
+[[couchbase-key-value]]
+=== Couchbase
+
+Couchbase supports both Key-Value and Document APIs in this project. Its full installation, configuration, examples, Template API, and repository support are documented in the canonical xref:#couchbase-document[Couchbase Document section].
+
+[[dynamodb-key-value]]
+=== DynamoDB
+
+DynamoDB supports both Key-Value and Document APIs in this project. Its full installation, configuration, examples, capabilities, Template API, and repository support are documented in the canonical xref:#dynamodb-document[DynamoDB Document section].
+
+[[hazelcast]]
+=== Hazelcast
+
+==== Description
+
+image::https://jnosql.github.io/img/logos/hazelcast.svg[Hazelcast Project,align="center" width=25%,height=25%]
+
+https://hazelcast.com/[Hazelcast] is an open source in-memory data grid based on Java.
+
+This driver provides support for the *Key-Value* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-hazelcast</artifactId>
+    <version>1.1.17</version>
+</dependency>
+----
+
+==== Configuration
+
+This API provides the `HazelcastConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="Hazelcast"]
+|===
+|Configuration property |Description
+
+|`jnosql.hazelcast.instance.name`
+|The instance name uniquely identifying the hazelcast instance created by this configuration. This name is used in different scenarios, such as identifying the hazelcast instance when running multiple instances in the same JVM.
+
+|`jnosql.hazelcast.host`
+|Database's host. It is a prefix to enumerate hosts. E.g.: jnosql.hazelcast.host.1=localhost
+
+|`jnosql.hazelcast.port`
+|The database port
+
+|`jnosql.hazelcast.port.count`
+|The maximum number of ports allowed to use.
+
+|`jnosql.hazelcast.port.auto.increment`
+|Sets if a Hazelcast member is allowed to find a free port by incrementing the port number when it encounters an occupied port.
+
+|`jnosql.hazelcast.multicast.enable`
+|Enables or disables the multicast discovery mechanism
+
+|`jnosql.hazelcast.tcp.ip.join`
+|Enables or disables the Tcp/Ip join mechanism.
+
+|===
+
+This is an example using Hazelcast's Key-Value API with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.keyvalue.provider=org.eclipse.jnosql.databases.hazelcast.communication.HazelcastKeyValueConfiguration
+jnosql.keyvalue.database=heroes
+----
+
+
+The config settings are the default behavior; nevertheless, there is an option to do it programmatically. Create a class that implements the `Supplier<HazelcastBucketManager>` and then defines it as an `@Alternative` and the `Priority`.
+
+[source,java]
+----
+@ApplicationScoped
+@Alternative
+@Priority(Interceptor.Priority.APPLICATION)
+public class ManagerSupplier implements Supplier<HazelcastBucketManager> {
+
+    @Produces
+    public HazelcastBucketManager get() {
+        Settings settings = Settings.builder().put("credential", "value").build();
+        HazelcastKeyValueConfiguration configuration = new HazelcastKeyValueConfiguration();
+        HazelcastBucketManagerFactory factory = configuration.apply(settings);
+        return factory.apply("database");
+    }
+}
+----
+
+
+==== Template API
+
+The `HazelcastTemplate` interface is a specialization of the `KeyValueTemplate` interface that allows execution of a Hazelcast query.
+
+[source,java]
+----
+Collection<Person> people = template.query("active");
+Collection<Person> people2 = template.query("age = :age", singletonMap("age", 10));
+Collection<Person> people3 = template.query(Predicates.equal("name",  "Poliana"));
+----
+
+==== Repository Support
+
+[source,java]
+----
+@Repository
+interface PersonRepository extends HazelcastRepository<Person, String> {
+
+        @Query("active")
+        List<Person> findActive();
+
+        @Query("name = :name AND age = :age")
+        Set<Person> findByAgeAndInteger(@Param("name") String name, @Param("age") Integer age);
+    }
+----
+
+[[infinispan]]
+=== Infinispan
+
+==== Description
+
+image::https://jnosql.github.io/img/logos/infinispan.svg[Infinista Project,align="center" width=25%,height=25%]
+
+https://infinispan.org/[Infinispan] is a distributed in-memory key/value data store with optional schema, available under the Apache License 2.0.
+
+This driver provides support for the *Key-Value* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-infinispan</artifactId>
+    <version>1.1.17</version>
+</dependency>
+----
+
+==== Configuration
+
+This API provides the `InfinispanConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="Infinispan"]
+|===
+|Configuration property |Description
+
+|`jnosql.infinispan.host`
+|Database's host. It is a prefix to enumerate hosts. E.g.: jnosql.infinispan.host.1=HOST
+
+|`jnosql.infinispan.config`
+|The Infinispan configuration path. E.g.: jnosql.infinispan.config=infinispan.xml
+
+|===
+
+This is an example using Infinispan's Key-Value API with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.keyvalue.provider=org.eclipse.jnosql.databases.infinispan.communication.InfinispanKeyValueConfiguration
+jnosql.keyvalue.database=heroes
+jnosql.infinispan.config=infinispan.xml
+----
+
+[[memcached]]
+=== Memcached
+
+==== Description
+
+image::https://www.jnosql.org/img/logos/memcached.png[Memcached Project,align="center" width=25%,height=25%]
+
+https://memcached.org/[Memcached] is a general-purpose distributed memory caching system.
+It is often used to speed up dynamic database-driven websites by caching data and objects in RAM to reduce the number of times an external data source (such as a database or API) must be read.
+Memcached is free and open-source software, licensed under the Revised BSD license.
+Memcached runs on Unix-like operating systems (at least Linux and OS X) and on Microsoft Windows.
+
+This driver provides support for the *Key-Value* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-memcached</artifactId>
+    <version>1.1.17</version>
+</dependency>
+----
+
+==== Configuration
+
+This API provides the `MemcachedConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="Memcached"]
+|===
+|Configuration property |Description
+
+|`jnosql.memcached.daemon`
+|The daemon state of the IO thread (defaults to true).
+
+|`jnosql.memcached.reconnect.delay`
+|The maximum reconnect delay
+
+|`jnosql.memcached.protocol`
+|The protocol type  net.spy.memcached.ConnectionFactoryBuilder.Protocol
+
+|`jnosql.memcached.locator`
+|The locator type net.spy.memcached.ConnectionFactoryBuilder.Locator
+
+|`jnosql.memcached.auth.wait.time`
+|Custom wait time for the authentication on connect/reconnect.
+
+|`jnosql.memcached.max.block.time`
+|The maximum amount of time (in milliseconds) a client is willing to wait for space to become available in an output queue.
+
+|`jnosql.memcached.timeout`
+|The default operation timeout in milliseconds.
+
+|`jnosql.memcached.read.buffer.size`
+|The read buffer size.
+
+|`jnosql.memcached.should.optimize`
+|The default operation optimization is not desirable.
+
+|`jnosql.memcached.timeout.threshold`
+|The maximum timeout exception threshold.
+
+|`jnosql.memcached.nagle.algorithm`
+|Enable the Nagle algorithm.
+
+|`jnosql.memcached.user`
+|The user's userID
+
+|`jnosql.memcached.password`
+|The user's password.
+
+|`jnosql.memcached.host`
+|Database's host. It is a prefix to enumerate hosts. E.g.: jnosql.memcached.host.1=localhost:11211
+
+|===
+
+This is an example using Memcached's Document API with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.keyvalue.provider=org.eclipse.jnosql.databases.memcached.communication.MemcachedKeyValueConfiguration
+jnosql.keyvalue.database=heroes
+jnosql.memcached.host.1=localhost:11211
+----
+
+[[oracle-nosql-key-value]]
+=== Oracle NoSQL
+
+Oracle NoSQL supports both Key-Value and Document APIs in this project. Its full installation, configuration, examples, Template API, and repository support are documented in the canonical xref:#oracle-nosql-document[Oracle NoSQL Document section].
+
+[[redis]]
+=== Redis
+
+==== Description
+
+image::https://jnosql.github.io/img/logos/redis.png[Redis Project,align="center" width=25%,height=25%]
+
+https://redis.com/[Redis] is a software project that implements data structure servers.
+It is open-source, networked, in-memory, and stores keys with optional durability.
+
+This driver provides support for the *Key-Value* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-redis</artifactId>
+    <version>1.1.17</version>
+</dependency>
+----
+
+==== Configuration
+
+This is an example using Redis's Key-Value API with MicroProfile Config.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[source,properties]
+----
+jnosql.keyvalue.provider=org.eclipse.jnosql.databases.redis.communication.RedisConfiguration
+jnosql.keyvalue.database=heroes
+----
+
+This API provides enum classes to programmatically establish the credentials as:
+
+- xref:#redis-single-node-configuration[`RedisConfigurations`] for single node configuration
++
+[source,properties]
+----
+# Single Node Configuration
+
+# by default the host is localhost
+jnosql.redis.host=localhost
+# by default the port is 6379
+jnosql.redis.port=6379
+# if you have user
+jnosql.redis.user=youruser
+# if you have password
+jnosql.redis.password=yourpassword
+----
+
+- xref:#redis-sentinel-configuration[`RedisSentinelConfigurations`] for sentinel configuration
++
+[source,properties]
+----
+# Sentinel Configuration
+jnosql.redis.sentinel.hosts=host1:26379,host2:26379
+
+jnosql.redis.sentinel.master.name=masterName
+jnosql.redis.sentinel.master.user=masterUser
+jnosql.redis.sentinel.master.password=masterPassword
+#jnosql.redis.sentinel.master.ssl=false
+#jnosql.redis.sentinel.master.timeout=2000
+#jnosql.redis.sentinel.master.connection.timeout=2000
+#jnosql.redis.sentinel.master.socket.timeout=2000
+
+jnosql.redis.sentinel.slave.user=slaveUser
+jnosql.redis.sentinel.slave.password=slavePassword
+#jnosql.redis.sentinel.slave.ssl=false
+#jnosql.redis.sentinel.slave.timeout=2000
+#jnosql.redis.sentinel.slave.connection.timeout=2000
+#jnosql.redis.sentinel.slave.socket.timeout=2000
+----
+
+- xref:#redis-cluster-configuration[`RedisClusterConfigurations`] for cluster configuration
++
+[source,properties]
+----
+# Cluster Configuration
+
+jnosql.redis.cluster.hosts=host1:6379,host2:6379
+jnosql.redis.cluster.user=clusterUser
+jnosql.redis.cluster.password=clusterPassword
+jnosql.redis.cluster.client.name=clusterClientName
+jnosql.redis.cluster.max.attempts=5
+jnosql.redis.cluster.max.total.retries.duration=10000
+#jnosql.redis.cluster.ssl=false
+#jnosql.redis.cluster.timeout=2000
+#jnosql.redis.cluster.connection.timeout=2000
+#jnosql.redis.cluster.socket.timeout=2000
+----
+
+[[redis-single-node-configuration]]
+===== Single Node Configuration
+
+This API provides the `RedisConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,2", options="header"]
+|===
+|Configuration property |Description
+
+|`jnosql.redis.host` |The database host
+|`jnosql.redis.port` |The database port
+|`jnosql.redis.timeout` |The redis timeout, the default value is 2000 milliseconds
+|`jnosql.redis.password` |The password's credential
+|`jnosql.redis.database` |The redis database number
+|`jnosql.redis.client.name` |The cluster client's name. The default value is 0.
+|`jnosql.redis.max.total` |The value for the maxTotal configuration attribute for pools created with this configuration instance. The default value is 1000.
+|`jnosql.redis.max.idle` |The value for the maxIdle configuration attribute for pools created with this configuration instance. The default value is 10.
+|`jnosql.redis.min.idle` |The value for the minIdle configuration attribute for pools created with this configuration instance. The default value is 1.
+|`jnosql.redis.max.wait.millis` |The value for the maxWait configuration attribute for pools created with this configuration instance. The default value is 3000 milliseconds.
+|`jnosql.redis.connection.timeout` |The connection timeout in milliseconds configuration attribute for the jedis client configuration created with this configuration instance.
+|`jnosql.redis.socket.timeout` |The socket timeout in milliseconds configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.redis.user` |The user configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.redis.ssl` |The ssl configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.redis.protocol` |The protocol configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.redis.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.redis.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the jedis client configuration with this configuration instance.
+|===
+
+[[redis-sentinel-configuration]]
+===== Redis Sentinel Configuration
+
+This API provides the `RedisSentinelConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,2", options="header"]
+|===
+|Configuration Property |Description
+
+|`jnosql.redis.sentinel.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.master.name` |The value for the master name configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.master.client.name` |The master client's name, the default value is 0
+|`jnosql.redis.sentinel.slave.client.name` |The slave client's name, the default value is 0
+|`jnosql.redis.sentinel.master.timeout` |The master redis timeout, the default value is 2000 milliseconds
+|`jnosql.redis.sentinel.slave.timeout` |The slave redis timeout, the default value is 2000 milliseconds
+|`jnosql.redis.sentinel.master.connection.timeout` |The connection timeout in milliseconds configuration attribute for the master jedis client configuration created with this configuration instance.
+|`jnosql.redis.sentinel.slave.connection.timeout` |The connection timeout in milliseconds configuration attribute for the slave jedis client configuration created with this configuration instance.
+|`jnosql.redis.sentinel.master.socket.timeout` |The socket timeout in milliseconds configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.slave.socket.timeout` |The socket timeout in milliseconds configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.master.user` |The user configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.slave.user` |The user configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.master.password` |The password configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.slave.password` |The password configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.master.ssl` |The ssl configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.redis.sentinel.slave.ssl` |The ssl configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.redis.sentinel.master.protocol` |The protocol configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.slave.protocol` |The protocol configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.master.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.redis.sentinel.slave.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.redis.sentinel.master.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.redis.sentinel.slave.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the slave jedis client configuration with this configuration instance.
+|===
+
+[[redis-cluster-configuration]]
+===== Redis Cluster Configuration
+
+This API provides the `RedisClusterConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,2", options="header"]
+|===
+|Configuration Property |Description
+
+|`jnosql.redis.cluster.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.redis.cluster.client.name` |The cluster client's name. The default value is 0.
+|`jnosql.redis.cluster.timeout` |The cluster redis timeout, the default value is 2000 milliseconds
+|`jnosql.redis.cluster.connection.timeout` |The connection timeout in milliseconds configuration attribute for the cluster jedis client configuration created with this configuration instance.
+|`jnosql.redis.cluster.socket.timeout` |The socket timeout in milliseconds configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.redis.cluster.user` |The user configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.redis.cluster.password` |The password configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.redis.cluster.ssl` |The ssl configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.redis.cluster.protocol` |The protocol configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.redis.cluster.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.redis.cluster.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.redis.cluster.max.attempts` |The value for the max attempts configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 5.
+|`jnosql.redis.cluster.max.total.retries.duration` |The value for the max total retries configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 10000 milliseconds.
+|===
+
+==== Database-Specific Capabilities
+
+===== `RedisBucketManagerFactory`
+
+The `RedisBucketManagerFactory` is a specialization of the `BucketManagerFactory` that enables ranking and counter feature.
+
+[source,java]
+----
+@Inject
+RedisBucketManagerFactory factory;
+...
+SortedSet game = factory.getSortedSet("game");
+game.add("Otavio", 10);
+game.add("Luiz", 20);
+game.add("Ada", 30);
+game.add(Ranking.of("Poliana", 40));
+
+List<Ranking> ranking = game.getRanking();
+
+Counter home = factory.getCounter("home");
+Counter products = factory.getCounter("products");
+home.increment();
+products.increment();
+products.increment(3L);
+----
+
+Using the same principle of the API you can inject using the `@KeyValueDatabase` qualifier.
+
+[source,java]
+----
+@Inject
+@KeyValueDatabase("counter")
+Counter counter;
+
+@Inject
+@KeyValueDatabase("game")
+SortedSet game;
+----
+
+[[riak]]
+=== Riak
+
+==== Description
+
+image::https://jnosql.github.io/img/logos/riak.png[Riak Project,align="center" width=25%,height=25%]
+
+https://riak.com/[Riak] (pronounced "ree-ack") is a distributed NoSQL key-value data store that offers high availability, fault tolerance, operational simplicity, and scalability.
+In addition to the open-source version, it comes in a supported enterprise version and a cloud storage version.
+
+This driver provides support for the *Key-Value* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-redis</artifactId>
+    <version>1.1.17</version>
+</dependency>
+----
+
+==== Configuration
+
+This API provides the `RiakConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="Riak"]
+|===
+|Configuration property |Description
+
+|`jnosql.riak.host`
+|The database host
+
+|===
+
+This is an example using Riak's Key-Value API with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.keyvalue.provider=org.eclipse.jnosql.databases.riak.communication.RiakKeyValueConfiguration
+jnosql.keyvalue.database=heroes
+----
+
+[[valkey]]
+=== Valkey
+
+==== Description
+
+image::https://jnosql.github.io/img/logos/valkey.png[Valkey Project,align="center" width=25%,height=25%]
+
+https://valkey.io/[Valkey] is a software project that implements data structure servers.
+It is open-source, networked, in-memory, and stores keys with optional durability.
+
+This driver provides support for the *Key-Value* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-valkey</artifactId>
+    <version>1.1.17</version>
+</dependency>
+----
+
+==== Configuration
+
+This is an example using Valkey's Key-Value API with MicroProfile Config.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[source,properties]
+----
+jnosql.keyvalue.provider=org.eclipse.jnosql.databases.valkey.communication.ValkeyConfiguration
+jnosql.keyvalue.database=heroes
+----
+
+This API provides enum classes to programmatically establish the credentials as:
+
+- xref:#valkey-single-node-configuration[`ValkeyConfigurations`] for single node configuration
++
+[source,properties]
+----
+# Single Node Configuration
+
+# by default the host is localhost
+jnosql.valkey.host=localhost
+# by default the port is 6379
+jnosql.valkey.port=6379
+# if you have user
+jnosql.valkey.user=youruser
+# if you have password
+jnosql.valkey.password=yourpassword
+----
+
+- xref:#valkey-sentinel-configuration[`ValkeySentinelConfigurations`] for sentinel configuration
++
+[source,properties]
+----
+# Sentinel Configuration
+jnosql.valkey.sentinel.hosts=host1:26379,host2:26379
+
+jnosql.valkey.sentinel.master.name=masterName
+jnosql.valkey.sentinel.master.user=masterUser
+jnosql.valkey.sentinel.master.password=masterPassword
+#jnosql.valkey.sentinel.master.ssl=false
+#jnosql.valkey.sentinel.master.timeout=2000
+#jnosql.valkey.sentinel.master.connection.timeout=2000
+#jnosql.valkey.sentinel.master.socket.timeout=2000
+
+jnosql.valkey.sentinel.slave.user=slaveUser
+jnosql.valkey.sentinel.slave.password=slavePassword
+#jnosql.valkey.sentinel.slave.ssl=false
+#jnosql.valkey.sentinel.slave.timeout=2000
+#jnosql.valkey.sentinel.slave.connection.timeout=2000
+#jnosql.valkey.sentinel.slave.socket.timeout=2000
+----
+
+- xref:#valkey-cluster-configuration[`ValkeyClusterConfigurations`] for cluster configuration
++
+[source,properties]
+----
+# Cluster Configuration
+
+jnosql.valkey.cluster.hosts=host1:6379,host2:6379
+jnosql.valkey.cluster.user=clusterUser
+jnosql.valkey.cluster.password=clusterPassword
+jnosql.valkey.cluster.client.name=clusterClientName
+jnosql.valkey.cluster.max.attempts=5
+jnosql.valkey.cluster.max.total.retries.duration=10000
+#jnosql.valkey.cluster.ssl=false
+#jnosql.valkey.cluster.timeout=2000
+#jnosql.valkey.cluster.connection.timeout=2000
+#jnosql.valkey.cluster.socket.timeout=2000
+----
+
+[[valkey-single-node-configuration]]
+===== Single Node Configuration
+
+This API provides the `ValkeyConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,2", options="header"]
+|===
+|Configuration property |Description
+
+|`jnosql.valkey.host` |The database host
+|`jnosql.valkey.port` |The database port
+|`jnosql.valkey.timeout` |The redis timeout, the default value is 2000 milliseconds
+|`jnosql.valkey.password` |The password's credential
+|`jnosql.valkey.database` |The redis database number
+|`jnosql.valkey.client.name` |The cluster client's name. The default value is 0.
+|`jnosql.valkey.max.total` |The value for the maxTotal configuration attribute for pools created with this configuration instance. The default value is 1000.
+|`jnosql.valkey.max.idle` |The value for the maxIdle configuration attribute for pools created with this configuration instance. The default value is 10.
+|`jnosql.valkey.min.idle` |The value for the minIdle configuration attribute for pools created with this configuration instance. The default value is 1.
+|`jnosql.valkey.max.wait.millis` |The value for the maxWait configuration attribute for pools created with this configuration instance. The default value is 3000 milliseconds.
+|`jnosql.valkey.connection.timeout` |The connection timeout in milliseconds configuration attribute for the jedis client configuration created with this configuration instance.
+|`jnosql.valkey.socket.timeout` |The socket timeout in milliseconds configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.user` |The user configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.ssl` |The ssl configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.protocol` |The protocol configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the jedis client configuration with this configuration instance.
+|===
+
+[[valkey-sentinel-configuration]]
+===== Valkey Sentinel Configuration
+
+This API provides the `ValkeySentinelConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,2", options="header"]
+|===
+|Configuration Property |Description
+
+|`jnosql.valkey.sentinel.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.name` |The value for the master name configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.client.name` |The master client's name, the default value is 0
+|`jnosql.valkey.sentinel.slave.client.name` |The slave client's name, the default value is 0
+|`jnosql.valkey.sentinel.master.timeout` |The master redis timeout, the default value is 2000 milliseconds
+|`jnosql.valkey.sentinel.slave.timeout` |The slave redis timeout, the default value is 2000 milliseconds
+|`jnosql.valkey.sentinel.master.connection.timeout` |The connection timeout in milliseconds configuration attribute for the master jedis client configuration created with this configuration instance.
+|`jnosql.valkey.sentinel.slave.connection.timeout` |The connection timeout in milliseconds configuration attribute for the slave jedis client configuration created with this configuration instance.
+|`jnosql.valkey.sentinel.master.socket.timeout` |The socket timeout in milliseconds configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.socket.timeout` |The socket timeout in milliseconds configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.user` |The user configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.user` |The user configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.password` |The password configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.password` |The password configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.ssl` |The ssl configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.sentinel.slave.ssl` |The ssl configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.sentinel.master.protocol` |The protocol configuration attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.protocol` |The protocol configuration attribute for the slave jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.master.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.sentinel.slave.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.sentinel.master.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the master jedis client configuration with this configuration instance.
+|`jnosql.valkey.sentinel.slave.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the slave jedis client configuration with this configuration instance.
+|===
+
+[[valkey-cluster-configuration]]
+===== Valkey Cluster Configuration
+
+This API provides the `ValkeyClusterConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,2", options="header"]
+|===
+|Configuration Property |Description
+
+|`jnosql.valkey.cluster.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.client.name` |The cluster client's name. The default value is 0.
+|`jnosql.valkey.cluster.timeout` |The cluster redis timeout, the default value is 2000 milliseconds
+|`jnosql.valkey.cluster.connection.timeout` |The connection timeout in milliseconds configuration attribute for the cluster jedis client configuration created with this configuration instance.
+|`jnosql.valkey.cluster.socket.timeout` |The socket timeout in milliseconds configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.user` |The user configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.password` |The password configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.ssl` |The ssl configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.cluster.protocol` |The protocol configuration attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
+|`jnosql.valkey.cluster.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the cluster jedis client configuration with this configuration instance.
+|`jnosql.valkey.cluster.max.attempts` |The value for the max attempts configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 5.
+|`jnosql.valkey.cluster.max.total.retries.duration` |The value for the max total retries configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 10000 milliseconds.
+|===
+
+==== Database-Specific Capabilities
+
+===== `ValkeyBucketManagerFactory`
+
+The `ValkeyBucketManagerFactory` is a specialization of the `BucketManagerFactory` that enables ranking and counter feature.
+
+[source,java]
+----
+@Inject
+ValkeyBucketManagerFactory factory;
+...
+SortedSet game = factory.getSortedSet("game");
+game.add("Otavio", 10);
+game.add("Luiz", 20);
+game.add("Ada", 30);
+game.add(Ranking.of("Poliana", 40));
+
+List<Ranking> ranking = game.getRanking();
+
+Counter home = factory.getCounter("home");
+Counter products = factory.getCounter("products");
+home.increment();
+products.increment();
+products.increment(3L);
+----
+
+Using the same principle of the API you can inject using the `@KeyValueDatabase` qualifier.
+
+[source,java]
+----
+@Inject
+@KeyValueDatabase("counter")
+Counter counter;
+
+@Inject
+@KeyValueDatabase("game")
+SortedSet game;
+----
+
+[[column-family]]
+== Column Family
+
+Column-family databases store related values in rows grouped into column families. They are designed for distributed, scalable access to structured or sparsely populated records.
+
+Eclipse JNoSQL provides a common Column Family API while allowing each driver to retain database-specific data types and query features.
+
+[[cassandra]]
+=== Cassandra
+
+==== Description
+
+image::https://jnosql.github.io/img/logos/cassandra.png[Apache Cassandra,align="center"width=25%,height=25%]
+
+https://cassandra.apache.org/[Apache Cassandra] is a free and open-source distributed database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure.
+
+This driver provides support for the *Column Family* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-cassandra</artifactId>
+    <version>1.1.17</version>
+</dependency>
+----
+
+==== Configuration
+
+This API provides the `CassandraConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="Cassandra"]
+|===
+|Configuration property |Description
+
+|`jnosql.cassandra.user`
+|The user's userID.
+
+|`jnosql.cassandra.password`
+|The user's password
+
+|`jnosql.cassandra.host`
+|Database's host. It is a prefix to enumerate hosts. E.g.: jnosql.cassandra.host.1=localhost
+
+|`jnosql.cassandra.name`
+|The name of the application using the created session.
+
+|`jnosql.cassandra.port`
+|The cassandra's port
+
+|`jnosql.cassandra.query`
+|The Cassandra CQL to execute when the configuration starts. It uses as a prefix. E.g.: jnosql.cassandra.query.1=<CQL>
+
+|`jnosql.cassandra.data.center`
+|The datacenter that is considered "local" by the load balancing policy.
+|===
+
+This is an example using Cassandra with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.column.provider=org.eclipse.jnosql.databases.cassandra.communication.CassandraConfiguration
+jnosql.column.database=developers
+jnosql.cassandra.query-1=<CQL-QUERY>
+jnosql.cassandra.query.2=<CQL-QUERY-2>
+----
+
+
+The config settings are the default behavior; nevertheless, there is an option to do it programmatically. Create a class that implements the `Supplier<CassandraColumnManager>` and then defines it as an `@Alternative` and the `Priority`.
+
+[source,java]
+----
+@ApplicationScoped
+@Alternative
+@Priority(Interceptor.Priority.APPLICATION)
+public class ManagerSupplier implements Supplier<CassandraColumnManager> {
+
+    @Produces
+    public CassandraColumnManager get() {
+        Settings settings = Settings.builder().put("credential", "value").build();
+        CassandraConfiguration configuration = new CassandraConfiguration();
+        CassandraColumnManagerFactory factory = configuration.apply(settings);
+        return factory.apply("database");
+    }
+}
+----
+
+==== Database-Specific Capabilities
+
+===== UDT at Column Annotation
+
+The `@Column` contains a UDT attribute for mapping annotation that allows defining a field to be stored as a user-defined type in Cassandra.
+
+[source,java]
+----
+@Entity
+public class Person {
+
+    @Id("name")
+    private String name;
+
+    @Column
+    private Integer age;
+
+    @Column(udt="address")
+    private Address home;
+ }
+----
+
+===== Converters
+
+* TimestampConverter: That converts to/from java.util.Date
+* LocalDateConverter: That converts to/from com.datastax.driver.core.LocalDate
+
+[source,java]
+----
+    @Column
+    @Convert(value = TimestampConverter.class)
+    private LocalDateTime localDateTime;
+
+    @Column
+    @Convert(value = LocalDateConverter.class)
+    private Calendar calendar;
+----
+
+==== Template API
+
+The `CassandraTemplate` interface is a specialization of `ColumnTemplate` interface that allows using CQL.
+
+[source,java]
+----
+@Inject
+CassandraTemplate template;
+...
+template.save(person, ConsistencyLevel.ONE);
+----
+
+==== Repository Support
+
+The `CassandraRepository` interface is an extension of the `Repository` interface that allows execution of CQL and Consistency Level via the `@CQL` annotation.
+
+[source,java]
+----
+@Repository
+interface PersonRepository extends CassandraRepository<Person, String> {
+
+    @CQL("select * from Person")
+    List<Person> findAll();
+
+    @CQL("select * from Person where name = ?")
+    List<Person> findByName(String name);
+
+    @CQL("select * from Person where age = :age")
+    List<Person> findByAge(@Param("age") Integer age);
+ }
+----
+
+[[hbase]]
+=== HBase
+
+==== Description
+
+image::https://jnosql.github.io/img/logos/hbase.png[Hbase Project,align="center" width=25%,height=25%]
+
+https://hbase.apache.org/[HBase] is an open source, non-relational, distributed database modeled after Google's BigTable and is written in Java.
+
+This driver provides support for the *Column Family* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-hbase</artifactId>
+    <version>1.1.17</version>
+</dependency>
+----
+
+==== Configuration
+
+This API provides the `HbaseConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="HBase"]
+|===
+|Configuration property |Description
+
+|`jnosql.hbase.family`
+|The Column family prefixes. E.g.: jnosql.hbase.family.1=<FAMILY>
+
+|===
+
+This is an example using HBase's *Column Family* NoSQL API with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.document.provider=org.eclipse.jnosql.databases.hbase.communication.HBaseColumnConfiguration
+jnosql.column.database=heroes
+----
+
+[[document]]
+== Document
+
+Document databases store records as self-contained documents whose fields can be queried and evolved without requiring every record to share an identical structure. Eclipse JNoSQL's Document API provides portable entity mapping and operations, with specialized extensions documented only where a driver supplies them.
+
+[[arangodb]]
+[[arangodb-document]]
+=== ArangoDB
+
+==== Description
 
 image::https://jnosql.github.io/img/logos/ArangoDB.png[Arangodb Project,align="center"width=25%,height=25%]
 
@@ -13,7 +998,7 @@ Build high performance applications using a convenient SQL-like query language o
 This API offers support for **Document** and **Key-Value** types.
 The Graph is possible through Apache TinkerPop.
 
-=== How To Install
+==== How to Install
 
 You can use either the Maven or Gradle dependencies:
 
@@ -26,9 +1011,9 @@ You can use either the Maven or Gradle dependencies:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
-This API provides the ```ArangoDBConfigurations``` class to programmatically establish the credentials.
+This API provides the `ArangoDBConfigurations` class to programmatically establish the credentials.
 Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="Arango Properties"]
@@ -104,66 +1089,9 @@ public class ManagerSupplier implements Supplier<ArangoDBDocumentManager> {
 ----
 
 
-=== Repository
+==== Database-Specific Capabilities
 
-The ```ArangoDBRepository``` interface is an extension of the Repository interface that allows execution of AQL via the ```@AQL``` annotation. Also, it's possible to combine with ```@Param``` annotation to execute parameterized AQL queries:
-
-[source,java]
-----
-@Repository
-interface PersonRepository extends ArangoDBRepository<Person, String> {
-
-    @AQL("FOR p IN Person RETURN p")
-    List<Person> findAll();
-
-    @AQL("FOR p IN Person FILTER p.name = @name RETURN p")
-    List<Person> findByName(@Param("name") String name);
-}
-----
-
-=== @AQL
-
-The ```@AQL``` annotation is a mapping annotation that allows to define dynamic queries following link:https://www.arangodb.com/docs/stable/aql/[ArangoDB Query Languange] on ```ArangoDBRepository```.
-
-[source,java]
-----
-interface CarRepository extends ArangoDBRepository<Car, String> {
-
-        @AQL("FOR c IN Car RETURN c")
-        List<Car> findAll();
-
-}
-----
-
-=== @Param
-
-For parameterized queries, use the ```@Param``` annotation for binding the target argument to the parameter informing the named parameter like the below example:
-
-[source,java]
-----
-
-interface OrderRepository extends ArangoDBRepository<Order, String> {
-
-        @AQL("FOR o IN Order FILTER o.customer = @customer RETURN o")
-        List<Order> findByCustomer(@Param("customer") String customer);
-
-}
-----
-
-
-=== Template
-
-The ```ArangoDBTemplate``` interface is a specialization of the ```DocumentTemplate``` interface that allows using both synchronous and asynchronous AQL.
-
-[source,java]
-----
-@Inject
-private ArangoDBTemplate template;
-...
-List<Person> people = template.aql("FOR p IN Person FILTER p.name = @name RETURN p", params);
-----
-
-=== How @Id Works in ArangoDB
+===== How `@Id` Works in ArangoDB
 
 In ArangoDB, the `_id` field is a read-only, auto-generated value created by the database. It is a combination of the collection name and the `_key` field in the format `<collection-name>/<_key>`. The `_id` is automatically managed by the database, meaning any value set by the client will be ignored.
 
@@ -187,156 +1115,69 @@ public class User {
 In this example, the `_key` field is annotated with `@Id("_key")`, allowing the application to control the `_key` value while the database auto-generates the corresponding `_id` field. This approach is useful for scenarios where you need to set or manage the `_key` value explicitly in your application logic.
 
 
-== Cassandra
+==== Template API
 
-image::https://jnosql.github.io/img/logos/cassandra.png[Apache Cassandra,align="center"width=25%,height=25%]
-
-https://cassandra.apache.org/[Apache Cassandra] is a free and open-source distributed database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure.
-
-=== How To Install
-
-You can use either the Maven or Gradle dependencies:
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-cassandra</artifactId>
-    <version>1.1.17</version>
-</dependency>
-----
-
-=== Configuration
-
-This API provides the ```CassandraConfigurations``` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="Cassandra"]
-|===
-|Configuration property |Description
-
-|`jnosql.cassandra.user`
-|The user's userID.
-
-|`jnosql.cassandra.password`
-|The user's password
-
-|`jnosql.cassandra.host`
-|Database's host. It is a prefix to enumerate hosts. E.g.: jnosql.cassandra.host.1=localhost
-
-|`jnosql.cassandra.name`
-|The name of the application using the created session.
-
-|`jnosql.cassandra.port`
-|The cassandra's port
-
-|`jnosql.cassandra.query`
-|The Cassandra CQL to execute when the configuration starts. It uses as a prefix. E.g.: jnosql.cassandra.query.1=<CQL>
-
-|`jnosql.cassandra.data.center`
-|The datacenter that is considered "local" by the load balancing policy.
-|===
-
-This is an example using Cassandra with MicroProfile Config.
-
-[source,properties]
-----
-jnosql.column.provider=org.eclipse.jnosql.databases.cassandra.communication.CassandraConfiguration
-jnosql.column.database=developers
-jnosql.cassandra.query-1=<CQL-QUERY>
-jnosql.cassandra.query.2=<CQL-QUERY-2>
-----
-
-
-The config settings are the default behavior; nevertheless, there is an option to do it programmatically. Create a class that implements the `Supplier<CassandraColumnManager>` and then defines it as an `@Alternative` and the `Priority`.
-
-[source,java]
-----
-@ApplicationScoped
-@Alternative
-@Priority(Interceptor.Priority.APPLICATION)
-public class ManagerSupplier implements Supplier<CassandraColumnManager> {
-
-    @Produces
-    public CassandraColumnManager get() {
-        Settings settings = Settings.builder().put("credential", "value").build();
-        CassandraConfiguration configuration = new CassandraConfiguration();
-        CassandraColumnManagerFactory factory = configuration.apply(settings);
-        return factory.apply("database");
-    }
-}
-----
-
-=== Repository
-
-The ```CassandraRepository``` interface is an extension of the ```Repository``` interface that allows execution of CQL and Consistency Level via the ```@CQL``` annotation.
-
-[source,java]
-----
-@Repository
-interface PersonRepository extends CassandraRepository<Person, String> {
-
-    @CQL("select * from Person")
-    List<Person> findAll();
-
-    @CQL("select * from Person where name = ?")
-    List<Person> findByName(String name);
-
-    @CQL("select * from Person where age = :age")
-    List<Person> findByAge(@Param("age") Integer age);
- }
-----
-
-
-=== UDT at Column annotation
-
-The ```@Column``` contains a UDT attribute for mapping annotation that allows defining a field to be stored as a user-defined type in Cassandra.
-
-[source,java]
-----
-@Entity
-public class Person {
-
-    @Id("name")
-    private String name;
-
-    @Column
-    private Integer age;
-
-    @Column(udt="address")
-    private Address home;
- }
-----
-
-=== Converts
-
-* TimestampConverter: That converts to/from java.util.Date
-* LocalDateConverter: That converts to/from com.datastax.driver.core.LocalDate
-
-[source,java]
-----
-    @Column
-    @Convert(value = TimestampConverter.class)
-    private LocalDateTime localDateTime;
-
-    @Column
-    @Convert(value = LocalDateConverter.class)
-    private Calendar calendar;
-----
-
-=== Template
-
-The ```CassandraTemplate``` interface is a specialization of ```ColumnTemplate``` interface that allows using CQL.
+The `ArangoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using both synchronous and asynchronous AQL.
 
 [source,java]
 ----
 @Inject
-CassandraTemplate template;
+private ArangoDBTemplate template;
 ...
-template.save(person, ConsistencyLevel.ONE);
+List<Person> people = template.aql("FOR p IN Person FILTER p.name = @name RETURN p", params);
 ----
 
-== Couchbase
+==== Repository Support
+
+The `ArangoDBRepository` interface is an extension of the Repository interface that allows execution of AQL via the `@AQL` annotation. Also, it's possible to combine with `@Param` annotation to execute parameterized AQL queries:
+
+[source,java]
+----
+@Repository
+interface PersonRepository extends ArangoDBRepository<Person, String> {
+
+    @AQL("FOR p IN Person RETURN p")
+    List<Person> findAll();
+
+    @AQL("FOR p IN Person FILTER p.name = @name RETURN p")
+    List<Person> findByName(@Param("name") String name);
+}
+----
+
+===== `@AQL`
+
+The `@AQL` annotation is a mapping annotation that allows to define dynamic queries following link:https://www.arangodb.com/docs/stable/aql/[ArangoDB Query Languange] on `ArangoDBRepository`.
+
+[source,java]
+----
+interface CarRepository extends ArangoDBRepository<Car, String> {
+
+        @AQL("FOR c IN Car RETURN c")
+        List<Car> findAll();
+
+}
+----
+
+===== `@Param`
+
+For parameterized queries, use the `@Param` annotation for binding the target argument to the parameter informing the named parameter like the below example:
+
+[source,java]
+----
+
+interface OrderRepository extends ArangoDBRepository<Order, String> {
+
+        @AQL("FOR o IN Order FILTER o.customer = @customer RETURN o")
+        List<Order> findByCustomer(@Param("customer") String customer);
+
+}
+----
+
+[[couchbase]]
+[[couchbase-document]]
+=== Couchbase
+
+==== Description
 
 image::https://jnosql.github.io/img/logos/couchbase.svg[Couchbase Project,align="center"width=25%,height=25%]
 
@@ -344,7 +1185,7 @@ The https://www.couchbase.com/[Couchbase] driver provides an API integration bet
 
 This driver has support for two NoSQL API types: *Document* and *Key-Value*.
 
-=== How To Install
+==== How to Install
 
 You can use either the Maven or Gradle dependencies:
 
@@ -357,9 +1198,9 @@ You can use either the Maven or Gradle dependencies:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
-This API provides the ```CouchbaseConfigurations``` class to programmatically establish the credentials.
+This API provides the `CouchbaseConfigurations` class to programmatically establish the credentials.
 Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="Couchbase"]
@@ -432,9 +1273,18 @@ public class ManagerSupplier implements Supplier<CouchbaseDocumentManager> {
 }
 ----
 
-=== Repository
+==== Template API
 
-The ```CouchbaseRepository``` interface is an extension of the ```Repository``` interface that allows execution of N1QL via the ```@N1QL``` annotation.
+The `CouchbaseTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using N1QL on both synchronous and asynchronous.
+
+[source,java]
+----
+List<Person> people = template.n1qlQuery("select * from Person where name = $name", params);
+----
+
+==== Repository Support
+
+The `CouchbaseRepository` interface is an extension of the `Repository` interface that allows execution of N1QL via the `@N1QL` annotation.
 
 
 [source,java]
@@ -451,17 +1301,10 @@ List<Person> findByName(@Param("name") String name);
 }
 ----
 
+[[couchdb]]
+=== CouchDB
 
-=== Template
-
-The ```CouchbaseTemplate``` interface is a specialization of the ```DocumentTemplate``` interface that allows using N1QL on both synchronous and asynchronous.
-
-[source,java]
-----
-List<Person> people = template.n1qlQuery("select * from Person where name = $name", params);
-----
-
-== CouchDB
+==== Description
 
 image::https://www.jnosql.org/img/logos/couchdb.png[CouchDB,align="center"width=25%,height=25%]
 
@@ -469,7 +1312,7 @@ The https://couchdb.apache.org/[CouchDB] driver provides an API integration betw
 
 This driver provides support for the *Document* NoSQL API.
 
-=== How To Install
+==== How to Install
 
 You can use either the Maven or Gradle dependencies:
 
@@ -482,9 +1325,9 @@ You can use either the Maven or Gradle dependencies:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
-This API provides the ```CouchDBConfigurations``` class to programmatically establish the credentials.
+This API provides the `CouchDBConfigurations` class to programmatically establish the credentials.
 Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="CouchDB"]
@@ -540,7 +1383,11 @@ jnosql.couchdb.username=admin
 jnosql.couchdb.password=password
 ----
 
-== DynamoDB
+[[dynamodb]]
+[[dynamodb-document]]
+=== DynamoDB
+
+==== Description
 
 image::https://user-images.githubusercontent.com/6509926/70553550-f033b980-1b40-11ea-9192-759b3b1053b3.png[Redis Project,align="center" width=50%,height=50%]
 
@@ -548,7 +1395,7 @@ https://aws.amazon.com/dynamodb/[Amazon DynamoDB] is a fully managed, serverless
 
 This driver has support for two NoSQL API types: *Key-Value* and *Document*.
 
-=== How To Install
+==== How to Install
 
 You can use either the Maven or Gradle dependencies:
 
@@ -561,9 +1408,9 @@ You can use either the Maven or Gradle dependencies:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
-This API provides the ```DynamoDBConfigurations``` class to programmatically establish the credentials.
+This API provides the `DynamoDBConfigurations` class to programmatically establish the credentials.
 
 Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
@@ -588,7 +1435,7 @@ Please note that you can establish properties using the https://microprofile.io/
 
 |===
 
-=== Using the Key-value API
+===== Using the Key-Value API
 
 This is an example using DynamoDB's Key-Value API with MicroProfile Config.
 
@@ -598,7 +1445,7 @@ jnosql.keyvalue.provider=org.eclipse.jnosql.databases.dynamodb.communication.Dyn
 jnosql.keyvalue.database=heroes
 ----
 
-=== Using the Document API
+===== Using the Document API
 
 Here's an example using DynamoDB's Document API with MicroProfile Config.
 
@@ -628,44 +1475,9 @@ public class ManagerSupplier implements Supplier<DynamoDBDocumentManager> {
 ----
 
 
-=== Repository
+==== Database-Specific Capabilities
 
-The `DynamoDBRepository` interface is an extension of the `Repository` interface that allows execution of PartiQL via the `@PartiQL` annotation.
-
-WARNING: DynamoDB supports a limited subset of
-https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
-
-NOTE: This implementation doesn't provide pagination on the queries.
-
-[source,java]
-----
-@Repository
-interface PersonRepository extends DynamoDBRepository<Person, String> {
-
-@PartiQL("select * from Person")
-List<Person> findAll();
-
-@PartiQL("select * from Person where name = ?")
-List<Person> findByName(@Param("") String name);
-
-}
-----
-
-=== Template
-
-The `DynamoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using PartiQL queries.
-
-WARNING: DynamoDB supports a limited subset of
-https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
-
-NOTE: This implementation doesn't provide pagination on the queries.
-
-[source,java]
-----
-List<Person> people = template.partiQL("select * from Person where name = ? ", Person.class, params);
-----
-
-==== Creating the tables on-the-fly
+===== Creating the Tables On the Fly
 
 [IMPORTANT]
 ====
@@ -700,7 +1512,47 @@ Please note that you can establish properties using the https://microprofile.io/
 
 |===
 
-== Elasticsearch
+==== Template API
+
+The `DynamoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using PartiQL queries.
+
+WARNING: DynamoDB supports a limited subset of
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
+
+NOTE: This implementation doesn't provide pagination on the queries.
+
+[source,java]
+----
+List<Person> people = template.partiQL("select * from Person where name = ? ", Person.class, params);
+----
+
+==== Repository Support
+
+The `DynamoDBRepository` interface is an extension of the `Repository` interface that allows execution of PartiQL via the `@PartiQL` annotation.
+
+WARNING: DynamoDB supports a limited subset of
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
+
+NOTE: This implementation doesn't provide pagination on the queries.
+
+[source,java]
+----
+@Repository
+interface PersonRepository extends DynamoDBRepository<Person, String> {
+
+@PartiQL("select * from Person")
+List<Person> findAll();
+
+@PartiQL("select * from Person where name = ?")
+List<Person> findByName(@Param("") String name);
+
+}
+----
+
+[[elasticsearch]]
+=== Elasticsearch
+
+==== Description
 
 image::https://jnosql.github.io/img/logos/elastic.svg[Elasticsearch Project,align="center"width=25%,height=25%]
 
@@ -711,7 +1563,7 @@ Elasticsearch is the most popular enterprise search engine followed by Apache So
 
 This driver provides support for the *Document* NoSQL API.
 
-=== How To Install
+==== How to Install
 
 You can use either the Maven or Gradle dependencies:
 
@@ -724,9 +1576,9 @@ You can use either the Maven or Gradle dependencies:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
-This API provides the ```ElasticsearchConfigurations``` class to programmatically establish the credentials.
+This API provides the `ElasticsearchConfigurations` class to programmatically establish the credentials.
 Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="Elasticsearch"]
@@ -773,9 +1625,9 @@ public class ManagerSupplier implements Supplier<ElasticsearchDocumentManager> {
 ----
 
 
-=== Template
+==== Template API
 
-The ```ElasticsearchTemplate``` interface is a specialization of the ```DocumentTemplate``` interface that allows using a search engine on both synchronous and asynchronous.
+The `ElasticsearchTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using a search engine on both synchronous and asynchronous.
 
 [source,java]
 ----
@@ -787,463 +1639,10 @@ QueryBuilder queryBuilder = boolQuery().filter(termQuery("name", "Ada"));
 List<Person> people = template.search(queryBuilder, "Person");
 ----
 
-== Hazelcast
+[[mongodb]]
+=== MongoDB
 
-image::https://jnosql.github.io/img/logos/hazelcast.svg[Hazelcast Project,align="center" width=25%,height=25%]
-
-https://hazelcast.com/[Hazelcast] is an open source in-memory data grid based on Java.
-
-This driver provides support for the *Key-Value* NoSQL API.
-
-=== How To Install
-
-You can use either the Maven or Gradle dependencies:
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-hazelcast</artifactId>
-    <version>1.1.17</version>
-</dependency>
-----
-
-=== Configuration
-
-This API provides the ```HazelcastConfigurations``` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="Hazelcast"]
-|===
-|Configuration property |Description
-
-|`jnosql.hazelcast.instance.name`
-|The instance name uniquely identifying the hazelcast instance created by this configuration. This name is used in different scenarios, such as identifying the hazelcast instance when running multiple instances in the same JVM.
-
-|`jnosql.hazelcast.host`
-|Database's host. It is a prefix to enumerate hosts. E.g.: jnosql.hazelcast.host.1=localhost
-
-|`jnosql.hazelcast.port`
-|The database port
-
-|`jnosql.hazelcast.port.count`
-|The maximum number of ports allowed to use.
-
-|`jnosql.hazelcast.port.auto.increment`
-|Sets if a Hazelcast member is allowed to find a free port by incrementing the port number when it encounters an occupied port.
-
-|`jnosql.hazelcast.multicast.enable`
-|Enables or disables the multicast discovery mechanism
-
-|`jnosql.hazelcast.tcp.ip.join`
-|Enables or disables the Tcp/Ip join mechanism.
-
-|===
-
-This is an example using Hazelcast's Key-Value API with MicroProfile Config.
-
-[source,properties]
-----
-jnosql.keyvalue.provider=org.eclipse.jnosql.databases.hazelcast.communication.HazelcastKeyValueConfiguration
-jnosql.keyvalue.database=heroes
-----
-
-
-The config settings are the default behavior; nevertheless, there is an option to do it programmatically. Create a class that implements the `Supplier<HazelcastBucketManager>` and then defines it as an `@Alternative` and the `Priority`.
-
-[source,java]
-----
-@ApplicationScoped
-@Alternative
-@Priority(Interceptor.Priority.APPLICATION)
-public class ManagerSupplier implements Supplier<HazelcastBucketManager> {
-
-    @Produces
-    public HazelcastBucketManager get() {
-        Settings settings = Settings.builder().put("credential", "value").build();
-        HazelcastKeyValueConfiguration configuration = new HazelcastKeyValueConfiguration();
-        HazelcastBucketManagerFactory factory = configuration.apply(settings);
-        return factory.apply("database");
-    }
-}
-----
-
-
-=== Repository
-
-[source,java]
-----
-@Repository
-interface PersonRepository extends HazelcastRepository<Person, String> {
-
-        @Query("active")
-        List<Person> findActive();
-
-        @Query("name = :name AND age = :age")
-        Set<Person> findByAgeAndInteger(@Param("name") String name, @Param("age") Integer age);
-    }
-----
-
-=== Template
-
-The ```HazelcastTemplate``` interface is a specialization of the ```KeyValueTemplate``` interface that allows execution of a Hazelcast query.
-
-[source,java]
-----
-Collection<Person> people = template.query("active");
-Collection<Person> people2 = template.query("age = :age", singletonMap("age", 10));
-Collection<Person> people3 = template.query(Predicates.equal("name",  "Poliana"));
-----
-
-== HBase
-
-image::https://jnosql.github.io/img/logos/hbase.png[Hbase Project,align="center" width=25%,height=25%]
-
-https://hbase.apache.org/[HBase] is an open source, non-relational, distributed database modeled after Google's BigTable and is written in Java.
-
-This driver provides support for the *Column Family* NoSQL API.
-
-=== How To Install
-
-You can use either the Maven or Gradle dependencies:
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-hbase</artifactId>
-    <version>1.1.17</version>
-</dependency>
-----
-
-=== Configuration
-
-This API provides the ```HbaseConfigurations``` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="HBase"]
-|===
-|Configuration property |Description
-
-|`jnosql.hbase.family`
-|The Column family prefixes. E.g.: jnosql.hbase.family.1=<FAMILY>
-
-|===
-
-This is an example using HBase's *Column Family* NoSQL API with MicroProfile Config.
-
-[source,properties]
-----
-jnosql.document.provider=org.eclipse.jnosql.databases.hbase.communication.HBaseColumnConfiguration
-jnosql.column.database=heroes
-----
-
-== Infinispan
-
-image::https://jnosql.github.io/img/logos/infinispan.svg[Infinista Project,align="center" width=25%,height=25%]
-
-https://infinispan.org/[Infinispan] is a distributed in-memory key/value data store with optional schema, available under the Apache License 2.0.
-
-This driver provides support for the *Key-Value* NoSQL API.
-
-=== How To Install
-
-You can use either the Maven or Gradle dependencies:
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-infinispan</artifactId>
-    <version>1.1.17</version>
-</dependency>
-----
-
-=== Configuration
-
-This API provides the ```InfinispanConfigurations``` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="Infinispan"]
-|===
-|Configuration property |Description
-
-|`jnosql.infinispan.host`
-|Database's host. It is a prefix to enumerate hosts. E.g.: jnosql.infinispan.host.1=HOST
-
-|`jnosql.infinispan.config`
-|The Infinispan configuration path. E.g.: jnosql.infinispan.config=infinispan.xml
-
-|===
-
-This is an example using Infinispan's Key-Value API with MicroProfile Config.
-
-[source,properties]
-----
-jnosql.keyvalue.provider=org.eclipse.jnosql.databases.infinispan.communication.InfinispanKeyValueConfiguration
-jnosql.keyvalue.database=heroes
-jnosql.infinispan.config=infinispan.xml
-----
-
-== InfluxDB
-
-https://www.influxdata.com/[InfluxDB] is a time-series database optimized for timestamped metrics, events, monitoring, and IoT data.
-
-The Eclipse JNoSQL InfluxDB driver connects the *Time Series* Mapping API to InfluxDB 3. Applications can use `TimeSeriesTemplate` and Jakarta Data repositories while keeping InfluxDB connection and data-model details in the driver.
-
-=== How To Install
-
-Add the driver to the application. It already includes the JNoSQL Time Series Mapping API:
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-influxdb</artifactId>
-  <version>1.1.17</version>
-</dependency>
-----
-
-The driver uses the official InfluxDB 3 Java client and translates JNoSQL queries to parameterized SQL.
-
-=== Configuration
-
-Create an InfluxDB 3 database and a database token with read and write access.
-
-This API provides the `InfluxDBTimeSeriesConfigurations` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="InfluxDB"]
-|===
-|Configuration property |Description
-
-|`jnosql.influxdb.url`
-|Base URL of the InfluxDB 3 server, such as `http://localhost:8181`.
-
-|`jnosql.influxdb.token`
-|Database token used for reads and writes.
-
-|===
-
-This is an example using InfluxDB's Time Series API with MicroProfile Config.
-
-[source,properties]
-----
-jnosql.timeseries.provider=org.eclipse.jnosql.databases.influxdb.communication.InfluxDBTimeSeriesConfiguration
-jnosql.timeseries.database=metrics
-jnosql.influxdb.url=http://localhost:8181
-jnosql.influxdb.token=${INFLUXDB_TOKEN}
-----
-
-== Apache IoTDB
-
-https://iotdb.apache.org/[Apache IoTDB] is a time-series database designed for IoT data management and analysis.
-
-The Eclipse JNoSQL IoTDB driver connects the *Time Series* Mapping API to IoTDB's native Table Model API without
-vendor-specific entity annotations.
-
-=== How To Install
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-iotdb</artifactId>
-  <version>1.1.17</version>
-</dependency>
-----
-
-The driver uses the official `org.apache.iotdb:iotdb-session:2.0.11` client and requires Java 21 or newer.
-
-=== Configuration
-
-Create the IoTDB database before starting the application. Tables and columns are created automatically during native
-tablet ingestion when the server's `enable_auto_create_schema` setting is enabled.
-
-This API provides the `IoTDBTimeSeriesConfigurations` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="Apache IoTDB"]
-|===
-|Configuration property |Default |Description
-
-|`jnosql.iotdb.host`
-|`localhost`
-|IoTDB DataNode host.
-
-|`jnosql.iotdb.port`
-|`6667`
-|IoTDB native RPC port.
-
-|`jnosql.iotdb.username`
-|`root`
-|IoTDB user.
-
-|`jnosql.iotdb.password`
-|`root`
-|IoTDB password.
-
-|`jnosql.iotdb.pool.size`
-|`5`
-|Maximum native Table Model session-pool size.
-
-|`jnosql.iotdb.query.timeout`
-|`60000`
-|Query timeout in milliseconds.
-
-|`jnosql.iotdb.enable.redirection`
-|`true`
-|Enables client redirection for an IoTDB cluster. Container-based tests disable it because the advertised internal
-address is not reachable through the mapped host port.
-
-|===
-
-This is an example using Apache IoTDB's Time Series API with MicroProfile Config.
-
-[source,properties]
-----
-jnosql.timeseries.provider=org.eclipse.jnosql.databases.iotdb.communication.IoTDBTimeSeriesConfiguration
-jnosql.timeseries.database=metrics
-jnosql.iotdb.host=localhost
-jnosql.iotdb.port=6667
-jnosql.iotdb.username=root
-jnosql.iotdb.password=root
-----
-
-== QuestDB
-
-https://questdb.com/[QuestDB] is a high-performance time-series database with native ingestion and SQL querying.
-
-The Eclipse JNoSQL QuestDB driver uses the standard Time Series Mapping API and does not require vendor-specific annotations.
-
-=== How To Install
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-questdb</artifactId>
-  <version>1.1.17</version>
-</dependency>
-----
-
-The driver uses only QuestDB's official Java client. Both ingestion and SQL queries run over QWP; no PostgreSQL or
-JDBC driver is required.
-
-=== Configuration
-
-QuestDB has one logical database per server. `jnosql.timeseries.database` is retained as the JNoSQL manager name, while
-each entity name maps to a QuestDB table.
-
-This API provides the `QuestDBTimeSeriesConfigurations` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="QuestDB"]
-|===
-|Configuration property |Description
-
-|`jnosql.questdb.url`
-|QuestDB Java client connection string. Use `ws::` or `wss::` for QWP and include authentication options in the
-connection string when required.
-
-|===
-
-This is an example using QuestDB's Time Series API with MicroProfile Config.
-
-[source,properties]
-----
-jnosql.timeseries.provider=org.eclipse.jnosql.databases.questdb.communication.QuestDBTimeSeriesConfiguration
-jnosql.timeseries.database=qdb
-jnosql.questdb.url=ws::addr=localhost:9000;
-----
-
-== Memcached
-
-image::https://www.jnosql.org/img/logos/memcached.png[Memcached Project,align="center" width=25%,height=25%]
-
-https://memcached.org/[Memcached] is a general-purpose distributed memory caching system.
-It is often used to speed up dynamic database-driven websites by caching data and objects in RAM to reduce the number of times an external data source (such as a database or API) must be read.
-Memcached is free and open-source software, licensed under the Revised BSD license.
-Memcached runs on Unix-like operating systems (at least Linux and OS X) and on Microsoft Windows.
-
-This driver provides support for the *Key-Value* NoSQL API.
-
-=== How To Install
-
-You can use either the Maven or Gradle dependencies:
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-memcached</artifactId>
-    <version>1.1.17</version>
-</dependency>
-----
-
-=== Configuration
-
-This API provides the ```MemcachedConfigurations``` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="Memcached"]
-|===
-|Configuration property |Description
-
-|`jnosql.memcached.daemon`
-|The daemon state of the IO thread (defaults to true).
-
-|`jnosql.memcached.reconnect.delay`
-|The maximum reconnect delay
-
-|`jnosql.memcached.protocol`
-|The protocol type  net.spy.memcached.ConnectionFactoryBuilder.Protocol
-
-|`jnosql.memcached.locator`
-|The locator type net.spy.memcached.ConnectionFactoryBuilder.Locator
-
-|`jnosql.memcached.auth.wait.time`
-|Custom wait time for the authentication on connect/reconnect.
-
-|`jnosql.memcached.max.block.time`
-|The maximum amount of time (in milliseconds) a client is willing to wait for space to become available in an output queue.
-
-|`jnosql.memcached.timeout`
-|The default operation timeout in milliseconds.
-
-|`jnosql.memcached.read.buffer.size`
-|The read buffer size.
-
-|`jnosql.memcached.should.optimize`
-|The default operation optimization is not desirable.
-
-|`jnosql.memcached.timeout.threshold`
-|The maximum timeout exception threshold.
-
-|`jnosql.memcached.nagle.algorithm`
-|Enable the Nagle algorithm.
-
-|`jnosql.memcached.user`
-|The user's userID
-
-|`jnosql.memcached.password`
-|The user's password.
-
-|`jnosql.memcached.host`
-|Database's host. It is a prefix to enumerate hosts. E.g.: jnosql.memcached.host.1=localhost:11211
-
-|===
-
-This is an example using Memcached's Document API with MicroProfile Config.
-
-[source,properties]
-----
-jnosql.keyvalue.provider=org.eclipse.jnosql.databases.memcached.communication.MemcachedKeyValueConfiguration
-jnosql.keyvalue.database=heroes
-jnosql.memcached.host.1=localhost:11211
-----
-
-== MongoDB
+==== Description
 
 image::https://jnosql.github.io/img/logos/mongodb.png[MongoDB Project,align="center" width=25%,height=25%]
 
@@ -1252,7 +1651,7 @@ Classified as a NoSQL database program, MongoDB uses JSON-like documents with sc
 
 This driver provides support for the *Document* NoSQL API.
 
-=== How To Install
+==== How to Install
 
 You can use either the Maven or Gradle dependencies:
 
@@ -1265,9 +1664,9 @@ You can use either the Maven or Gradle dependencies:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
-This API provides the ```MongoDBDocumentConfigurations``` class to programmatically establish the credentials.
+This API provides the `MongoDBDocumentConfigurations` class to programmatically establish the credentials.
 Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="MongoDB"]
@@ -1326,9 +1725,11 @@ public class ManagerSupplier implements Supplier<MongoDBDocumentManager> {
 ----
 
 
-=== Converter
+==== Database-Specific Capabilities
 
-In this extension, you have the option to convert to/from the MongoDB ```ObjectID```.
+===== `ObjectID` Converter
+
+In this extension, you have the option to convert to/from the MongoDB `ObjectID`.
 
 [source,java]
 ----
@@ -1342,9 +1743,9 @@ public class Music {
 }
 ----
 
-=== Template
+==== Template API
 
-The ```MongoDBTemplate``` interface is a specialization of the ```DocumentTemplate``` interface that allows MongoDB particular behavior such as delete and select elements using a `Bson` implementation and aggreate query.
+The `MongoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows MongoDB particular behavior such as delete and select elements using a `Bson` implementation and aggreate query.
 
 
 [source,java]
@@ -1357,7 +1758,11 @@ Bson filter = eq("name", "Poliana");
 Stream<Person> stream = template.select(Person.class , filter);
 ----
 
-== Oracle NoSQL
+[[oracle-nosql]]
+[[oracle-nosql-document]]
+=== Oracle NoSQL
+
+==== Description
 
 image::https://www.jnosql.org/img/logos/oracle.png[Oracle NoSQL Project,align="center"width=25%,height=25%]
 
@@ -1365,7 +1770,7 @@ https://www.oracle.com/database/nosql/technologies/nosql/[Oracle NoSQL Database]
 
 This API provides support for *Document* and *Key-Value* data types.
 
-=== Installation
+==== How to Install
 
 You can include Oracle NoSQL as a dependency using either Maven or Gradle:
 
@@ -1378,7 +1783,7 @@ You can include Oracle NoSQL as a dependency using either Maven or Gradle:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
 The API offers the `OracleNoSQLConfigurations` class to programmatically set up credentials. It also supports configuration via the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
@@ -1471,7 +1876,20 @@ public class ManagerSupplier implements Supplier<OracleNoSQLDocumentManager> {
 ----
 
 
-=== Repository
+==== Template API
+
+The `OracleNoSQLTemplate` interface, an extension of the `DocumentTemplate`, enables synchronous SQL operations.
+
+[source,java]
+----
+@Inject
+private OracleNoSQLTemplate template;
+...
+List<Person> people = template.sql("select * from people where people.content.name =?", "Ada");
+----
+
+
+==== Repository Support
 
 The `OracleNoSQLRepository` interface extends the Repository interface and allows executing SQL queries using the `@SQL` annotation. You can also combine it with the `@Param` annotation for parameterized SQL queries:
 
@@ -1488,21 +1906,10 @@ interface PersonRepository extends OracleNoSQLRepository<Person, String> {
 }
 ----
 
+[[orientdb]]
+=== OrientDB
 
-=== Template
-
-The `OracleNoSQLTemplate` interface, an extension of the `DocumentTemplate`, enables synchronous SQL operations.
-
-[source,java]
-----
-@Inject
-private OracleNoSQLTemplate template;
-...
-List<Person> people = template.sql("select * from people where people.content.name =?", "Ada");
-----
-
-
-== OrientDB
+==== Description
 
 image::https://jnosql.github.io/img/logos/orientdb.png[Orient Project,align="center" width=25%,height=25%]
 
@@ -1513,7 +1920,7 @@ It has a strong security profiling system based on users and roles and supports 
 
 This driver provides support for the *Document* NoSQL API.
 
-=== How To Install
+==== How to Install
 
 You can use either the Maven or Gradle dependencies:
 
@@ -1526,9 +1933,9 @@ You can use either the Maven or Gradle dependencies:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
-This API provides the ```OrientDBDocumentConfigurations``` class to programmatically establish the credentials.
+This API provides the `OrientDBDocumentConfigurations` class to programmatically establish the credentials.
 Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="OrientDB"]
@@ -1581,9 +1988,23 @@ public class ManagerSupplier implements Supplier<OrientDBDocumentManager> {
 }
 ----
 
-=== Repository
+==== Template API
 
-The ```OrientDBCrudRepository``` interface  is an extension of the ```Repository``` interface that allows execution of a SQL Query via the ```@SQL``` annotation.
+The `OrientDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows execution of a SQL query and live query on both synchronous and asynchronous.
+
+[source,java]
+----
+@Inject
+OrientDBTemplate template;
+...
+
+Stream<Person> stream = template.sql("select * from Person where name = ?", "Ada");
+template.live("select from Person where name = ?", callBack, "Ada");
+----
+
+==== Repository Support
+
+The `OrientDBCrudRepository` interface  is an extension of the `Repository` interface that allows execution of a SQL Query via the `@SQL` annotation.
 
 [source,java]
 ----
@@ -1601,21 +2022,10 @@ The ```OrientDBCrudRepository``` interface  is an extension of the ```Repository
     }
 ----
 
-=== Template
+[[ravendb]]
+=== RavenDB
 
-The ```OrientDBTemplate``` interface is a specialization of the ```DocumentTemplate``` interface that allows execution of a SQL query and live query on both synchronous and asynchronous.
-
-[source,java]
-----
-@Inject
-OrientDBTemplate template;
-...
-
-Stream<Person> stream = template.sql("select * from Person where name = ?", "Ada");
-template.live("select from Person where name = ?", callBack, "Ada");
-----
-
-== RavenDB
+==== Description
 
 image::https://www.jnosql.org/img/logos/ravendb.png[RavenDB Project,align="center",align="center" width=50%,height=50%]
 
@@ -1624,7 +2034,7 @@ Easy to use, rapidly scalable, offers high availability, and takes your Business
 
 This driver provides support for the *Document* NoSQL API.
 
-=== How To Install
+==== How to Install
 
 You can use either the Maven or Gradle dependencies:
 
@@ -1637,9 +2047,9 @@ You can use either the Maven or Gradle dependencies:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
-This API provides the ```RavenDBConfigurations``` class to programmatically establish the credentials.
+This API provides the `RavenDBConfigurations` class to programmatically establish the credentials.
 Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="RavenDB"]
@@ -1659,481 +2069,10 @@ jnosql.document.provider=org.eclipse.jnosql.databases.ravendb.communication.Rave
 jnosql.document.database=heroes
 ----
 
+[[solr]]
+=== Solr
 
-== Redis
-
-image::https://jnosql.github.io/img/logos/redis.png[Redis Project,align="center" width=25%,height=25%]
-
-https://redis.com/[Redis] is a software project that implements data structure servers.
-It is open-source, networked, in-memory, and stores keys with optional durability.
-
-This driver provides support for the *Key-Value* NoSQL API.
-
-=== How To Install
-
-You can use either the Maven or Gradle dependencies:
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-redis</artifactId>
-    <version>1.1.17</version>
-</dependency>
-----
-
-=== Configuration
-
-This is an example using Redis's Key-Value API with MicroProfile Config.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[source,properties]
-----
-jnosql.keyvalue.provider=org.eclipse.jnosql.databases.redis.communication.RedisConfiguration
-jnosql.keyvalue.database=heroes
-----
-
-This API provides enum classes to programmatically establish the credentials as:
-
-- link:README.adoc#_single_node_configuration[`RedisConfigurations`] for single node configuration
-+
-[source,properties]
-----
-# Single Node Configuration
-
-# by default the host is localhost
-jnosql.redis.host=localhost
-# by default the port is 6379
-jnosql.redis.port=6379
-# if you have user
-jnosql.redis.user=youruser
-# if you have password
-jnosql.redis.password=yourpassword
-----
-
-- link:README.adoc#_redis_sentinel_configuration[`RedisSentinelConfigurations`] for sentinel configuration
-+
-[source,properties]
-----
-# Sentinel Configuration
-jnosql.redis.sentinel.hosts=host1:26379,host2:26379
-
-jnosql.redis.sentinel.master.name=masterName
-jnosql.redis.sentinel.master.user=masterUser
-jnosql.redis.sentinel.master.password=masterPassword
-#jnosql.redis.sentinel.master.ssl=false
-#jnosql.redis.sentinel.master.timeout=2000
-#jnosql.redis.sentinel.master.connection.timeout=2000
-#jnosql.redis.sentinel.master.socket.timeout=2000
-
-jnosql.redis.sentinel.slave.user=slaveUser
-jnosql.redis.sentinel.slave.password=slavePassword
-#jnosql.redis.sentinel.slave.ssl=false
-#jnosql.redis.sentinel.slave.timeout=2000
-#jnosql.redis.sentinel.slave.connection.timeout=2000
-#jnosql.redis.sentinel.slave.socket.timeout=2000
-----
-
-- link:README.adoc#_redis_sentinel_configuration[`RedisClusterConfigurations`] for cluster configuration
-+
-[source,properties]
-----
-# Cluster Configuration
-
-jnosql.redis.cluster.hosts=host1:6379,host2:6379
-jnosql.redis.cluster.user=clusterUser
-jnosql.redis.cluster.password=clusterPassword
-jnosql.redis.cluster.client.name=clusterClientName
-jnosql.redis.cluster.max.attempts=5
-jnosql.redis.cluster.max.total.retries.duration=10000
-#jnosql.redis.cluster.ssl=false
-#jnosql.redis.cluster.timeout=2000
-#jnosql.redis.cluster.connection.timeout=2000
-#jnosql.redis.cluster.socket.timeout=2000
-----
-
-==== Single Node Configuration
-
-This API provides the `RedisConfigurations` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="2,2", options="header"]
-|===
-|Configuration property |Description
-
-|`jnosql.redis.host` |The database host
-|`jnosql.redis.port` |The database port
-|`jnosql.redis.timeout` |The redis timeout, the default value is 2000 milliseconds
-|`jnosql.redis.password` |The password's credential
-|`jnosql.redis.database` |The redis database number
-|`jnosql.redis.client.name` |The cluster client's name. The default value is 0.
-|`jnosql.redis.max.total` |The value for the maxTotal configuration attribute for pools created with this configuration instance. The default value is 1000.
-|`jnosql.redis.max.idle` |The value for the maxIdle configuration attribute for pools created with this configuration instance. The default value is 10.
-|`jnosql.redis.min.idle` |The value for the minIdle configuration attribute for pools created with this configuration instance. The default value is 1.
-|`jnosql.redis.max.wait.millis` |The value for the maxWait configuration attribute for pools created with this configuration instance. The default value is 3000 milliseconds.
-|`jnosql.redis.connection.timeout` |The connection timeout in milliseconds configuration attribute for the jedis client configuration created with this configuration instance.
-|`jnosql.redis.socket.timeout` |The socket timeout in milliseconds configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.redis.user` |The user configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.redis.ssl` |The ssl configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.redis.protocol` |The protocol configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.redis.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.redis.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the jedis client configuration with this configuration instance.
-|===
-
-==== Redis Sentinel Configuration
-
-This API provides the `RedisSentinelConfigurations` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="2,2", options="header"]
-|===
-|Configuration Property |Description
-
-|`jnosql.redis.sentinel.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.master.name` |The value for the master name configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.master.client.name` |The master client's name, the default value is 0
-|`jnosql.redis.sentinel.slave.client.name` |The slave client's name, the default value is 0
-|`jnosql.redis.sentinel.master.timeout` |The master redis timeout, the default value is 2000 milliseconds
-|`jnosql.redis.sentinel.slave.timeout` |The slave redis timeout, the default value is 2000 milliseconds
-|`jnosql.redis.sentinel.master.connection.timeout` |The connection timeout in milliseconds configuration attribute for the master jedis client configuration created with this configuration instance.
-|`jnosql.redis.sentinel.slave.connection.timeout` |The connection timeout in milliseconds configuration attribute for the slave jedis client configuration created with this configuration instance.
-|`jnosql.redis.sentinel.master.socket.timeout` |The socket timeout in milliseconds configuration attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.slave.socket.timeout` |The socket timeout in milliseconds configuration attribute for the slave jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.master.user` |The user configuration attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.slave.user` |The user configuration attribute for the slave jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.master.password` |The password configuration attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.slave.password` |The password configuration attribute for the slave jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.master.ssl` |The ssl configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.redis.sentinel.slave.ssl` |The ssl configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.redis.sentinel.master.protocol` |The protocol configuration attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.slave.protocol` |The protocol configuration attribute for the slave jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.master.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.redis.sentinel.slave.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.redis.sentinel.master.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.redis.sentinel.slave.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the slave jedis client configuration with this configuration instance.
-|===
-
-==== Redis Cluster Configuration
-
-This API provides the `RedisClusterConfigurations` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="2,2", options="header"]
-|===
-|Configuration Property |Description
-
-|`jnosql.redis.cluster.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.redis.cluster.client.name` |The cluster client's name. The default value is 0.
-|`jnosql.redis.cluster.timeout` |The cluster redis timeout, the default value is 2000 milliseconds
-|`jnosql.redis.cluster.connection.timeout` |The connection timeout in milliseconds configuration attribute for the cluster jedis client configuration created with this configuration instance.
-|`jnosql.redis.cluster.socket.timeout` |The socket timeout in milliseconds configuration attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.redis.cluster.user` |The user configuration attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.redis.cluster.password` |The password configuration attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.redis.cluster.ssl` |The ssl configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.redis.cluster.protocol` |The protocol configuration attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.redis.cluster.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.redis.cluster.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.redis.cluster.max.attempts` |The value for the max attempts configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 5.
-|`jnosql.redis.cluster.max.total.retries.duration` |The value for the max total retries configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 10000 milliseconds.
-|===
-
-=== RedisBucketManagerFactory
-
-The ```RedisBucketManagerFactory``` is a specialization of the ```BucketManagerFactory``` that enables ranking and counter feature.
-
-[source,java]
-----
-@Inject
-RedisBucketManagerFactory factory;
-...
-SortedSet game = factory.getSortedSet("game");
-game.add("Otavio", 10);
-game.add("Luiz", 20);
-game.add("Ada", 30);
-game.add(Ranking.of("Poliana", 40));
-
-List<Ranking> ranking = game.getRanking();
-
-Counter home = factory.getCounter("home");
-Counter products = factory.getCounter("products");
-home.increment();
-products.increment();
-products.increment(3L);
-----
-
-Using the same principle of the API you can inject using the `@KeyValueDatabase` qualifier.
-
-[source,java]
-----
-@Inject
-@KeyValueDatabase("counter")
-Counter counter;
-
-@Inject
-@KeyValueDatabase("game")
-SortedSet game;
-----
-
-== Valkey
-
-image::https://jnosql.github.io/img/logos/valkey.png[Valkey Project,align="center" width=25%,height=25%]
-
-https://valkey.io/[Valkey] is a software project that implements data structure servers.
-It is open-source, networked, in-memory, and stores keys with optional durability.
-
-This driver provides support for the *Key-Value* NoSQL API.
-
-=== How To Install
-
-You can use either the Maven or Gradle dependencies:
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-valkey</artifactId>
-    <version>1.1.17</version>
-</dependency>
-----
-
-=== Configuration
-
-This is an example using Valkey's Key-Value API with MicroProfile Config.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[source,properties]
-----
-jnosql.keyvalue.provider=org.eclipse.jnosql.databases.valkey.communication.ValkeyConfiguration
-jnosql.keyvalue.database=heroes
-----
-
-This API provides enum classes to programmatically establish the credentials as:
-
-- link:README.adoc#_single_node_configuration[`ValkeyConfigurations`] for single node configuration
-+
-[source,properties]
-----
-# Single Node Configuration
-
-# by default the host is localhost
-jnosql.valkey.host=localhost
-# by default the port is 6379
-jnosql.valkey.port=6379
-# if you have user
-jnosql.valkey.user=youruser
-# if you have password
-jnosql.valkey.password=yourpassword
-----
-
-- link:README.adoc#_valkey_sentinel_configuration[`ValkeySentinelConfigurations`] for sentinel configuration
-+
-[source,properties]
-----
-# Sentinel Configuration
-jnosql.valkey.sentinel.hosts=host1:26379,host2:26379
-
-jnosql.valkey.sentinel.master.name=masterName
-jnosql.valkey.sentinel.master.user=masterUser
-jnosql.valkey.sentinel.master.password=masterPassword
-#jnosql.valkey.sentinel.master.ssl=false
-#jnosql.valkey.sentinel.master.timeout=2000
-#jnosql.valkey.sentinel.master.connection.timeout=2000
-#jnosql.valkey.sentinel.master.socket.timeout=2000
-
-jnosql.valkey.sentinel.slave.user=slaveUser
-jnosql.valkey.sentinel.slave.password=slavePassword
-#jnosql.valkey.sentinel.slave.ssl=false
-#jnosql.valkey.sentinel.slave.timeout=2000
-#jnosql.valkey.sentinel.slave.connection.timeout=2000
-#jnosql.valkey.sentinel.slave.socket.timeout=2000
-----
-
-- link:README.adoc#_valkey_sentinel_configuration[`ValkeyClusterConfigurations`] for cluster configuration
-+
-[source,properties]
-----
-# Cluster Configuration
-
-jnosql.valkey.cluster.hosts=host1:6379,host2:6379
-jnosql.valkey.cluster.user=clusterUser
-jnosql.valkey.cluster.password=clusterPassword
-jnosql.valkey.cluster.client.name=clusterClientName
-jnosql.valkey.cluster.max.attempts=5
-jnosql.valkey.cluster.max.total.retries.duration=10000
-#jnosql.valkey.cluster.ssl=false
-#jnosql.valkey.cluster.timeout=2000
-#jnosql.valkey.cluster.connection.timeout=2000
-#jnosql.valkey.cluster.socket.timeout=2000
-----
-
-==== Single Node Configuration
-
-This API provides the `ValkeyConfigurations` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="2,2", options="header"]
-|===
-|Configuration property |Description
-
-|`jnosql.valkey.host` |The database host
-|`jnosql.valkey.port` |The database port
-|`jnosql.valkey.timeout` |The redis timeout, the default value is 2000 milliseconds
-|`jnosql.valkey.password` |The password's credential
-|`jnosql.valkey.database` |The redis database number
-|`jnosql.valkey.client.name` |The cluster client's name. The default value is 0.
-|`jnosql.valkey.max.total` |The value for the maxTotal configuration attribute for pools created with this configuration instance. The default value is 1000.
-|`jnosql.valkey.max.idle` |The value for the maxIdle configuration attribute for pools created with this configuration instance. The default value is 10.
-|`jnosql.valkey.min.idle` |The value for the minIdle configuration attribute for pools created with this configuration instance. The default value is 1.
-|`jnosql.valkey.max.wait.millis` |The value for the maxWait configuration attribute for pools created with this configuration instance. The default value is 3000 milliseconds.
-|`jnosql.valkey.connection.timeout` |The connection timeout in milliseconds configuration attribute for the jedis client configuration created with this configuration instance.
-|`jnosql.valkey.socket.timeout` |The socket timeout in milliseconds configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.valkey.user` |The user configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.valkey.ssl` |The ssl configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.valkey.protocol` |The protocol configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.valkey.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.valkey.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the jedis client configuration with this configuration instance.
-|===
-
-==== Valkey Sentinel Configuration
-
-This API provides the `ValkeySentinelConfigurations` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="2,2", options="header"]
-|===
-|Configuration Property |Description
-
-|`jnosql.valkey.sentinel.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.master.name` |The value for the master name configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.master.client.name` |The master client's name, the default value is 0
-|`jnosql.valkey.sentinel.slave.client.name` |The slave client's name, the default value is 0
-|`jnosql.valkey.sentinel.master.timeout` |The master redis timeout, the default value is 2000 milliseconds
-|`jnosql.valkey.sentinel.slave.timeout` |The slave redis timeout, the default value is 2000 milliseconds
-|`jnosql.valkey.sentinel.master.connection.timeout` |The connection timeout in milliseconds configuration attribute for the master jedis client configuration created with this configuration instance.
-|`jnosql.valkey.sentinel.slave.connection.timeout` |The connection timeout in milliseconds configuration attribute for the slave jedis client configuration created with this configuration instance.
-|`jnosql.valkey.sentinel.master.socket.timeout` |The socket timeout in milliseconds configuration attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.slave.socket.timeout` |The socket timeout in milliseconds configuration attribute for the slave jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.master.user` |The user configuration attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.slave.user` |The user configuration attribute for the slave jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.master.password` |The password configuration attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.slave.password` |The password configuration attribute for the slave jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.master.ssl` |The ssl configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.valkey.sentinel.slave.ssl` |The ssl configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.valkey.sentinel.master.protocol` |The protocol configuration attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.slave.protocol` |The protocol configuration attribute for the slave jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.master.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the master jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.valkey.sentinel.slave.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the slave jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.valkey.sentinel.master.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the master jedis client configuration with this configuration instance.
-|`jnosql.valkey.sentinel.slave.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the slave jedis client configuration with this configuration instance.
-|===
-
-==== Valkey Cluster Configuration
-
-This API provides the `ValkeyClusterConfigurations` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="2,2", options="header"]
-|===
-|Configuration Property |Description
-
-|`jnosql.valkey.cluster.hosts` |The value for the sentinel HOST:PORT (separated by comma) configuration attribute for the jedis client configuration with this configuration instance.
-|`jnosql.valkey.cluster.client.name` |The cluster client's name. The default value is 0.
-|`jnosql.valkey.cluster.timeout` |The cluster redis timeout, the default value is 2000 milliseconds
-|`jnosql.valkey.cluster.connection.timeout` |The connection timeout in milliseconds configuration attribute for the cluster jedis client configuration created with this configuration instance.
-|`jnosql.valkey.cluster.socket.timeout` |The socket timeout in milliseconds configuration attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.valkey.cluster.user` |The user configuration attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.valkey.cluster.password` |The password configuration attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.valkey.cluster.ssl` |The ssl configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.valkey.cluster.protocol` |The protocol configuration attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.valkey.cluster.clientset.info.config.disabled` |The clientset info disabled configuration attribute for the cluster jedis client configuration with this configuration instance. The default value is false.
-|`jnosql.valkey.cluster.clientset.info.config.libname.suffix` |The clientset info configuration libname suffix attribute for the cluster jedis client configuration with this configuration instance.
-|`jnosql.valkey.cluster.max.attempts` |The value for the max attempts configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 5.
-|`jnosql.valkey.cluster.max.total.retries.duration` |The value for the max total retries configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 10000 milliseconds.
-|===
-
-=== ValkeyBucketManagerFactory
-
-The ```ValkeyBucketManagerFactory``` is a specialization of the ```BucketManagerFactory``` that enables ranking and counter feature.
-
-[source,java]
-----
-@Inject
-ValkeyBucketManagerFactory factory;
-...
-SortedSet game = factory.getSortedSet("game");
-game.add("Otavio", 10);
-game.add("Luiz", 20);
-game.add("Ada", 30);
-game.add(Ranking.of("Poliana", 40));
-
-List<Ranking> ranking = game.getRanking();
-
-Counter home = factory.getCounter("home");
-Counter products = factory.getCounter("products");
-home.increment();
-products.increment();
-products.increment(3L);
-----
-
-Using the same principle of the API you can inject using the `@KeyValueDatabase` qualifier.
-
-[source,java]
-----
-@Inject
-@KeyValueDatabase("counter")
-Counter counter;
-
-@Inject
-@KeyValueDatabase("game")
-SortedSet game;
-----
-
-
-== Riak
-
-image::https://jnosql.github.io/img/logos/riak.png[Riak Project,align="center" width=25%,height=25%]
-
-https://riak.com/[Riak] (pronounced "ree-ack") is a distributed NoSQL key-value data store that offers high availability, fault tolerance, operational simplicity, and scalability.
-In addition to the open-source version, it comes in a supported enterprise version and a cloud storage version.
-
-This driver provides support for the *Key-Value* NoSQL API.
-
-=== How To Install
-
-You can use either the Maven or Gradle dependencies:
-
-[source,xml]
-----
-<dependency>
-  <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-redis</artifactId>
-    <version>1.1.17</version>
-</dependency>
-----
-
-=== Configuration
-
-This API provides the ```RiakConfigurations``` class to programmatically establish the credentials.
-Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
-
-[cols="Riak"]
-|===
-|Configuration property |Description
-
-|`jnosql.riak.host`
-|The database host
-
-|===
-
-This is an example using Riak's Key-Value API with MicroProfile Config.
-
-[source,properties]
-----
-jnosql.keyvalue.provider=org.eclipse.jnosql.databases.riak.communication.RiakKeyValueConfiguration
-jnosql.keyvalue.database=heroes
-----
-
-== Solr
+==== Description
 
 image::https://jnosql.github.io/img/logos/solr.svg[Apache Solr Project,align="center" width=25%,height=25%"]
 
@@ -2144,7 +2083,7 @@ Solr is widely used for enterprise search and analytics use cases and has an act
 
 This driver provides support for the *Document* NoSQL API.
 
-=== How To Install
+==== How to Install
 
 You can use either the Maven or Gradle dependencies:
 
@@ -2157,9 +2096,9 @@ You can use either the Maven or Gradle dependencies:
 </dependency>
 ----
 
-=== Configuration
+==== Configuration
 
-This API provides the ```SolrDocumentConfigurations``` class to programmatically establish the credentials.
+This API provides the `SolrDocumentConfigurations` class to programmatically establish the credentials.
 Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="Solr"]
@@ -2208,9 +2147,21 @@ public class ManagerSupplier implements Supplier<SolrDocumentManager> {
 }
 ----
 
-=== Repository
+==== Template API
 
-The ```SolrRepository``` interface is an extension of the ```Repository``` interface that allows using Solr query annotation that executes Solr query.
+The `SolrTemplate` interface is a specialization of the `DocumentTemplate` that allows execution of a Solr query.
+
+[source,java]
+----
+@Inject
+SolrTemplate template;
+...
+List<Person> people = template.solr("age:@age AND type:@type AND _entity:@entity", params);
+----
+
+==== Repository Support
+
+The `SolrRepository` interface is an extension of the `Repository` interface that allows using Solr query annotation that executes Solr query.
 
 [source,java]
 ----
@@ -2225,98 +2176,209 @@ interface PersonRepository extends SolrRepository<Person, String> {
 }
 ----
 
-=== Template
+[[time-series]]
+== Time Series
 
-The ```SolrTemplate``` interface is a specialization of the ```DocumentTemplate``` that allows execution of a Solr query.
+Time-series databases organize observations around timestamps and are optimized for ingestion, retention, and analysis of measurements over time. The drivers in this section implement the Eclipse JNoSQL Time Series Mapping API, including `TimeSeriesTemplate` and repository integration where provided by that API.
 
-[source,java]
-----
-@Inject
-SolrTemplate template;
-...
-List<Person> people = template.solr("age:@age AND type:@type AND _entity:@entity", params);
-----
+[[influxdb]]
+=== InfluxDB
 
-== Neo4J
+==== Description
 
-image::https://jnosql.github.io/img/logos/neo4j.png[Neo4J Project,align="center",width=25%,height=25%]
-https://neo4j.com/[Neo4J] is a highly scalable, native graph database designed to manage complex relationships in data. It enables developers to build applications that leverage the power of graph traversal, pattern matching, and high-performance querying using the **Cypher** query language.
+https://www.influxdata.com/[InfluxDB] is a time-series database optimized for timestamped metrics, events, monitoring, and IoT data.
 
-This API provides support for **Graph** database operations, including entity persistence, query execution via Cypher, and relationship traversal.
+The Eclipse JNoSQL InfluxDB driver connects the *Time Series* Mapping API to InfluxDB 3. Applications can use `TimeSeriesTemplate` and Jakarta Data repositories while keeping InfluxDB connection and data-model details in the driver.
 
-=== How To Install
+==== How to Install
 
-You can use either the Maven or Gradle dependencies:
+Add the driver to the application. It already includes the JNoSQL Time Series Mapping API:
 
 [source,xml]
 ----
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-neo4j</artifactId>
-    <version>1.1.17</version>
+  <artifactId>jnosql-influxdb</artifactId>
+  <version>1.1.17</version>
 </dependency>
 ----
 
-=== Configuration
+The driver uses the official InfluxDB 3 Java client and translates JNoSQL queries to parameterized SQL.
 
-This API provides the `Neo4JDatabaseConfigurations` class to programmatically establish the credentials. You can configure Neo4J properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+==== Configuration
 
-[cols="2,4"]
+Create an InfluxDB 3 database and a database token with read and write access.
+
+This API provides the `InfluxDBTimeSeriesConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="InfluxDB"]
 |===
-| Configuration Property | Description
+|Configuration property |Description
 
-| `jnosql.neo4j.uri` | The connection URI for the Neo4J database. Example: `bolt://localhost:7687`
-| `jnosql.neo4j.username` | The username for authentication.
-| `jnosql.neo4j.password` | The password for authentication.
-| `jnosql.neo4j.database` | The target database name.
+|`jnosql.influxdb.url`
+|Base URL of the InfluxDB 3 server, such as `http://localhost:8181`.
+
+|`jnosql.influxdb.token`
+|Database token used for reads and writes.
+
 |===
 
-==== Example Using MicroProfile Config
+This is an example using InfluxDB's Time Series API with MicroProfile Config.
 
 [source,properties]
 ----
-jnosql.neo4j.uri=bolt://localhost:7687
-jnosql.neo4j.username=neo4j
-jnosql.neo4j.password=yourpassword
-jnosql.neo4j.database=neo4j
+jnosql.timeseries.provider=org.eclipse.jnosql.databases.influxdb.communication.InfluxDBTimeSeriesConfiguration
+jnosql.timeseries.database=metrics
+jnosql.influxdb.url=http://localhost:8181
+jnosql.influxdb.token=${INFLUXDB_TOKEN}
 ----
 
-=== Template API
+[[apache-iotdb]]
+=== Apache IoTDB
 
-The `Neo4JTemplate` interface extends `GraphTemplate` and allows for dynamic Cypher execution.
+==== Description
 
-[source,java]
+https://iotdb.apache.org/[Apache IoTDB] is a time-series database designed for IoT data management and analysis.
+
+The Eclipse JNoSQL IoTDB driver connects the *Time Series* Mapping API to IoTDB's native Table Model API without
+vendor-specific entity annotations.
+
+==== How to Install
+
+[source,xml]
 ----
-@Inject
-private Neo4JTemplate template;
-
-List<Person> people = template.cypherQuery("MATCH (p:Person) WHERE p.name = $name RETURN p", params);
-var edge = template.edge(otavio, "FRIENDS_WITH", ada);
-----
-
-=== Repository Support
-
-The `Neo4JRepository` interface extends the `NoSQLRepository` interface and enables query execution using the `@Cypher` annotation.
-
-[source,java]
-----
-@Repository
-interface PersonRepository extends Neo4JRepository<Person, String> {
-
-    @Cypher("MATCH (p:Person) RETURN p")
-    List<Person> findAll();
-
-    @Cypher("MATCH (p:Person) WHERE p.name = $name RETURN p")
-    List<Person> findByName(@Param("name") String name);
-}
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-iotdb</artifactId>
+  <version>1.1.17</version>
+</dependency>
 ----
 
+The driver uses the official `org.apache.iotdb:iotdb-session:2.0.11` client and requires Java 21 or newer.
 
-== Graph (Apache Tinkerpop)
+==== Configuration
+
+Create the IoTDB database before starting the application. Tables and columns are created automatically during native
+tablet ingestion when the server's `enable_auto_create_schema` setting is enabled.
+
+This API provides the `IoTDBTimeSeriesConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="Apache IoTDB"]
+|===
+|Configuration property |Default |Description
+
+|`jnosql.iotdb.host`
+|`localhost`
+|IoTDB DataNode host.
+
+|`jnosql.iotdb.port`
+|`6667`
+|IoTDB native RPC port.
+
+|`jnosql.iotdb.username`
+|`root`
+|IoTDB user.
+
+|`jnosql.iotdb.password`
+|`root`
+|IoTDB password.
+
+|`jnosql.iotdb.pool.size`
+|`5`
+|Maximum native Table Model session-pool size.
+
+|`jnosql.iotdb.query.timeout`
+|`60000`
+|Query timeout in milliseconds.
+
+|`jnosql.iotdb.enable.redirection`
+|`true`
+|Enables client redirection for an IoTDB cluster. Container-based tests disable it because the advertised internal
+address is not reachable through the mapped host port.
+
+|===
+
+This is an example using Apache IoTDB's Time Series API with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.timeseries.provider=org.eclipse.jnosql.databases.iotdb.communication.IoTDBTimeSeriesConfiguration
+jnosql.timeseries.database=metrics
+jnosql.iotdb.host=localhost
+jnosql.iotdb.port=6667
+jnosql.iotdb.username=root
+jnosql.iotdb.password=root
+----
+
+[[questdb]]
+=== QuestDB
+
+==== Description
+
+https://questdb.com/[QuestDB] is a high-performance time-series database with native ingestion and SQL querying.
+
+The Eclipse JNoSQL QuestDB driver uses the standard Time Series Mapping API and does not require vendor-specific annotations.
+
+==== How to Install
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-questdb</artifactId>
+  <version>1.1.17</version>
+</dependency>
+----
+
+The driver uses only QuestDB's official Java client. Both ingestion and SQL queries run over QWP; no PostgreSQL or
+JDBC driver is required.
+
+==== Configuration
+
+QuestDB has one logical database per server. `jnosql.timeseries.database` is retained as the JNoSQL manager name, while
+each entity name maps to a QuestDB table.
+
+This API provides the `QuestDBTimeSeriesConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="QuestDB"]
+|===
+|Configuration property |Description
+
+|`jnosql.questdb.url`
+|QuestDB Java client connection string. Use `ws::` or `wss::` for QWP and include authentication options in the
+connection string when required.
+
+|===
+
+This is an example using QuestDB's Time Series API with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.timeseries.provider=org.eclipse.jnosql.databases.questdb.communication.QuestDBTimeSeriesConfiguration
+jnosql.timeseries.database=qdb
+jnosql.questdb.url=ws::addr=localhost:9000;
+----
+
+[[graph]]
+== Graph
+
+Graph databases represent entities as vertices and their relationships as edges, enabling traversal and relationship-focused queries. Eclipse JNoSQL provides graph support through its Apache TinkerPop integration layer and dedicated provider integrations; Apache TinkerPop is an abstraction and integration framework, not a database.
+
+[[tinkerpop-integration]]
+=== Apache TinkerPop Integration
+
+==== Description
 
 Currently, the Jakarta NoSQL doesn't define an API for Graph database types but Eclipse JNoSQL provides a Graph template to explore the specific behavior of this NoSQL type.
 
 Eclipse JNoSQL offers a mapping implementation for Graph NoSQL types:
+
+Despite the other three NoSQL types, Eclipse JNoSQL API does not offer a communication layer for Graph NoSQL types. Instead, it integrates with https://tinkerpop.apache.org/[Apache Tinkerpop 3.x].
+
+==== How to Install
 
 [source,xml]
 ----
@@ -2327,30 +2389,23 @@ Eclipse JNoSQL offers a mapping implementation for Graph NoSQL types:
 </dependency>
 ----
 
-Despite the other three NoSQL types, Eclipse JNoSQL API does not offer a communication layer for Graph NoSQL types. Instead, it integrates with https://tinkerpop.apache.org/[Apache Tinkerpop 3.x].
+Eclipse JNoSQL does not provide https://mvnrepository.com/artifact/org.apache.tinkerpop/gremlin-core[Apache Tinkerpop 3 dependency]; check if the provider does. Otherwise, do it manually.
 
-[source,java]
+[source,xml]
 ----
-@Inject
-TinkerpopTemplate template;
-...
-
-Category java = Category.of("Java");
-Book effectiveJava = Book.of("Effective Java");
-
-template.insert(java);
-template.insert(effectiveJava);
-EdgeEntity edge = template.edge(java, "is", software);
-
-Stream<Book> books = template.getTraversalVertex()
-        .hasLabel("Category")
-        .has("name", "Java")
-        .in("is")
-        .hasLabel("Book")
-        .getResult();
+<dependency>
+    <groupId>org.apache.tinkerpop</groupId>
+    <artifactId>jnosql-gremlin-core</artifactId>
+    <version>${tinkerpop.version}</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.tinkerpop</groupId>
+    <artifactId>jnosql-gremlin-groovy</artifactId>
+    <version>${tinkerpop.version}</version>
+</dependency>
 ----
 
-Apache TinkerPop is database agnostic. Thus, you can change the database in your application with no or minimal impact on source code.
+==== Configuration
 
 You can define the database settings using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification, so you can add properties and overwrite it in the environment following the https://12factor.net/config[Twelve-Factor App].
 
@@ -2362,9 +2417,9 @@ jnosql.provider.user=<USER>
 jnosql.provider.password=<PASSWORD>
 ----
 
-TIP: The ```jnosql.graph.provider``` property is necessary when you have more than one driver in the classpath. Otherwise, it will take the first one.
+TIP: The `jnosql.graph.provider` property is necessary when you have more than one driver in the classpath. Otherwise, it will take the first one.
 
-These configuration settings are the default behavior. Nevertheless, there is an option to programmatically configure these settings. Create a class that implements the ```Supplier<Graph>```, then define it using the ```@Alternative``` and ```@Priority``` annotations.
+These configuration settings are the default behavior. Nevertheless, there is an option to programmatically configure these settings. Create a class that implements the `Supplier<Graph>`, then define it using the `@Alternative` and `@Priority` annotations.
 
 [source,java]
 ----
@@ -2380,7 +2435,7 @@ public class ManagerSupplier implements Supplier<Graph> {
 }
 ----
 
-You can work with several document database instances through CDI qualifier. To identify each database instance, make a `Graph` visible for CDI by putting the ```@Produces``` and the ```@Database``` annotations in the method.
+You can work with several graph database instances through CDI qualifier. To identify each database instance, make a `Graph` visible for CDI by putting the `@Produces` and the `@Database` annotations in the method.
 
 [source,java]
 ----
@@ -2406,21 +2461,113 @@ public Graph getManagerB() {
 }
 ----
 
+==== Template API
 
-Eclipse JNoSQL does not provide https://mvnrepository.com/artifact/org.apache.tinkerpop/gremlin-core[Apache Tinkerpop 3 dependency]; check if the provider does. Otherwise, do it manually.
+The `TinkerpopTemplate` extends the Eclipse JNoSQL Graph template with Apache TinkerPop traversal operations. The following example uses the provider-independent traversal API exposed by the integration.
+
+[source,java]
+----
+@Inject
+TinkerpopTemplate template;
+...
+
+Category java = Category.of("Java");
+Book effectiveJava = Book.of("Effective Java");
+
+template.insert(java);
+template.insert(effectiveJava);
+EdgeEntity edge = template.edge(java, "is", software);
+
+Stream<Book> books = template.getTraversalVertex()
+        .hasLabel("Category")
+        .has("name", "Java")
+        .in("is")
+        .hasLabel("Book")
+        .getResult();
+----
+
+Apache TinkerPop is database agnostic. Thus, you can change the database in your application with no or minimal impact on source code.
+
+[[arangodb-graph]]
+=== ArangoDB
+
+ArangoDB also supports graph access through the xref:#tinkerpop-integration[Apache TinkerPop integration]. Its canonical driver installation, configuration, and Document and Key-Value API documentation are in the xref:#arangodb-document[ArangoDB Document section].
+
+[[neo4j]]
+=== Neo4J
+
+==== Description
+
+image::https://jnosql.github.io/img/logos/neo4j.png[Neo4J Project,align="center",width=25%,height=25%]
+https://neo4j.com/[Neo4J] is a highly scalable, native graph database designed to manage complex relationships in data. It enables developers to build applications that leverage the power of graph traversal, pattern matching, and high-performance querying using the **Cypher** query language.
+
+This API provides support for **Graph** database operations, including entity persistence, query execution via Cypher, and relationship traversal.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
 
 [source,xml]
 ----
 <dependency>
-    <groupId>org.apache.tinkerpop</groupId>
-    <artifactId>jnosql-gremlin-core</artifactId>
-    <version>${tinkerpop.version}</version>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-neo4j</artifactId>
+    <version>1.1.17</version>
 </dependency>
-<dependency>
-    <groupId>org.apache.tinkerpop</groupId>
-    <artifactId>jnosql-gremlin-groovy</artifactId>
-    <version>${tinkerpop.version}</version>
-</dependency>
+----
+
+==== Configuration
+
+This API provides the `Neo4JDatabaseConfigurations` class to programmatically establish the credentials. You can configure Neo4J properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="2,4"]
+|===
+| Configuration Property | Description
+
+| `jnosql.neo4j.uri` | The connection URI for the Neo4J database. Example: `bolt://localhost:7687`
+| `jnosql.neo4j.username` | The username for authentication.
+| `jnosql.neo4j.password` | The password for authentication.
+| `jnosql.neo4j.database` | The target database name.
+|===
+
+===== Example Using MicroProfile Config
+
+[source,properties]
+----
+jnosql.neo4j.uri=bolt://localhost:7687
+jnosql.neo4j.username=neo4j
+jnosql.neo4j.password=yourpassword
+jnosql.neo4j.database=neo4j
+----
+
+==== Template API
+
+The `Neo4JTemplate` interface extends `GraphTemplate` and allows for dynamic Cypher execution.
+
+[source,java]
+----
+@Inject
+private Neo4JTemplate template;
+
+List<Person> people = template.cypherQuery("MATCH (p:Person) WHERE p.name = $name RETURN p", params);
+var edge = template.edge(otavio, "FRIENDS_WITH", ada);
+----
+
+==== Repository Support
+
+The `Neo4JRepository` interface extends the `NoSQLRepository` interface and enables query execution using the `@Cypher` annotation.
+
+[source,java]
+----
+@Repository
+interface PersonRepository extends Neo4JRepository<Person, String> {
+
+    @Cypher("MATCH (p:Person) RETURN p")
+    List<Person> findAll();
+
+    @Cypher("MATCH (p:Person) WHERE p.name = $name RETURN p")
+    List<Person> findByName(@Param("name") String name);
+}
 ----
 
 == Getting Help
@@ -2438,6 +2585,7 @@ We are very happy you are interested in helping us and there are plenty ways you
 
 - **Open a Pull Request:** If you feel like you can even make changes to our source code and suggest them, just check out our link:CONTRIBUTING.adoc[contributing guide] to learn about the development process, how to suggest bugfixes and improvements.
 
+[[integration-tests]]
 == Integration tests
 
 The integration tests on databases primarily integrate with the https://www.testcontainers.org/[Testcontainers], requiring a more powerful computer.
@@ -2464,6 +2612,7 @@ class IntegrationSampleTest {
 }
 ----
 
+[[performing-jakarta-nosql-tck]]
 == Performing the Jakarta NoSQL TCK
 
 To perform the Jakarta NoSQL TCK you should activate the `tck` profile. This profile will download the TCK and run it.
@@ -2493,29 +2642,9 @@ mvn test -Ptck -DskipTests
 
 The JNoSQL Database API implementations that support Jakarta NoSQL TCK execution already:
 
-- link:#_mongodb[MongoDB]
+- xref:#mongodb[MongoDB]
 
 
-== Want to Contribute a New Driver?
+== Contributing a Database Driver
 
-As an open-source project, you're free to create any driver, and you're welcome to join and participate in the process.
-To add a new driver, we have a few requirements:
-
-* Run Java 17
-* Include the documentation driver in the README file.
-* Cover the driver with tests and preferences with TestContainer.
-* Please pay attention to the documentation. This includes JavaDoc
-* Include a class to represent and contain the properties. In general, those are `enum`
-** A nomenclature is the <DATABASE>Configurations, e.g., CassandraConfigurations, MongoDBConfigurations.
-** The package name will follow the terminology: `org.jnosql.databases.[DATABASE].[LAYER]`
-*** E.g., Give a database called "Ada" that is a column type, the package name will be: `org.eclipse.jnosql.databases.ada.communication` for the driver layer and `org.eclipse.jnosql.databases.ada.mapping` for the mapping.
-*** You can include the database in a single project if a NoSQL supports multiple database types.
-* It is crucial to have an integration test with the database; please annotate those `EnabledIfSystemProperty` and check the integration session to know more.
-* Create a `Supplier` class on the mapping layer that will produce a specific Manager instance using Microprofile. Check: `ColumnManagerSupplier`, `DocumentManagerSupplier` classes to get more information.
-
-
-
-== Graph Drivers
-
-Eclipse JNoSQL uses https://tinkerpop.apache.org/[Apache Tinkerpop] for Graph API.
-Using this API gives support to https://tinkerpop.apache.org/providers.html[over twenty fives databases].
+See xref:CONTRIBUTING_DATABASE.adoc[Contributing a New Eclipse JNoSQL Database Driver] for the driver requirements, package conventions, configuration classes, testing, manager suppliers, documentation, TCK guidance, and graph-provider notes.
