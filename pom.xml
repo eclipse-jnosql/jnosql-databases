@@ -57,6 +57,7 @@
         <module>jnosql-hbase</module>
         <module>jnosql-infinispan</module>
         <module>jnosql-influxdb</module>
+        <module>jnosql-questdb</module>
         <module>jnosql-memcached</module>
         <module>jnosql-mongodb</module>
         <module>jnosql-orientdb</module>
