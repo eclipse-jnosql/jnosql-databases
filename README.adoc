@@ -993,21 +993,12 @@ Add the driver to the application. It already includes the JNoSQL Time Series Ma
 
 The driver uses the official InfluxDB 3 Java client and translates JNoSQL queries to parameterized SQL.
 
-=== Configure the Connection
+=== Configuration
 
 Create an InfluxDB 3 database and a database token with read and write access.
 
-Configure the server and database with MicroProfile Config:
-
-[source,properties]
-----
-jnosql.timeseries.provider=org.eclipse.jnosql.databases.influxdb.communication.InfluxDBTimeSeriesConfiguration
-jnosql.timeseries.database=metrics
-jnosql.influxdb.url=http://localhost:8181
-jnosql.influxdb.token=${INFLUXDB_TOKEN}
-----
-
-`jnosql.timeseries.database` is the InfluxDB 3 database. The provider property is optional when InfluxDB is the only time-series driver on the classpath.
+This API provides the `InfluxDBTimeSeriesConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="InfluxDB"]
 |===
@@ -1021,139 +1012,15 @@ jnosql.influxdb.token=${INFLUXDB_TOKEN}
 
 |===
 
-Applications that manage the InfluxDB client themselves can create a manager programmatically:
+This is an example using InfluxDB's Time Series API with MicroProfile Config.
 
-[source,java]
+[source,properties]
 ----
-Settings settings = Settings.builder()
-        .put(InfluxDBTimeSeriesConfigurations.URL, "http://localhost:8181")
-        .put(InfluxDBTimeSeriesConfigurations.TOKEN, token)
-        .build();
-
-InfluxDBTimeSeriesConfiguration configuration = new InfluxDBTimeSeriesConfiguration();
-InfluxDBTimeSeriesManagerFactory factory = configuration.apply(settings);
-InfluxDBTimeSeriesManager manager = factory.apply("metrics");
+jnosql.timeseries.provider=org.eclipse.jnosql.databases.influxdb.communication.InfluxDBTimeSeriesConfiguration
+jnosql.timeseries.database=metrics
+jnosql.influxdb.url=http://localhost:8181
+jnosql.influxdb.token=${INFLUXDB_TOKEN}
 ----
-
-Close the factory when the application shuts down. The factory owns the InfluxDB clients created for its databases.
-
-The InfluxDB 3 query client uses Apache Arrow Flight. Start the application with:
-
-[source,text]
-----
---add-opens=java.base/java.nio=ALL-UNNAMED
-----
-
-When building an executable uber JAR, merge dependency files under `META-INF/services`. For example, configure the Maven Shade Plugin with `ServicesResourceTransformer`; otherwise, the Arrow Flight gRPC transport may not initialize.
-
-=== Map a Measurement
-
-Use the standard Jakarta NoSQL annotations. No InfluxDB-specific annotations are required:
-
-[source,java]
-----
-@Entity("temperature")
-public class Temperature {
-
-    @Id
-    private Instant time;
-
-    @Column
-    private String location;
-
-    @Column
-    private double value;
-}
-----
-
-The mapping is:
-
-* The entity name, `temperature`, is the InfluxDB measurement.
-* The `@Id` value is the point timestamp and is required before insertion.
-* Every `@Column` is stored as an InfluxDB field.
-
-Supported identifier types are `Instant`, `LocalDateTime`, `OffsetDateTime`, and `ZonedDateTime`. Prefer `Instant` when possible. A `LocalDateTime` has no offset, so the driver interprets it as UTC.
-
-Fields must be strings, numbers, booleans, or characters. Null fields, nested objects, collections, and arrays cannot be represented by this initial mapping. Columns are not stored as InfluxDB tags, so tag-oriented filtering and grouping are not available yet.
-
-IMPORTANT: In this initial mapping, a point is uniquely identified by its measurement and timestamp because the driver does not create tags. Inserting another entity with the same entity type and timestamp writes to the same InfluxDB point and can replace fields with the same names.
-
-=== Insert and Query Data
-
-Inject the time-series template:
-
-[source,java]
-----
-@Inject
-@Database(DatabaseType.TIME_SERIES)
-TimeSeriesTemplate template;
-----
-
-Insert an entity whose timestamp is already assigned:
-
-[source,java]
-----
-Temperature reading = new Temperature(
-        Instant.parse("2026-09-09T07:30:00Z"),
-        "warehouse-1",
-        21.5);
-
-template.insert(reading);
-----
-
-Find a reading by its timestamp:
-
-[source,java]
-----
-Optional<Temperature> reading = template.find(
-        Temperature.class,
-        Instant.parse("2026-09-09T07:30:00Z"));
-----
-
-Use a `SelectQuery` for filtering, ordering, and limiting results:
-
-[source,java]
-----
-SelectQuery query = SelectQuery.select()
-        .from("temperature")
-        .where("location").eq("warehouse-1")
-        .and("value").gte(20.0)
-        .orderBy("_id").desc()
-        .limit(100)
-        .build();
-
-List<Temperature> readings = template.<Temperature>select(query).toList();
-----
-
-Equality, comparison, `IN`, `BETWEEN`, `AND`, `OR`, and `NOT` predicates are supported for values that map to InfluxDB fields. Query values are sent as SQL parameters instead of being interpolated into the statement. Ordering and limits are supported. Offset pagination requires a finite limit.
-
-Jakarta Data repositories can be used for lookup and derived queries:
-
-[source,java]
-----
-@Repository
-public interface TemperatureRepository
-        extends BasicRepository<Temperature, Instant> {
-
-    Stream<Temperature> findByLocation(String location);
-}
-
-@Inject
-@Database(DatabaseType.TIME_SERIES)
-TemperatureRepository temperatures;
-----
-
-=== Operation Limitations
-
-The driver rejects operations that cannot preserve their expected JNoSQL semantics:
-
-* Identifiers are never generated. Set a supported temporal `@Id` before inserting.
-* Update operations are unsupported because InfluxDB writes do not provide document replacement semantics.
-* Delete operations are unsupported because the InfluxDB 3 Java client does not provide an entity deletion operation that preserves JNoSQL semantics.
-* Per-entity TTL is unsupported. Configure retention when creating the InfluxDB 3 database instead.
-* `LIKE`, `CONTAINS`, `STARTS_WITH`, and `ENDS_WITH` predicates are unsupported.
-
-These operations throw `UnsupportedOperationException` instead of issuing misleading or potentially destructive operations.
 
 == Apache IoTDB
 
@@ -1175,20 +1042,13 @@ vendor-specific entity annotations.
 
 The driver uses the official `org.apache.iotdb:iotdb-session:2.0.11` client and requires Java 17 or newer.
 
-=== Configure the Connection
+=== Configuration
 
 Create the IoTDB database before starting the application. Tables and columns are created automatically during native
 tablet ingestion when the server's `enable_auto_create_schema` setting is enabled.
 
-[source,properties]
-----
-jnosql.timeseries.provider=org.eclipse.jnosql.databases.iotdb.communication.IoTDBTimeSeriesConfiguration
-jnosql.timeseries.database=metrics
-jnosql.iotdb.host=localhost
-jnosql.iotdb.port=6667
-jnosql.iotdb.username=root
-jnosql.iotdb.password=root
-----
+This API provides the `IoTDBTimeSeriesConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="Apache IoTDB"]
 |===
@@ -1225,57 +1085,17 @@ address is not reachable through the mapped host port.
 
 |===
 
-=== Entity Mapping and AUTO Schema
+This is an example using Apache IoTDB's Time Series API with MicroProfile Config.
 
-[source,java]
+[source,properties]
 ----
-@Entity("sensor_reading")
-public class SensorReading {
-
-    @Id
-    private Instant timestamp;
-
-    @Column
-    private String sensor;
-
-    @Column
-    private double temperature;
-}
+jnosql.timeseries.provider=org.eclipse.jnosql.databases.iotdb.communication.IoTDBTimeSeriesConfiguration
+jnosql.timeseries.database=metrics
+jnosql.iotdb.host=localhost
+jnosql.iotdb.port=6667
+jnosql.iotdb.username=root
+jnosql.iotdb.password=root
 ----
-
-The entity name becomes the IoTDB table, the `@Id` becomes the `TIME` column, and every `@Column` becomes a `FIELD`
-column. Supported identifier types are `Instant`, `LocalDateTime`, `OffsetDateTime`, and `ZonedDateTime`;
-`LocalDateTime` is interpreted as UTC. IoTDB's default millisecond timestamp precision is used.
-
-The schema strategy is `AUTO`: the driver sends native `Tablet` objects and lets IoTDB create missing tables and evolve
-FIELD columns. It does not issue `CREATE TABLE`, `CREATE TIMESERIES`, or `ALTER TABLE` during insertion. The configured
-database itself must already exist. If automatic schema creation is disabled, the native IoTDB error is propagated.
-
-Because the portable JNoSQL model has no TAG or ATTRIBUTE annotations, this initial integration maps all non-ID columns
-to FIELD. A table therefore has one logical device, making its TIME value the JNoSQL entity identifier. Writing the same
-entity type and timestamp again replaces values for that timestamp according to IoTDB's native semantics.
-
-=== Supported Operations
-
-The driver supports single and native batched tablet insertion, find/select, count, equality and comparison predicates,
-`IN`, `BETWEEN`, `AND`, `OR`, `NOT`, ordering, limits, offsets, temporal predicates, and deletion constrained only by
-the temporal identifier.
-
-IoTDB's native Table Model session API does not expose prepared or bind parameters. Query values are therefore rendered
-by a centralized type-aware SQL literal encoder: text delimiters are doubled, numeric and boolean values are validated,
-and temporal identifiers are converted to epoch milliseconds. Entity, table, and column identifiers are accepted only
-when they contain letters, digits, and underscores and begin with a letter or underscore.
-
-=== Operation Limitations
-
-* Identifiers are never generated. Set a supported temporal `@Id` before insertion.
-* Update operations are unsupported. IoTDB Table Model updates apply to TAG and ATTRIBUTE columns, while portable
-  JNoSQL columns map to FIELD.
-* Delete predicates may reference only `_id`; field-based deletion cannot preserve IoTDB's supported delete semantics.
-* Per-entity TTL is unsupported. Configure TTL at the IoTDB table or database level.
-* `LIKE`, `CONTAINS`, `STARTS_WITH`, `ENDS_WITH`, and case-insensitive predicates are unsupported.
-
-Unsupported operations throw `UnsupportedOperationException`.
 
 == QuestDB
 
@@ -1297,17 +1117,13 @@ The Eclipse JNoSQL QuestDB driver uses the standard Time Series Mapping API and 
 The driver uses only QuestDB's official Java client. Both ingestion and SQL queries run over QWP; no PostgreSQL or
 JDBC driver is required.
 
-=== Configure the Connection
-
-[source,properties]
-----
-jnosql.timeseries.provider=org.eclipse.jnosql.databases.questdb.communication.QuestDBTimeSeriesConfiguration
-jnosql.timeseries.database=qdb
-jnosql.questdb.url=ws::addr=localhost:9000;
-----
+=== Configuration
 
 QuestDB has one logical database per server. `jnosql.timeseries.database` is retained as the JNoSQL manager name, while
 each entity name maps to a QuestDB table.
+
+This API provides the `QuestDBTimeSeriesConfigurations` class to programmatically establish the credentials.
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
 
 [cols="QuestDB"]
 |===
@@ -1319,45 +1135,14 @@ connection string when required.
 
 |===
 
-=== Entity Mapping and Schema
+This is an example using QuestDB's Time Series API with MicroProfile Config.
 
-[source,java]
+[source,properties]
 ----
-@Entity("sensor_reading")
-public class SensorReading {
-
-    @Id
-    private Instant timestamp;
-
-    @Column
-    private String sensor;
-
-    @Column
-    private double temperature;
-}
+jnosql.timeseries.provider=org.eclipse.jnosql.databases.questdb.communication.QuestDBTimeSeriesConfiguration
+jnosql.timeseries.database=qdb
+jnosql.questdb.url=ws::addr=localhost:9000;
 ----
-
-The entity name becomes the table, the `@Id` becomes QuestDB's designated `timestamp` column, and every `@Column`
-becomes a regular QuestDB column. Supported identifier types are `Instant`, `LocalDateTime`, `OffsetDateTime`, and
-`ZonedDateTime`; local date-times are interpreted as UTC and query results expose the canonical `Instant`, matching the
-InfluxDB communication behavior. QuestDB `TIMESTAMP` values have microsecond precision.
-
-The schema strategy is `AUTO`: the driver sends rows directly through QuestDB's native ingestion client and delegates
-table creation and column evolution to QuestDB. It does not execute `CREATE TABLE` or `ALTER TABLE`. If automatic
-creation is disabled by the server, the native QuestDB error is propagated. Partitioning, WAL, deduplication, and other
-table policies remain server-side concerns.
-
-=== Supported Operations
-
-The driver supports single and native batched ingestion, find/select, count, equality and comparison predicates, `IN`,
-`BETWEEN`, `AND`, `OR`, `NOT`, ordering, limits, temporal predicates, entity updates, and update queries. SQL values are
-sent separately from SQL using native typed QWP bind parameters. Table and column identifiers are restricted to letters,
-digits, and underscores and must begin with a letter or underscore.
-
-QuestDB does not support row-level `DELETE`, so delete operations are rejected. The designated timestamp cannot be
-updated. Offset pagination is rejected because QuestDB does not support SQL `OFFSET`, and per-entity TTL is rejected
-because QuestDB retention is partition-based. Updating a column to `null` is also rejected because a native QWP null
-bind requires schema type information that is not available in the communication entity.
 
 == Memcached
 
