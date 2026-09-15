@@ -11,6 +11,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 === Added
 
 - Add InfluxDB 3 driver for the JNoSQL Time Series Mapping API, with temporal identifiers, point conversion, batch writes, parameterized SQL queries, ordering, and limits
+- Add QuestDB driver for the JNoSQL Time Series Mapping API, using native QWP ingestion and queries, automatic schema creation and evolution, temporal identifiers, native bind parameters, batch writes, filtering, ordering, limits, and updates
 - Add update method to MongoDB Document Manager accepting UpdateQuery argument for document updates
 - Add updateDocument method to MongoDB Document Manager for optimized update operations
 - Add update method to Cassandra Column Manager accepting UpdateQuery argument for entity updates
