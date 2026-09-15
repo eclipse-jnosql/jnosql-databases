@@ -181,7 +181,7 @@ public class IoTDBTimeSeriesManager implements DatabaseManager {
     private <T> T executeQuery(String sql, ResultMapper<T> mapper) {
         try (ITableSession session = pool.getSession();
              SessionDataSet dataSet = session.executeQueryStatement(sql)) {
-            List<TSDataType> types = dataSet.getColumnTypes().stream().map(TSDataType::valueOf).toList();
+List<TSDataType> types = dataSet.getColumnTypes();
             return mapper.map(dataSet, dataSet.getColumnNames(), types);
         } catch (IoTDBConnectionException | StatementExecutionException exception) {
             throw new IllegalStateException("Could not execute IoTDB query", exception);
