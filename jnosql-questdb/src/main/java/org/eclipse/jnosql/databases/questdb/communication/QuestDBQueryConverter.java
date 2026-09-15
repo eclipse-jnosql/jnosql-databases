@@ -53,11 +53,11 @@ final class QuestDBQueryConverter {
     }
 
     static QuestDBQuery update(UpdateQuery query) {
-        if (query.sets().isEmpty()) {
+        if (query.set().isEmpty()) {
             throw new IllegalArgumentException("QuestDB update requires at least one column");
         }
         List<Object> parameters = new ArrayList<>();
-        String assignments = query.sets().stream()
+        String assignments = query.set().stream()
                 .map(element -> assignment(element, parameters))
                 .reduce((left, right) -> left + ", " + right)
                 .orElseThrow();
@@ -65,7 +65,7 @@ final class QuestDBQueryConverter {
                 .append(identifier(query.name()))
                 .append(" SET ")
                 .append(assignments);
-        query.where().ifPresent(condition -> sql.append(" WHERE ")
+        query.condition().ifPresent(condition -> sql.append(" WHERE ")
                 .append(condition(condition, parameters)));
         return new QuestDBQuery(sql.toString(), parameters);
     }

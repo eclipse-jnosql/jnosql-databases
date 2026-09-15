@@ -36,13 +36,10 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static org.eclipse.jnosql.databases.questdb.communication.QuestDBEntityConverter.ID_FIELD;
 
 /**
  * Stores mapped time-series entities through QuestDB's native QWP client.
@@ -112,9 +109,10 @@ public class QuestDBTimeSeriesManager implements DatabaseManager {
     }
 
     @Override
-    public void update(UpdateQuery query) {
+    public Iterable<CommunicationEntity> update(UpdateQuery query) {
         Objects.requireNonNull(query, "query is required");
         executeUpdate(QuestDBQueryConverter.update(query));
+        return select(query.toSelectQuery()).toList();
     }
 
     @Override
@@ -144,11 +142,6 @@ public class QuestDBTimeSeriesManager implements DatabaseManager {
     public long count(String documentCollection) {
         Objects.requireNonNull(documentCollection, "documentCollection is required");
         return count(SelectQuery.select().from(documentCollection).build());
-    }
-
-    @Override
-    public Optional<String> defaultIdFieldName() {
-        return Optional.of(ID_FIELD);
     }
 
     @Override
@@ -198,30 +191,43 @@ public class QuestDBTimeSeriesManager implements DatabaseManager {
 
     private static void bind(QwpBindValues binds, int index, Object value) {
         Object converted = value instanceof Value jnosqlValue ? ValueUtil.convert(jnosqlValue) : value;
-        switch (converted) {
-            case Boolean booleanValue -> binds.setBoolean(index, booleanValue);
-            case Byte byteValue -> binds.setByte(index, byteValue);
-            case Short shortValue -> binds.setShort(index, shortValue);
-            case Character character -> binds.setChar(index, character);
-            case Integer integer -> binds.setInt(index, integer);
-            case Long longValue -> binds.setLong(index, longValue);
-case BigInteger bigInteger when bigInteger.bitLength() < Long.SIZE ->
-        binds.setLong(index, bigInteger.longValue());
-            case Float floatValue -> binds.setFloat(index, floatValue);
-            case Double doubleValue -> binds.setDouble(index, doubleValue);
-            case CharSequence text -> binds.setVarchar(index, text);
-            case Instant instant -> binds.setTimestampMicros(index, QuestDBEntityConverter.toEpochMicros(instant));
-            case LocalDateTime dateTime -> binds.setTimestampMicros(index,
-                    QuestDBEntityConverter.toEpochMicros(dateTime.toInstant(ZoneOffset.UTC)));
-            case OffsetDateTime dateTime -> binds.setTimestampMicros(index,
-                    QuestDBEntityConverter.toEpochMicros(dateTime.toInstant()));
-            case ZonedDateTime dateTime -> binds.setTimestampMicros(index,
-                    QuestDBEntityConverter.toEpochMicros(dateTime.toInstant()));
-            case UUID uuid -> binds.setUuid(index, uuid);
-            case null -> throw new UnsupportedOperationException(
-                    "QuestDB native binds require a concrete type; null values are not supported");
-            default -> throw new IllegalArgumentException(
-                    "Unsupported QuestDB query parameter type: " + converted.getClass().getName());
+        if (converted instanceof Boolean booleanValue) {
+binds.setBoolean(index, booleanValue);
+        } else if (converted instanceof Byte byteValue) {
+binds.setByte(index, byteValue);
+        } else if (converted instanceof Short shortValue) {
+binds.setShort(index, shortValue);
+        } else if (converted instanceof Character character) {
+binds.setChar(index, character);
+        } else if (converted instanceof Integer integer) {
+binds.setInt(index, integer);
+        } else if (converted instanceof Long longValue) {
+binds.setLong(index, longValue);
+        } else if (converted instanceof BigInteger bigInteger && bigInteger.bitLength() < Long.SIZE) {
+binds.setLong(index, bigInteger.longValue());
+        } else if (converted instanceof Float floatValue) {
+binds.setFloat(index, floatValue);
+        } else if (converted instanceof Double doubleValue) {
+binds.setDouble(index, doubleValue);
+        } else if (converted instanceof CharSequence text) {
+binds.setVarchar(index, text);
+        } else if (converted instanceof Instant instant) {
+binds.setTimestampMicros(index, QuestDBEntityConverter.toEpochMicros(instant));
+        } else if (converted instanceof LocalDateTime dateTime) {
+binds.setTimestampMicros(index,
+        QuestDBEntityConverter.toEpochMicros(dateTime.toInstant(ZoneOffset.UTC)));
+        } else if (converted instanceof OffsetDateTime dateTime) {
+binds.setTimestampMicros(index, QuestDBEntityConverter.toEpochMicros(dateTime.toInstant()));
+        } else if (converted instanceof ZonedDateTime dateTime) {
+binds.setTimestampMicros(index, QuestDBEntityConverter.toEpochMicros(dateTime.toInstant()));
+        } else if (converted instanceof UUID uuid) {
+binds.setUuid(index, uuid);
+        } else if (converted == null) {
+throw new UnsupportedOperationException(
+        "QuestDB native binds require a concrete type; null values are not supported");
+        } else {
+throw new IllegalArgumentException(
+        "Unsupported QuestDB query parameter type: " + converted.getClass().getName());
         }
     }
 

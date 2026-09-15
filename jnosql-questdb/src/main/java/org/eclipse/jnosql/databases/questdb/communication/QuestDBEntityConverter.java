@@ -100,15 +100,23 @@ final class QuestDBEntityConverter {
 
     static Instant toInstant(Object value) {
         Object converted = unwrap(value);
-        return switch (converted) {
-            case Instant instant -> instant;
-            case LocalDateTime localDateTime -> localDateTime.toInstant(ZoneOffset.UTC);
-            case OffsetDateTime offsetDateTime -> offsetDateTime.toInstant();
-            case ZonedDateTime zonedDateTime -> zonedDateTime.toInstant();
-            case null -> throw new IllegalArgumentException("QuestDB identifier cannot be null");
-            default -> throw new IllegalArgumentException(
-                    "QuestDB identifier must be Instant, LocalDateTime, OffsetDateTime, or ZonedDateTime");
-        };
+        if (converted instanceof Instant instant) {
+            return instant;
+        }
+        if (converted instanceof LocalDateTime localDateTime) {
+            return localDateTime.toInstant(ZoneOffset.UTC);
+        }
+        if (converted instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.toInstant();
+        }
+        if (converted instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime.toInstant();
+        }
+        if (converted == null) {
+            throw new IllegalArgumentException("QuestDB identifier cannot be null");
+        }
+        throw new IllegalArgumentException(
+                "QuestDB identifier must be Instant, LocalDateTime, OffsetDateTime, or ZonedDateTime");
     }
 
     static Object queryValue(String name, Object value) {
@@ -269,25 +277,43 @@ final class QuestDBEntityConverter {
         abstract void append(Sender sender, String name, Object value);
 
         static QuestDBType of(String name, Object value) {
-            return switch (value) {
-                case Boolean ignored -> BOOLEAN;
-                case Byte ignored -> BYTE;
-                case Short ignored -> SHORT;
-                case Integer ignored -> INTEGER;
-                case Long ignored -> LONG;
-case BigInteger bigInteger when bigInteger.bitLength() < Long.SIZE -> LONG;
-                case Float ignored -> FLOAT;
-                case Double ignored -> DOUBLE;
-                case Character ignored -> CHARACTER;
-                case CharSequence ignored -> VARCHAR;
-                case Instant ignored -> TIMESTAMP;
-                case LocalDateTime ignored -> TIMESTAMP;
-                case OffsetDateTime ignored -> TIMESTAMP;
-                case ZonedDateTime ignored -> TIMESTAMP;
-                case UUID ignored -> UUID_TYPE;
-                default -> throw new IllegalArgumentException(
-                        "QuestDB column '" + name + "' has an unsupported type: " + value.getClass().getName());
-            };
+            if (value instanceof Boolean) {
+return BOOLEAN;
+            }
+            if (value instanceof Byte) {
+return BYTE;
+            }
+            if (value instanceof Short) {
+return SHORT;
+            }
+            if (value instanceof Integer) {
+return INTEGER;
+            }
+            if (value instanceof Long
+    || value instanceof BigInteger bigInteger && bigInteger.bitLength() < Long.SIZE) {
+return LONG;
+            }
+            if (value instanceof Float) {
+return FLOAT;
+            }
+            if (value instanceof Double) {
+return DOUBLE;
+            }
+            if (value instanceof Character) {
+return CHARACTER;
+            }
+            if (value instanceof CharSequence) {
+return VARCHAR;
+            }
+            if (value instanceof Instant || value instanceof LocalDateTime
+    || value instanceof OffsetDateTime || value instanceof ZonedDateTime) {
+return TIMESTAMP;
+            }
+            if (value instanceof UUID) {
+return UUID_TYPE;
+            }
+            throw new IllegalArgumentException(
+    "QuestDB column '" + name + "' has an unsupported type: " + value.getClass().getName());
         }
     }
 }

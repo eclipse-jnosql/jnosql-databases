@@ -65,8 +65,8 @@ class QuestDBQueryConverterTest {
     void shouldConvertUpdateAndRejectTimestampMutation() {
         UpdateQuery query = mock(UpdateQuery.class);
         when(query.name()).thenReturn("sensor_reading");
-        when(query.sets()).thenReturn(List.of(Element.of("temperature", 22.5D)));
-        when(query.where()).thenReturn(Optional.of(CriteriaCondition.eq("sensor", "warehouse-1")));
+        when(query.set()).thenReturn(List.of(Element.of("temperature", 22.5D)));
+        when(query.condition()).thenReturn(Optional.of(CriteriaCondition.eq("sensor", "warehouse-1")));
 
         QuestDBQueryConverter.QuestDBQuery sql = QuestDBQueryConverter.update(query);
 
@@ -76,14 +76,14 @@ class QuestDBQueryConverterTest {
 
         UpdateQuery timestampUpdate = mock(UpdateQuery.class);
         when(timestampUpdate.name()).thenReturn("sensor_reading");
-        when(timestampUpdate.sets()).thenReturn(List.of(Element.of("_id", Instant.now())));
+        when(timestampUpdate.set()).thenReturn(List.of(Element.of("_id", Instant.now())));
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> QuestDBQueryConverter.update(timestampUpdate));
 
         UpdateQuery nullUpdate = mock(UpdateQuery.class);
         when(nullUpdate.name()).thenReturn("sensor_reading");
-        when(nullUpdate.sets()).thenReturn(List.of(Element.of("sensor", null)));
-        when(nullUpdate.where()).thenReturn(Optional.empty());
+        when(nullUpdate.set()).thenReturn(List.of(Element.of("sensor", null)));
+        when(nullUpdate.condition()).thenReturn(Optional.empty());
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> QuestDBQueryConverter.update(nullUpdate))
                 .withMessageContaining("concrete type");
