@@ -1,0 +1,39 @@
+= Contributing a New Eclipse JNoSQL Database Driver
+
+As an open-source project, you're free to create any driver, and you're welcome to join and participate in the process.
+
+== Driver Requirements
+
+To add a new driver, we have a few requirements:
+
+* Run Java 17.
+* Cover the driver with tests and preferences with TestContainer.
+* It is crucial to have an integration test with the database; please annotate those `EnabledIfSystemProperty` and check the xref:README.adoc#integration-tests[integration testing section] to know more.
+
+== Configuration and Package Conventions
+
+* Include a class to represent and contain the properties. In general, those are `enum`.
+** A nomenclature is the `<DATABASE>Configurations`, e.g., `CassandraConfigurations`, `MongoDBConfigurations`.
+** The package name will follow the terminology: `org.jnosql.databases.[DATABASE].[LAYER]`.
+*** E.g., given a database called "Ada" that is a column type, the package name will be: `org.eclipse.jnosql.databases.ada.communication` for the driver layer and `org.eclipse.jnosql.databases.ada.mapping` for the mapping.
+*** You can include the database in a single project if a NoSQL supports multiple database types.
+
+== Mapping Manager Supplier
+
+* Create a `Supplier` class on the mapping layer that will produce a specific Manager instance using Microprofile. Check: `ColumnManagerSupplier`, `DocumentManagerSupplier` classes to get more information.
+
+== Documentation
+
+* Include the driver documentation in the README file.
+* Please pay attention to the documentation. This includes JavaDoc.
+
+== Testing and the TCK
+
+Use Testcontainers for database integration testing where possible and follow the integration-test conventions in xref:README.adoc#integration-tests[Integration tests].
+
+For implementations that support the Jakarta NoSQL TCK, follow xref:README.adoc#performing-jakarta-nosql-tck[Performing the Jakarta NoSQL TCK].
+
+== Graph Drivers
+
+Eclipse JNoSQL uses https://tinkerpop.apache.org/[Apache Tinkerpop] for Graph API.
+Using this API gives support to https://tinkerpop.apache.org/providers.html[over twenty fives databases].
