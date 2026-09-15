@@ -1186,7 +1186,7 @@ vendor-specific entity annotations.
 </dependency>
 ----
 
-The driver uses the official `org.apache.iotdb:iotdb-session:2.0.11` client and requires Java 17 or newer.
+The driver uses the official `org.apache.iotdb:iotdb-session:2.0.11` client and requires Java 21 or newer.
 
 === Configure the Connection
 
