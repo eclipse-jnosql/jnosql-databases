@@ -237,6 +237,7 @@ public class QuestDBTimeSeriesManager implements DatabaseManager {
 
         @Override
         public void onError(byte status, String message) {
+            throw new IllegalStateException("QuestDB QWP query failed [status=" + status + "]: " + message);
         }
 
         @Override
