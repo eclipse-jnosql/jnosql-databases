@@ -203,7 +203,11 @@ final class IoTDBQueryConverter {
     }
 
     private static List<?> values(Element element) {
-        return org.eclipse.jnosql.communication.ValueUtil.convertToList(element.value());
+        Object value = element.value().get();
+        if (value instanceof List<?> list) {
+            return list;
+        }
+        throw new IllegalArgumentException("IoTDB multi-value condition requires a list");
     }
 
     private static String column(String name) {
