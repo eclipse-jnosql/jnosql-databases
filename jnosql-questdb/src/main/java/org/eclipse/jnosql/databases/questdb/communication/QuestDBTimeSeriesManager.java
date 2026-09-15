@@ -205,7 +205,9 @@ public class QuestDBTimeSeriesManager implements DatabaseManager {
             case Character character -> binds.setChar(index, character);
             case Integer integer -> binds.setInt(index, integer);
             case Long longValue -> binds.setLong(index, longValue);
-            case BigInteger bigInteger when bigInteger.bitLength() < Long.SIZE ->
+case BigInteger bigInteger
+                    when bigInteger.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) >= 0
+                            && bigInteger.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) <= 0 ->
                     binds.setLong(index, bigInteger.longValue());
             case Float floatValue -> binds.setFloat(index, floatValue);
             case Double doubleValue -> binds.setDouble(index, doubleValue);
