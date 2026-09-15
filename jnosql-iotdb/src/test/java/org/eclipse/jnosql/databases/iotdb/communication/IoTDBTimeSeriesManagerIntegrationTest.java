@@ -11,6 +11,7 @@
 package org.eclipse.jnosql.databases.iotdb.communication;
 
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.junit.jupiter.api.BeforeAll;
@@ -67,6 +68,12 @@ class IoTDBTimeSeriesManagerIntegrationTest {
                 .limit(1)
                 .build())).singleElement()
                 .satisfies(result -> assertThat(result.find("_id", Instant.class)).contains(second));
+        assertThat(manager.select(SelectQuery.builder().select().from(table)
+                .where(CriteriaCondition.in("_id", List.of(first, second)))
+                .build())).hasSize(2);
+        assertThat(manager.select(SelectQuery.select().from(table)
+                .where("_id").between(first, second)
+                .build())).hasSize(2);
 
         manager.delete(DeleteQuery.delete().from(table).where("_id").eq(second).build());
         assertThat(manager.select(SelectQuery.select().from(table).where("_id").eq(second).build())).isEmpty();
