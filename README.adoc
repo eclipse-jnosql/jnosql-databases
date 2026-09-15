@@ -1155,6 +1155,128 @@ The driver rejects operations that cannot preserve their expected JNoSQL semanti
 
 These operations throw `UnsupportedOperationException` instead of issuing misleading or potentially destructive operations.
 
+== Apache IoTDB
+
+https://iotdb.apache.org/[Apache IoTDB] is a time-series database designed for IoT data management and analysis.
+
+The Eclipse JNoSQL IoTDB driver connects the *Time Series* Mapping API to IoTDB's native Table Model API without
+vendor-specific entity annotations.
+
+=== How To Install
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-iotdb</artifactId>
+  <version>1.1.17</version>
+</dependency>
+----
+
+The driver uses the official `org.apache.iotdb:iotdb-session:2.0.11` client and requires Java 17 or newer.
+
+=== Configure the Connection
+
+Create the IoTDB database before starting the application. Tables and columns are created automatically during native
+tablet ingestion when the server's `enable_auto_create_schema` setting is enabled.
+
+[source,properties]
+----
+jnosql.timeseries.provider=org.eclipse.jnosql.databases.iotdb.communication.IoTDBTimeSeriesConfiguration
+jnosql.timeseries.database=metrics
+jnosql.iotdb.host=localhost
+jnosql.iotdb.port=6667
+jnosql.iotdb.username=root
+jnosql.iotdb.password=root
+----
+
+[cols="Apache IoTDB"]
+|===
+|Configuration property |Default |Description
+
+|`jnosql.iotdb.host`
+|`localhost`
+|IoTDB DataNode host.
+
+|`jnosql.iotdb.port`
+|`6667`
+|IoTDB native RPC port.
+
+|`jnosql.iotdb.username`
+|`root`
+|IoTDB user.
+
+|`jnosql.iotdb.password`
+|`root`
+|IoTDB password.
+
+|`jnosql.iotdb.pool.size`
+|`5`
+|Maximum native Table Model session-pool size.
+
+|`jnosql.iotdb.query.timeout`
+|`60000`
+|Query timeout in milliseconds.
+
+|`jnosql.iotdb.enable.redirection`
+|`true`
+|Enables client redirection for an IoTDB cluster. Container-based tests disable it because the advertised internal
+address is not reachable through the mapped host port.
+
+|===
+
+=== Entity Mapping and AUTO Schema
+
+[source,java]
+----
+@Entity("sensor_reading")
+public class SensorReading {
+
+    @Id
+    private Instant timestamp;
+
+    @Column
+    private String sensor;
+
+    @Column
+    private double temperature;
+}
+----
+
+The entity name becomes the IoTDB table, the `@Id` becomes the `TIME` column, and every `@Column` becomes a `FIELD`
+column. Supported identifier types are `Instant`, `LocalDateTime`, `OffsetDateTime`, and `ZonedDateTime`;
+`LocalDateTime` is interpreted as UTC. IoTDB's default millisecond timestamp precision is used.
+
+The schema strategy is `AUTO`: the driver sends native `Tablet` objects and lets IoTDB create missing tables and evolve
+FIELD columns. It does not issue `CREATE TABLE`, `CREATE TIMESERIES`, or `ALTER TABLE` during insertion. The configured
+database itself must already exist. If automatic schema creation is disabled, the native IoTDB error is propagated.
+
+Because the portable JNoSQL model has no TAG or ATTRIBUTE annotations, this initial integration maps all non-ID columns
+to FIELD. A table therefore has one logical device, making its TIME value the JNoSQL entity identifier. Writing the same
+entity type and timestamp again replaces values for that timestamp according to IoTDB's native semantics.
+
+=== Supported Operations
+
+The driver supports single and native batched tablet insertion, find/select, count, equality and comparison predicates,
+`IN`, `BETWEEN`, `AND`, `OR`, `NOT`, ordering, limits, offsets, temporal predicates, and deletion constrained only by
+the temporal identifier.
+
+IoTDB's native Table Model session API does not expose prepared or bind parameters. Query values are therefore rendered
+by a centralized type-aware SQL literal encoder: text delimiters are doubled, numeric and boolean values are validated,
+and temporal identifiers are converted to epoch milliseconds. Entity, table, and column identifiers are accepted only
+when they contain letters, digits, and underscores and begin with a letter or underscore.
+
+=== Operation Limitations
+
+* Identifiers are never generated. Set a supported temporal `@Id` before insertion.
+* Update operations are unsupported. IoTDB Table Model updates apply to TAG and ATTRIBUTE columns, while portable
+  JNoSQL columns map to FIELD.
+* Delete predicates may reference only `_id`; field-based deletion cannot preserve IoTDB's supported delete semantics.
+* Per-entity TTL is unsupported. Configure TTL at the IoTDB table or database level.
+* `LIKE`, `CONTAINS`, `STARTS_WITH`, `ENDS_WITH`, and case-insensitive predicates are unsupported.
+
+Unsupported operations throw `UnsupportedOperationException`.
+
 == QuestDB
 
 https://questdb.com/[QuestDB] is a high-performance time-series database with native ingestion and SQL querying.
