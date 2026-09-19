@@ -27,7 +27,7 @@
     <description>The Eclipse JNoSQL layer implementation for Infinispan</description>
 
     <properties>
-        <infinispan.version>16.2.1</infinispan.version>
+        <infinispan.version>16.2.3</infinispan.version>
     </properties>
     <dependencies>
         <dependency>
