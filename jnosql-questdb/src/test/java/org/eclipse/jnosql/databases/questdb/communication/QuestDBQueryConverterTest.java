@@ -47,6 +47,102 @@ class QuestDBQueryConverterTest {
     }
 
     @Test
+    void shouldConvertOffsetAndLimitToQuestDBRange() {
+        SelectQuery query = SelectQuery.select().from("sensor_reading")
+                .skip(10)
+                .limit(20)
+                .build();
+
+        QuestDBQueryConverter.QuestDBQuery sql = QuestDBQueryConverter.convert(query);
+
+        assertThat(sql.statement()).isEqualTo("SELECT * FROM \"sensor_reading\" LIMIT $1, $2");
+        assertThat(sql.parameters()).containsExactly(10L, 30L);
+    }
+
+    @Test
+    void shouldConvertSecondPageOfTenRecords() {
+        SelectQuery query = SelectQuery.select().from("sensor_reading")
+                .skip(10)
+                .limit(10)
+                .build();
+
+        QuestDBQueryConverter.QuestDBQuery sql = QuestDBQueryConverter.convert(query);
+
+        assertThat(sql.statement()).isEqualTo("SELECT * FROM \"sensor_reading\" LIMIT $1, $2");
+        assertThat(sql.parameters()).containsExactly(10L, 20L);
+    }
+
+    @Test
+    void shouldTreatZeroOffsetAsLimitOnly() {
+        SelectQuery query = SelectQuery.select().from("sensor_reading")
+                .skip(0)
+                .limit(10)
+                .build();
+
+        QuestDBQueryConverter.QuestDBQuery sql = QuestDBQueryConverter.convert(query);
+
+        assertThat(sql.statement()).isEqualTo("SELECT * FROM \"sensor_reading\" LIMIT $1");
+        assertThat(sql.parameters()).containsExactly(10L);
+    }
+
+    @Test
+    void shouldConvertOffsetOneAndLimitTen() {
+        SelectQuery query = SelectQuery.select().from("sensor_reading")
+                .skip(1)
+                .limit(10)
+                .build();
+
+        QuestDBQueryConverter.QuestDBQuery sql = QuestDBQueryConverter.convert(query);
+
+        assertThat(sql.statement()).isEqualTo("SELECT * FROM \"sensor_reading\" LIMIT $1, $2");
+        assertThat(sql.parameters()).containsExactly(1L, 11L);
+    }
+
+    @Test
+    void shouldConvertLargeOffsetAndLimit() {
+        SelectQuery query = SelectQuery.select().from("sensor_reading")
+                .skip(1_000_000)
+                .limit(250_000)
+                .build();
+
+        QuestDBQueryConverter.QuestDBQuery sql = QuestDBQueryConverter.convert(query);
+
+        assertThat(sql.statement()).isEqualTo("SELECT * FROM \"sensor_reading\" LIMIT $1, $2");
+        assertThat(sql.parameters()).containsExactly(1_000_000L, 1_250_000L);
+    }
+
+    @Test
+    void shouldPreserveWhereOrderAndBindingWithOffsetPagination() {
+        SelectQuery query = SelectQuery.select().from("sensor_reading")
+                .where("sensor").eq("warehouse-1")
+                .orderBy("_id").desc()
+                .skip(10)
+                .limit(20)
+                .build();
+
+        QuestDBQueryConverter.QuestDBQuery sql = QuestDBQueryConverter.convert(query);
+
+        assertThat(sql.statement()).isEqualTo(
+                "SELECT * FROM \"sensor_reading\" WHERE \"sensor\" = $1 "
+                        + "ORDER BY \"timestamp\" DESC LIMIT $2, $3");
+        assertThat(sql.parameters()).containsExactly("warehouse-1", 10L, 30L);
+    }
+
+    @Test
+    void shouldLeaveQueryWithoutPaginationUnchanged() {
+        SelectQuery query = SelectQuery.select().from("sensor_reading")
+                .where("sensor").eq("warehouse-1")
+                .orderBy("_id").asc()
+                .build();
+
+        QuestDBQueryConverter.QuestDBQuery sql = QuestDBQueryConverter.convert(query);
+
+        assertThat(sql.statement()).isEqualTo(
+                "SELECT * FROM \"sensor_reading\" WHERE \"sensor\" = $1 ORDER BY \"timestamp\" ASC");
+        assertThat(sql.parameters()).containsExactly("warehouse-1");
+    }
+
+    @Test
     void shouldConvertTemporalIdentifierAndInPredicate() {
         Instant timestamp = Instant.parse("2026-09-15T03:00:00Z");
         CriteriaCondition condition = CriteriaCondition.eq("_id", timestamp)
@@ -90,7 +186,7 @@ class QuestDBQueryConverterTest {
     }
 
     @Test
-    void shouldRejectUnsupportedConditionAndOffset() {
+    void shouldRejectUnsupportedConditionAndOffsetWithoutLimit() {
         SelectQuery unsupported = SelectQuery.builder().select().from("sensor_reading")
                 .where(CriteriaCondition.contains(Element.of("sensor", "house")))
                 .build();
@@ -100,6 +196,18 @@ class QuestDBQueryConverterTest {
                 .isThrownBy(() -> QuestDBQueryConverter.convert(unsupported));
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> QuestDBQueryConverter.convert(offset));
+    }
+
+    @Test
+    void shouldRejectPaginationRangeOverflow() {
+        SelectQuery query = SelectQuery.select().from("sensor_reading")
+                .skip(Long.MAX_VALUE)
+                .limit(1)
+                .build();
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> QuestDBQueryConverter.convert(query))
+                .withMessageContaining("range exceeds");
     }
 
     @Test
