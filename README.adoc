@@ -2186,6 +2186,8 @@ Time-series databases organize observations around timestamps and are optimized 
 
 ==== Description
 
+image::https://jnosql.github.io/img/logos/influxdb.png[InfluxDB,align="center" width=25%,height=25%"]
+
 https://www.influxdata.com/[InfluxDB] is a time-series database optimized for timestamped metrics, events, monitoring, and IoT data.
 
 The Eclipse JNoSQL InfluxDB driver connects the *Time Series* Mapping API to InfluxDB 3. Applications can use `TimeSeriesTemplate` and Jakarta Data repositories while keeping InfluxDB connection and data-model details in the driver.
@@ -2238,6 +2240,8 @@ jnosql.influxdb.token=${INFLUXDB_TOKEN}
 === Apache IoTDB
 
 ==== Description
+
+image::https://jnosql.github.io/img/logos/apache-io-tbd.png[Apache IoTDB,align="center" width=25%,height=25%"]
 
 https://iotdb.apache.org/[Apache IoTDB] is a time-series database designed for IoT data management and analysis.
 
@@ -2316,6 +2320,8 @@ jnosql.iotdb.password=root
 === QuestDB
 
 ==== Description
+
+image::https://jnosql.github.io/img/logos/questdb.png[QuestDB,align="center" width=25%,height=25%"]
 
 https://questdb.com/[QuestDB] is a high-performance time-series database with native ingestion and SQL querying.
 
