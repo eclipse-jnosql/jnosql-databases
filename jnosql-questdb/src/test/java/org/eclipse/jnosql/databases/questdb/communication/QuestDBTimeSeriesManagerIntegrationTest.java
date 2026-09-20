@@ -21,6 +21,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.LockSupport;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
@@ -58,6 +59,44 @@ class QuestDBTimeSeriesManagerIntegrationTest {
 
         manager.update(entity(second, sensor, 23.5D));
         awaitTemperature(second, 23.5D);
+    }
+
+    @Test
+    void shouldSelectFirstAndSecondPagesOfTenRecords() {
+        String table = "pagination_" + UUID.randomUUID().toString().replace("-", "");
+        String sensor = UUID.randomUUID().toString();
+        Instant first = Instant.now().minusSeconds(20).truncatedTo(ChronoUnit.MICROS);
+        List<CommunicationEntity> records = IntStream.range(0, 20)
+                .mapToObj(index -> entity(table, first.plusSeconds(index), sensor, 20D + index))
+                .toList();
+        manager.insert(records);
+
+        SelectQuery allRecords = SelectQuery.select().from(table)
+                .where("sensor").eq(sensor)
+                .build();
+        awaitCount(allRecords, records.size());
+        SelectQuery firstPage = SelectQuery.select().from(table)
+                .where("sensor").eq(sensor)
+                .orderBy("_id").asc()
+                .limit(10)
+                .build();
+        SelectQuery secondPage = SelectQuery.select().from(table)
+                .where("sensor").eq(sensor)
+                .orderBy("_id").asc()
+                .skip(10)
+                .limit(10)
+                .build();
+
+        assertThat(manager.select(firstPage))
+                .extracting(entity -> entity.find("_id", Instant.class).orElseThrow())
+                .containsExactlyElementsOf(IntStream.range(0, 10)
+                        .mapToObj(first::plusSeconds)
+                        .toList());
+        assertThat(manager.select(secondPage))
+                .extracting(entity -> entity.find("_id", Instant.class).orElseThrow())
+                .containsExactlyElementsOf(IntStream.range(10, 20)
+                        .mapToObj(first::plusSeconds)
+                        .toList());
     }
 
     @Test

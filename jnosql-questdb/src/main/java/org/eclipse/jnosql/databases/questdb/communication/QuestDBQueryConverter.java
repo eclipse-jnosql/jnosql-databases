@@ -173,7 +173,21 @@ final class QuestDBQueryConverter {
 
     private static void appendLimit(StringBuilder sql, long limit, long skip, List<Object> parameters) {
         if (skip > 0) {
-            throw new UnsupportedOperationException("QuestDB does not support OFFSET pagination");
+            if (limit <= 0) {
+                throw new UnsupportedOperationException(
+                        "QuestDB offset pagination requires a finite limit");
+            }
+            long upperBound;
+            try {
+                upperBound = Math.addExact(skip, limit);
+            } catch (ArithmeticException exception) {
+                throw new IllegalArgumentException("QuestDB pagination range exceeds the supported size", exception);
+            }
+            parameters.add(skip);
+            sql.append(" LIMIT $").append(parameters.size());
+            parameters.add(upperBound);
+            sql.append(", $").append(parameters.size());
+            return;
         }
         if (limit > 0) {
             parameters.add(limit);
