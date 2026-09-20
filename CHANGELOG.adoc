@@ -8,6 +8,8 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+== [1.1.18] - 2026-09-20
+
 === Added
 
 - Add InfluxDB 3 driver for the JNoSQL Time Series Mapping API, with temporal identifiers, point conversion, batch writes, parameterized SQL queries, ordering, and limits
@@ -42,6 +44,26 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 - Fixed potential query injection vulnerabilities and hardened parameter and identifier handling across generated database queries, including Gremlin, Oracle NoSQL, and Hazelcast predicates
 - Bind TinkerPop Gremlin parameters through the script engine instead of interpolating values, preventing Gremlin query injection
+
+== [1.1.17] - 2026-08-10
+
+=== Database driver updates
+
+- Upgrade Elasticsearch to `9.5.2`.
+- Upgrade Jedis to `8.0.1`, including migration of pooled and Sentinel clients to connection providers.
+- Upgrade MongoDB to `5.11.0`.
+- Upgrade HBase to `3.0.0`.
+- Upgrade DynamoDB to `2.54.7`.
+- Upgrade Neo4j to `6.2.1`.
+- Update database backports for the `1.1.x` release line.
+
+=== Fixed
+
+- Fix Oracle NoSQL JSON `null` predicates to preserve the expected query semantics.
+
+=== Maintenance
+
+- Update license references across modules to Eclipse Public License 2.0.
 
 == [1.1.16] - 2026-08-10
 

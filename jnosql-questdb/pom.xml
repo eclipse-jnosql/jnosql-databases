@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.eclipse.jnosql.databases</groupId>
         <artifactId>jnosql-databases-parent</artifactId>
-        <version>1.1.18-SNAPSHOT</version>
+        <version>1.1.18</version>
     </parent>
 
     <artifactId>jnosql-questdb</artifactId>
