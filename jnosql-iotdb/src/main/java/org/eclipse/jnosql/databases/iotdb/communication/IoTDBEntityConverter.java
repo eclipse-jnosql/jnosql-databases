@@ -148,6 +148,7 @@ final class IoTDBEntityConverter {
             case Character character -> character.toString();
             case CharSequence text -> text.toString();
             case UUID uuid -> uuid.toString();
+            case Enum<?> enumeration -> enumeration.name();
             case Instant instant -> instant.toEpochMilli();
             case LocalDateTime dateTime -> dateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
             case OffsetDateTime dateTime -> dateTime.toInstant().toEpochMilli();
@@ -169,6 +170,7 @@ final class IoTDBEntityConverter {
             case Character ignored -> TSDataType.STRING;
             case CharSequence ignored -> TSDataType.STRING;
             case UUID ignored -> TSDataType.STRING;
+            case Enum<?> ignored -> TSDataType.STRING;
             case Instant ignored -> TSDataType.TIMESTAMP;
             case LocalDateTime ignored -> TSDataType.TIMESTAMP;
             case OffsetDateTime ignored -> TSDataType.TIMESTAMP;

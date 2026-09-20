@@ -187,6 +187,7 @@ final class IoTDBQueryConverter {
             case Character character -> quoted(character.toString());
             case CharSequence text -> quoted(text.toString());
             case UUID uuid -> quoted(uuid.toString());
+            case Enum<?> enumeration -> quoted(enumeration.name());
             case Instant instant -> Long.toString(instant.toEpochMilli());
             case LocalDateTime dateTime -> Long.toString(dateTime.toInstant(ZoneOffset.UTC).toEpochMilli());
             case OffsetDateTime dateTime -> Long.toString(dateTime.toInstant().toEpochMilli());

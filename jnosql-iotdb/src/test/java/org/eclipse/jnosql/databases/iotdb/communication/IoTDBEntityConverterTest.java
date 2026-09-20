@@ -89,6 +89,21 @@ class IoTDBEntityConverterTest {
     }
 
     @Test
+    void shouldConvertEnumToItsName() {
+        CommunicationEntity entity = CommunicationEntity.of("transaction");
+        entity.add("_id", TIMESTAMP);
+        entity.add("type", TransactionType.OPEN);
+
+        IoTDBEntityConverter.IoTDBRow row = IoTDBEntityConverter.toRow(entity);
+
+        assertThat(row.columns()).singleElement()
+                .satisfies(column -> {
+                    assertThat(column.type()).isEqualTo(TSDataType.STRING);
+                    assertThat(column.value()).isEqualTo("OPEN");
+                });
+    }
+
+    @Test
     void shouldRejectInvalidIdentifiersAndIds() {
         CommunicationEntity missingId = CommunicationEntity.of("sensor_reading");
         missingId.add("temperature", 20D);
@@ -115,5 +130,14 @@ class IoTDBEntityConverterTest {
         entity.add("sensor", "warehouse-1");
         entity.add("temperature", 21.5D);
         return entity;
+    }
+
+    private enum TransactionType {
+        OPEN;
+
+        @Override
+        public String toString() {
+            return "open transaction";
+        }
     }
 }
