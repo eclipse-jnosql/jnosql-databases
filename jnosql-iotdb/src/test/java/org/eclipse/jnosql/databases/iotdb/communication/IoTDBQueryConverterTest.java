@@ -87,6 +87,11 @@ class IoTDBQueryConverterTest {
     }
 
     @Test
+    void shouldConvertEnumLiteralToItsName() {
+        assertThat(IoTDBQueryConverter.literal("type", TransactionType.OPEN)).isEqualTo("'OPEN'");
+    }
+
+    @Test
     void shouldConvertTemporalDeleteAndRejectFieldDelete() {
         Instant first = Instant.parse("2026-09-15T03:00:00Z");
         Instant second = first.plusSeconds(10);
@@ -133,5 +138,14 @@ class IoTDBQueryConverterTest {
 
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> IoTDBQueryConverter.convert(unsupported));
+    }
+
+    private enum TransactionType {
+        OPEN;
+
+        @Override
+        public String toString() {
+            return "open transaction";
+        }
     }
 }

@@ -196,6 +196,9 @@ final class IoTDBQueryConverter {
         if (converted instanceof Character || converted instanceof CharSequence || converted instanceof UUID) {
             return quoted(converted.toString());
         }
+        if (converted instanceof Enum<?> enumeration) {
+            return quoted(enumeration.name());
+        }
         if (converted instanceof Instant instant) {
             return Long.toString(instant.toEpochMilli());
         }

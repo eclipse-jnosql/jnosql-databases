@@ -160,6 +160,9 @@ final class IoTDBEntityConverter {
         if (value instanceof Character || value instanceof CharSequence || value instanceof UUID) {
             return value.toString();
         }
+        if (value instanceof Enum<?> enumeration) {
+            return enumeration.name();
+        }
         if (value instanceof Instant instant) {
             return instant.toEpochMilli();
         }
@@ -191,7 +194,8 @@ final class IoTDBEntityConverter {
         if (value instanceof Double) {
             return TSDataType.DOUBLE;
         }
-        if (value instanceof Character || value instanceof CharSequence || value instanceof UUID) {
+        if (value instanceof Character || value instanceof CharSequence
+                || value instanceof UUID || value instanceof Enum<?>) {
             return TSDataType.STRING;
         }
         if (value instanceof Instant || value instanceof LocalDateTime
