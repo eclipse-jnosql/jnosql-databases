@@ -49,6 +49,7 @@
         <module>jnosql-database-commons</module>
         <module>jnosql-arangodb</module>
         <module>jnosql-cassandra</module>
+        <module>jnosql-scylladb</module>
         <module>jnosql-couchbase</module>
         <module>jnosql-couchdb</module>
         <module>jnosql-dynamodb</module>

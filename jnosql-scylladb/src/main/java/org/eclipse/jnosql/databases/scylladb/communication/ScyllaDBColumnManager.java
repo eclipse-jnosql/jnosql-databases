@@ -1,0 +1,153 @@
+/*
+ *  Copyright (c) 2022 Contributors to the Eclipse Foundation
+ *   All rights reserved. This program and the accompanying materials
+ *   are made available under the terms of the Eclipse Public License 2.0
+ *   and Apache License v2.0 which accompanies this distribution.
+ *   The Eclipse Public License is available at https://www.eclipse.org/legal/epl-2.0
+ *   and the Apache License v2.0 is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ *   You may elect to redistribute this code under either of these licenses.
+ *
+ *   Contributors:
+ *
+ *   Otavio Santana
+ */
+
+package org.eclipse.jnosql.databases.scylladb.communication;
+
+
+import com.datastax.oss.driver.api.core.ConsistencyLevel;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
+import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
+import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.SelectQuery;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.stream.Stream;
+
+/**
+ * The ScyllaDB implementation of {@link DatabaseManager}, that supports all methods and also supports
+ * CQL and ConsistencyLevel.
+ * <p>{@link ScyllaDBColumnManager#select(SelectQuery, ConsistencyLevel)}</p>
+ * <p>{@link ScyllaDBColumnManager#cql(String)}</p>
+ * <p>{@link ScyllaDBColumnManager#nativeQueryPrepare(String)}</p>
+ * <p>{@link ScyllaDBColumnManager#delete(DeleteQuery, ConsistencyLevel)}</p>
+ */
+public interface ScyllaDBColumnManager extends DatabaseManager {
+
+
+    /**
+     * Saves a ColumnEntity with a defined ConsistencyLevel
+     *
+     * @param entity the entity
+     * @param level  the {@link ConsistencyLevel}
+     * @return the entity saved
+     * @throws NullPointerException when both entity or level are null
+     */
+    CommunicationEntity save(CommunicationEntity entity, ConsistencyLevel level) throws NullPointerException;
+
+
+    /**
+     * Saves an entity using {@link ConsistencyLevel}
+     *
+     * @param entity the entity
+     * @param ttl    the ttl
+     * @param level  the level
+     * @return the entity saved
+     * @throws NullPointerException when either entity or ttl or level are null
+     */
+    CommunicationEntity save(CommunicationEntity entity, Duration ttl, ConsistencyLevel level) throws NullPointerException;
+
+    /**
+     * Saves a ColumnEntity with a defined ConsistencyLevel
+     *
+     * @param entities the entities
+     * @param level    the {@link ConsistencyLevel}
+     * @return the entities saved
+     * @throws NullPointerException when both entity or level are null
+     */
+    Iterable<CommunicationEntity> save(Iterable<CommunicationEntity> entities, ConsistencyLevel level) throws NullPointerException;
+
+
+    /**
+     * Saves an entity using {@link ConsistencyLevel}
+     *
+     * @param entities the entities
+     * @param ttl      the ttl
+     * @param level    the level
+     * @return the entities saved
+     * @throws NullPointerException when either entity or ttl or level are null
+     */
+    Iterable<CommunicationEntity> save(Iterable<CommunicationEntity> entities, Duration ttl, ConsistencyLevel level) throws NullPointerException;
+
+    /**
+     * Deletes an information using {@link ConsistencyLevel}
+     *
+     * @param query the query
+     * @param level the level
+     * @throws NullPointerException when either query or level are null
+     */
+    void delete(DeleteQuery query, ConsistencyLevel level) throws NullPointerException;
+
+    /**
+     * Finds using a consistency level
+     *
+     * @param query the query
+     * @param level the consistency level
+     * @return the query using a consistency level
+     * @throws NullPointerException when either query or level are null
+     */
+    Stream<CommunicationEntity> select(SelectQuery query, ConsistencyLevel level) throws NullPointerException;
+
+    /**
+     * Count based on a query using a consistency level
+     *
+     * @param query the query
+     * @param level the consistency level
+     * @return the query using a consistency level
+     * @throws NullPointerException when either query or level are null
+     */
+    long count(SelectQuery query, ConsistencyLevel level) throws NullPointerException;
+
+
+    /**
+     * Executes CQL
+     *
+     * @param query the ScyllaDB query language
+     * @return the result of this query
+     * @throws NullPointerException when query is null
+     */
+    Stream<CommunicationEntity> cql(String query) throws NullPointerException;
+
+
+    /**
+     * Executes CQL using the provided named values.
+     * <p>E.g.: SELECT * FROM users WHERE id = :i", Map&#60;String, Object&#62;of("i", 1)</p>
+     *
+     * @param query  the Cassndra query language
+     * @param values values required for the execution of {@code query}
+     * @return the result of this query
+     * @throws NullPointerException when either query or values are null
+     */
+    Stream<CommunicationEntity> cql(String query, Map<String, Object> values) throws NullPointerException;
+
+    /**
+     * Executes a statement
+     *
+     * @param statement the statement
+     * @return the result of this query
+     * @throws NullPointerException when statement is null
+     */
+    Stream<CommunicationEntity> execute(SimpleStatement statement) throws NullPointerException;
+
+    /**
+     * Executes an query and uses as {@link ScyllaDBPreparedStatement}
+     *
+     * @param query the query
+     * @return the ScyllaDBPrepareStatment instance
+     * @throws NullPointerException when query is null
+     */
+    ScyllaDBPreparedStatement nativeQueryPrepare(String query) throws NullPointerException;
+}
