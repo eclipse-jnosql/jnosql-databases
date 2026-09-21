@@ -933,6 +933,158 @@ interface PersonRepository extends CassandraRepository<Person, String> {
  }
 ----
 
+[[scylladb]]
+=== ScyllaDB
+
+==== Description
+
+https://www.scylladb.com/[ScyllaDB] is a distributed, highly available database compatible with Apache Cassandra's CQL protocol and designed for predictable, low-latency workloads.
+
+This driver provides support for the *Column Family* NoSQL API using the ScyllaDB Java driver.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-scylladb</artifactId>
+  <version>1.2.0-SNAPSHOT</version>
+</dependency>
+----
+
+==== Configuration
+
+This API provides the `ScyllaDBConfigurations` class to programmatically establish the credentials.
+You can also establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification.
+
+[cols="ScyllaDB"]
+|===
+|Configuration property |Description
+
+|`jnosql.scylladb.user`
+|The user's user ID.
+
+|`jnosql.scylladb.password`
+|The user's password.
+
+|`jnosql.scylladb.host`
+|Database host. It is a prefix used to enumerate hosts. E.g.: jnosql.scylladb.host.1=localhost
+
+|`jnosql.scylladb.name`
+|The name of the application using the created session.
+
+|`jnosql.scylladb.port`
+|The ScyllaDB CQL port.
+
+|`jnosql.scylladb.query`
+|The CQL to execute when the configuration starts. It is a prefix. E.g.: jnosql.scylladb.query.1=<CQL>
+
+|`jnosql.scylladb.data.center`
+|The datacenter considered local by the load-balancing policy.
+|===
+
+This is an example using ScyllaDB with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.column.provider=org.eclipse.jnosql.databases.scylladb.communication.ScyllaDBConfiguration
+jnosql.column.database=developers
+jnosql.scylladb.host.1=localhost
+jnosql.scylladb.port=9042
+jnosql.scylladb.query.1=<CQL-QUERY>
+jnosql.scylladb.query.2=<CQL-QUERY-2>
+----
+
+The configuration settings are the default behavior. To configure the manager programmatically, create an `@Alternative` class that implements `Supplier<ScyllaDBColumnManager>`.
+
+[source,java]
+----
+@ApplicationScoped
+@Alternative
+@Priority(Interceptor.Priority.APPLICATION)
+public class ManagerSupplier implements Supplier<ScyllaDBColumnManager> {
+
+    @Produces
+    public ScyllaDBColumnManager get() {
+        Settings settings = Settings.builder()
+                .put(ScyllaDBConfigurations.HOST.get() + ".1", "localhost")
+                .put(ScyllaDBConfigurations.PORT.get(), 9042)
+                .build();
+        ScyllaDBConfiguration configuration = new ScyllaDBConfiguration();
+        ScyllaDBColumnManagerFactory factory = configuration.apply(settings);
+        return factory.apply("database");
+    }
+}
+----
+
+==== Database-Specific Capabilities
+
+===== UDT at Column Annotation
+
+The `@Column` annotation supports the `udt` attribute for mapping a field to a ScyllaDB user-defined type.
+
+[source,java]
+----
+@Entity
+public class Person {
+
+    @Id("name")
+    private String name;
+
+    @Column
+    private Integer age;
+
+    @Column(udt = "address")
+    private Address home;
+}
+----
+
+===== Converters
+
+The `TimestampConverter` converts values to and from `java.util.Date`.
+
+[source,java]
+----
+@Column
+@Convert(TimestampConverter.class)
+private LocalDateTime localDateTime;
+----
+
+==== Template API
+
+The `ScyllaDBTemplate` interface specializes `ColumnTemplate` and supports CQL operations.
+
+[source,java]
+----
+@Inject
+ScyllaDBTemplate template;
+
+template.save(person, ConsistencyLevel.ONE);
+----
+
+==== Repository Support
+
+The `ScyllaDBRepository` interface extends `Repository` and supports CQL queries and consistency levels through the `@CQL` annotation.
+
+[source,java]
+----
+@Repository
+interface PersonRepository extends ScyllaDBRepository<Person, String> {
+
+    @CQL("select * from Person")
+    List<Person> findAll();
+
+    @CQL("select * from Person where name = ?")
+    List<Person> findByName(String name);
+
+    @CQL("select * from Person where age = :age")
+    List<Person> findByAge(@Param("age") Integer age);
+}
+----
+
 [[hbase]]
 === HBase
 
