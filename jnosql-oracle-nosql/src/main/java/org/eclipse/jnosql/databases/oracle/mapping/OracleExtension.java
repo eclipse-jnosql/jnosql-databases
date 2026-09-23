@@ -31,10 +31,10 @@ public class OracleExtension implements Extension {
         ClassScanner scanner = ClassScanner.load();
         Set<Class<?>> crudTypes = scanner.repositories(OracleNoSQLRepository.class);
 
-        LOGGER.info("Starting the onAfterBeanDiscovery with elements number: " + crudTypes.size());
+        LOGGER.fine(() -> "Starting the onAfterBeanDiscovery with elements number: " + crudTypes.size());
 
         crudTypes.forEach(type -> afterBeanDiscovery.addBean(new OracleRepositoryBean<>(type)));
 
-        LOGGER.info("Finished the onAfterBeanDiscovery");
+        LOGGER.fine(() -> "Finished the onAfterBeanDiscovery");
     }
 }
