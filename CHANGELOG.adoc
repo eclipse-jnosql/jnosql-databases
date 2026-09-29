@@ -72,6 +72,23 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Escape Solr query values and native query parameters to prevent Lucene query injection
 - Bind TinkerPop Gremlin parameters through the script engine instead of interpolating values, preventing Gremlin query injection
 
+== [1.1.19] - 2026-09-29
+
+=== Added
+
+- Added ScyllaDB support
+
+=== Changed
+
+- Updated Neo4J to 6.3.0
+- Updated InfluxDB to 1.11.1
+- Updated DynamoDB to 2.55.7
+- Updated MongoDB to 5.13.0
+
+=== Fixed
+
+- Lowered Oracle NoSQL extension lifecycle logging
+
 == [1.1.18] - 2026-09-20
 
 === Added
