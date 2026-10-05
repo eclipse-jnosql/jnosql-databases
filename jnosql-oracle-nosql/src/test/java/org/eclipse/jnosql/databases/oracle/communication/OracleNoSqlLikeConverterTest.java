@@ -51,7 +51,7 @@ class OracleNoSqlLikeConverterTest {
                 arguments("_ta", ".ta"),
 
                 // escaping of regex metacharacters
-                arguments("%a.c%", ".*a\\\\.c.*"),
+                arguments("%a.c%", ".*a\\.c.*"),
                 arguments("100% match", "100.* match"),
 
                 // edge cases
@@ -84,9 +84,9 @@ class OracleNoSqlLikeConverterTest {
     static Stream<org.junit.jupiter.params.provider.Arguments> containsCases() {
         return Stream.of(
                 arguments("Lu", ".*Lu.*"),
-                arguments("a.c", ".*a\\\\.c.*"),
-                arguments("price$", ".*price\\\\$.*"),
-                arguments("(hello)", ".*\\\\(hello\\\\).*"),
+                arguments("a.c", ".*a\\.c.*"),
+                arguments("price$", ".*price\\$.*"),
+                arguments("(hello)", ".*\\(hello\\).*"),
                 arguments("", ".*.*")
         );
     }
@@ -102,9 +102,9 @@ class OracleNoSqlLikeConverterTest {
     static Stream<org.junit.jupiter.params.provider.Arguments> startsWithCases() {
         return Stream.of(
                 arguments("Lu", "Lu.*"),
-                arguments("a.c", "a\\\\.c.*"),
-                arguments("price$", "price\\\\$.*"),
-                arguments("(hello)", "\\\\(hello\\\\).*"),
+                arguments("a.c", "a\\.c.*"),
+                arguments("price$", "price\\$.*"),
+                arguments("(hello)", "\\(hello\\).*"),
                 arguments("", ".*")
         );
     }
@@ -121,9 +121,9 @@ class OracleNoSqlLikeConverterTest {
     static Stream<org.junit.jupiter.params.provider.Arguments> endsWithCases() {
         return Stream.of(
                 arguments("Lu", ".*Lu"),
-                arguments("a.c", ".*a\\\\.c"),
-                arguments("price$", ".*price\\\\$"),
-                arguments("(hello)", ".*\\\\(hello\\\\)"),
+                arguments("a.c", ".*a\\.c"),
+                arguments("price$", ".*price\\$"),
+                arguments("(hello)", ".*\\(hello\\)"),
                 arguments("", ".*")
         );
     }
@@ -133,7 +133,7 @@ class OracleNoSqlLikeConverterTest {
     void escapesAllMetaCharacters() {
         String term = ".^$*+?()[]{}\\|";
         String escaped = Stream.of(".", "^", "$", "*", "+", "?", "(", ")", "[", "]", "{", "}", "\\", "|")
-                .map(c -> "\\\\" + c)
+                .map(c -> "\\" + c)
                 .collect(joining());
 
         assertThat(OracleNoSqlLikeConverter.INSTANCE.contains(term))
