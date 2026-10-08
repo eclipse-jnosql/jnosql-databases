@@ -15,11 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: jnosql-databases
       - name: Checkout JNoSQL 1.x.x
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: eclipse-jnosql/jnosql
           ref: 1.x.x
