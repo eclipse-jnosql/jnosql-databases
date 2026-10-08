@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to ScyllaDB</description>
 
     <properties>
-        <scylladb.driver.version>4.19.2.1</scylladb.driver.version>
+        <scylladb.driver.version>4.19.2.2</scylladb.driver.version>
     </properties>
     <dependencies>
         <dependency>
