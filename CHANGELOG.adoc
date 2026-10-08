@@ -8,6 +8,14 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 == [Unreleased]
 
+=== Changed
+
+- Upgraded Elasticsearch to 9.5.5
+- Updated OrientDB to 3.2.57
+- Updated DynamoDB SDK to 2.55.12
+- Updated ScyllaDB driver to 4.19.2.2
+- Updated Infinispan to 16.3.0
+
 == [1.1.19] - 2026-09-29
 
 === Changed
