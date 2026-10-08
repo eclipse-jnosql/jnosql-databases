@@ -73,6 +73,20 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Escape Solr query values and native query parameters to prevent Lucene query injection
 - Bind TinkerPop Gremlin parameters through the script engine instead of interpolating values, preventing Gremlin query injection
 
+== [1.1.20] - 2026-10-08
+
+=== Changed
+
+- Upgraded Elasticsearch to 9.5.5
+- Updated OrientDB to 3.2.57
+- Updated DynamoDB SDK to 2.55.12
+- Updated ScyllaDB driver to 4.19.2.2
+- Updated Infinispan to 16.3.0
+
+=== Fixed
+
+- Fixed double escaping of bound regular expression parameters in Oracle NoSQL
+
 == [1.1.19] - 2026-09-29
 
 === Added
