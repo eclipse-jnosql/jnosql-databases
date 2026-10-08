@@ -41,9 +41,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Validate required fields in N1QLUpdateQueryBuilder for Couchbase
 - Validate update query parameters in Couchbase driver
 - Update jakarta data engine
-- Upgraded Elasticsearch to 9.5.2
+- Upgraded Elasticsearch to 9.5.5
 - Upgraded Jedis to 8.0.1 and migrated pooled and sentinel clients to connection providers
-- Updated OrientDB to 3.2.55
+- Updated OrientDB to 3.2.57
 - Updated MongoDB to 5.11.0
 - Updated HBase to 3.0.0
 - Updated DynamoDB to 2.54.7
