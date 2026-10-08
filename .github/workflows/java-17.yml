@@ -18,18 +18,18 @@ jobs:
     - uses: actions/checkout@v4
       with:
         path: jnosql-databases
-    - name: Checkout JNoSQL 1.1.x
+    - name: Checkout JNoSQL 1.x.x
       uses: actions/checkout@v4
       with:
         repository: eclipse-jnosql/jnosql
-        ref: 1.1.x
+        ref: 1.x.x
         path: jnosql
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: 17
-    - name: Install JNoSQL 1.1.x snapshots
+    - name: Install JNoSQL 1.x.x snapshots
       working-directory: jnosql
       run: mvn -B install -DskipTests -DskipITs -Djnosql.test.integration=false -Dpmd.skip=true
     - name: Build with Maven
