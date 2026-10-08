@@ -54,7 +54,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Updated ArangoDB Java driver to 7.28.0
 - Updated Couchbase Java client to 3.12.3
 - Updated CouchDB HttpClient cache to 5.6.4
-- Updated DynamoDB SDK to 2.55.7
+- Updated DynamoDB SDK to 2.55.12
 - Updated Elasticsearch Java client to 9.5.4
 - Updated Infinispan to 16.2.3
 - Updated Jackson Annotations to 2.22
