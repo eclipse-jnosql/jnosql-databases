@@ -41,9 +41,9 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Validate required fields in N1QLUpdateQueryBuilder for Couchbase
 - Validate update query parameters in Couchbase driver
 - Update jakarta data engine
-- Upgraded Elasticsearch to 9.5.2
+- Upgraded Elasticsearch to 9.5.5
 - Upgraded Jedis to 8.0.1 and migrated pooled and sentinel clients to connection providers
-- Updated OrientDB to 3.2.55
+- Updated OrientDB to 3.2.57
 - Updated MongoDB to 5.11.0
 - Updated HBase to 3.0.0
 - Updated DynamoDB to 2.54.7
@@ -54,9 +54,10 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Updated ArangoDB Java driver to 7.28.0
 - Updated Couchbase Java client to 3.12.3
 - Updated CouchDB HttpClient cache to 5.6.4
-- Updated DynamoDB SDK to 2.55.7
+- Updated DynamoDB SDK to 2.55.12
 - Updated Elasticsearch Java client to 9.5.4
-- Updated Infinispan to 16.2.3
+- Update ScyllaDB driver to 4.19.2.2
+- Updated Infinispan to 16.3.0
 - Updated Jackson Annotations to 2.22
 - Updated MongoDB Java driver to 5.13.0
 - Updated Oracle NoSQL SDK to 5.4.24
