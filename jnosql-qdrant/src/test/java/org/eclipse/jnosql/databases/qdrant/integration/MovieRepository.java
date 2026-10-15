@@ -17,6 +17,10 @@ package org.eclipse.jnosql.databases.qdrant.integration;
 import jakarta.data.repository.BasicRepository;
 import jakarta.data.repository.Repository;
 
+import java.util.List;
+
 @Repository
 public interface MovieRepository extends BasicRepository<Movie, String> {
+
+    List<Movie> findByGenre(String genre);
 }
