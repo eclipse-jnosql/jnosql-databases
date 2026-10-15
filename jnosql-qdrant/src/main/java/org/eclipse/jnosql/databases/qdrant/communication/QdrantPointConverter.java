@@ -100,7 +100,7 @@ final class QdrantPointConverter {
         String vectorName = vectorField == null ? DEFAULT_VECTOR_NAME : vectorField.getStringValue();
         List<Element> elements = new ArrayList<>(QdrantPayloadConverter.toElements(fields));
         if (elements.stream().noneMatch(element -> QdrantPointIds.ID_FIELD.equals(element.name()))) {
-            elements.add(0, Element.of(QdrantPointIds.ID_FIELD, String.valueOf(QdrantPointIds.value(id))));
+            elements.add(0, Element.of(QdrantPointIds.ID_FIELD, QdrantPointIds.value(id)));
         }
         if (vectors != null && vectors.hasVector()) {
             float[] values = denseValues(vectors);
