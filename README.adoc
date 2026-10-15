@@ -2523,7 +2523,103 @@ jnosql.questdb.url=ws::addr=localhost:9000;
 [[vector]]
 == Vector
 
-Coming soon.
+Vector databases store embeddings and retrieve the entries closest to a query vector. Eclipse JNoSQL provides the `VectorTemplate` API for similarity search on top of the regular `Template`.
+
+[[qdrant]]
+=== Qdrant
+
+==== Description
+
+https://qdrant.tech/[Qdrant] is an open-source vector database. This driver integrates it with Jakarta NoSQL mapping, `Template`, the Eclipse JNoSQL `VectorTemplate`, and Jakarta Data repositories.
+
+This driver provides support for the *Vector* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-qdrant</artifactId>
+  <version>1.1.21-SNAPSHOT</version>
+</dependency>
+----
+
+==== Configuration
+
+Please note that you can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification (or system properties). The driver talks to Qdrant over gRPC and exposes the keys through the `QdrantConfigurations` enum.
+
+[cols="Qdrant"]
+|===
+|Configuration property |Description
+
+|`jnosql.vector.database`
+|The database name used by the mapping layer. Required.
+
+|`jnosql.vector.provider`
+|The configuration class, `org.eclipse.jnosql.databases.qdrant.communication.QdrantConfiguration`.
+
+|`jnosql.qdrant.host`
+|The Qdrant host. Default: `localhost`.
+
+|`jnosql.qdrant.port`
+|The Qdrant gRPC port. Default: `6334`.
+
+|`jnosql.qdrant.tls`
+|Whether the connection uses TLS. Default: `false`.
+
+|`jnosql.qdrant.api.key`
+|The API key used to authenticate.
+
+|`jnosql.qdrant.timeout`
+|Timeout in milliseconds applied to each Qdrant call. When absent, the client default is used.
+
+|`jnosql.qdrant.collection.distance`
+|The distance metric used when a collection is created (case-insensitive). Required to create collections.
+
+|`jnosql.qdrant.collection.vector.size`
+|The vector dimension used when a collection is created. When absent, the dimension of the first inserted vector is used.
+
+|===
+
+This is an example using Qdrant's Vector API with MicroProfile Config.
+
+[source,properties]
+----
+jnosql.vector.database=library
+jnosql.vector.provider=org.eclipse.jnosql.databases.qdrant.communication.QdrantConfiguration
+jnosql.qdrant.host=localhost
+jnosql.qdrant.port=6334
+jnosql.qdrant.collection.distance=COSINE
+jnosql.qdrant.collection.vector.size=3
+----
+
+Each entity maps to a Qdrant collection, which is created on the first insert when it does not exist yet.
+
+===== Distance
+
+`QdrantDistance` lists the supported metrics:
+
+[cols="1,3"]
+|===
+|Value |Useful when
+
+|`COSINE`
+|the relative direction/pattern matters more than the magnitude.
+
+|`EUCLID`
+|the absolute distance between vectors matters.
+
+|`DOT`
+|direction and magnitude both influence the similarity.
+
+|`MANHATTAN`
+|differences across dimensions should accumulate independently.
+|===
+
+The distance is part of the collection configuration (`jnosql.qdrant.collection.distance`). It is not selected per `VectorTemplate.search(...)` query.
 
 [[graph]]
 == Graph
