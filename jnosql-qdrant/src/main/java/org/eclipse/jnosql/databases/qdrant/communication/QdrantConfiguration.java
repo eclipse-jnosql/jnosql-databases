@@ -22,6 +22,7 @@ import org.eclipse.jnosql.communication.SettingsBuilder;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
@@ -76,13 +77,15 @@ public class QdrantConfiguration implements DatabaseConfiguration {
         int port = settings.get(QdrantConfigurations.PORT, Integer.class).orElse(DEFAULT_PORT);
         boolean tls = settings.get(QdrantConfigurations.TLS, Boolean.class).orElse(false);
 
-        QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(host, port, tls, false);
-        settings.get(QdrantConfigurations.API_KEY, String.class).ifPresent(builder::withApiKey);
-        settings.get(QdrantConfigurations.TIMEOUT, Long.class)
-                .map(Duration::ofMillis)
-                .ifPresent(builder::withTimeout);
+        QdrantCollectionSettings collectionSettings = collectionSettings(settings);
+        Optional<String> apiKey = settings.get(QdrantConfigurations.API_KEY, String.class);
+        Optional<Duration> timeout = settings.get(QdrantConfigurations.TIMEOUT, Long.class).map(Duration::ofMillis);
 
-        return new QdrantVectorManagerFactory(new QdrantClient(builder.build()), collectionSettings(settings));
+        QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(host, port, tls, false);
+        apiKey.ifPresent(builder::withApiKey);
+        timeout.ifPresent(builder::withTimeout);
+
+        return new QdrantVectorManagerFactory(new QdrantClient(builder.build()), collectionSettings);
     }
 
     private QdrantCollectionSettings collectionSettings(Settings settings) {
