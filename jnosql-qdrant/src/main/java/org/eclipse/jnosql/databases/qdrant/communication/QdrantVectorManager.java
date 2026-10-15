@@ -183,15 +183,15 @@ final class QdrantVectorManager implements VectorManager {
                         .setCollectionName(collection)
                         .setFilter(filter)
                         .setLimit((int) Math.min(PAGE_SIZE, Math.max(1, needed - entities.size())))
-                        .setWithPayload(payloadSelector(query.columns()))
+                        .setWithPayload(payloadSelector(sorted ? List.of() : query.columns()))
                         .setWithVectors(WithVectorsSelectorFactory.enable(true));
                 if (offset != null) {
                     builder.setOffset(offset);
                 }
                 ScrollResponse response = QdrantCalls.await(client.scrollAsync(builder.build()));
                 for (RetrievedPoint point : response.getResultList()) {
-                    entities.add(project(QdrantPointConverter.toEntity(collection, point.getId(),
-                            point.getPayloadMap(), point.getVectors()), query.columns()));
+                    entities.add(QdrantPointConverter.toEntity(collection, point.getId(),
+                            point.getPayloadMap(), point.getVectors()));
                 }
                 offset = response.hasNextPageOffset() ? response.getNextPageOffset() : null;
             } while (offset != null && entities.size() < needed);
@@ -205,6 +205,7 @@ final class QdrantVectorManager implements VectorManager {
         if (sorted) {
             stream = stream.sorted(comparator(query.sorts()));
         }
+        stream = stream.map(entity -> project(entity, query.columns()));
         if (skip > 0) {
             stream = stream.skip(skip);
         }
