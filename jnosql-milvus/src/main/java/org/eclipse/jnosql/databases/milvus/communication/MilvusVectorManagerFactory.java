@@ -41,7 +41,13 @@ public class MilvusVectorManagerFactory implements DatabaseManagerFactory {
     public VectorManager apply(String database) {
         Objects.requireNonNull(database, "database is required");
         if (!client.listDatabases().getDatabaseNames().contains(database)) {
-            client.createDatabase(CreateDatabaseReq.builder().databaseName(database).build());
+            try {
+                client.createDatabase(CreateDatabaseReq.builder().databaseName(database).build());
+            } catch (RuntimeException exception) {
+                if (!client.listDatabases().getDatabaseNames().contains(database)) {
+                    throw exception;
+                }
+            }
         }
         return new MilvusVectorManager(client, database, collectionSettings);
     }
