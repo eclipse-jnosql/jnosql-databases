@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
@@ -63,6 +64,7 @@ class TemplateIntegrationTest {
     void seed() {
         template.delete(Article.class).execute();
         template.delete(Movie.class).execute();
+        template.delete(UserProfile.class).execute();
         template.insert(IntegrationSupport.ARTICLES);
         template.insert(IntegrationSupport.MOVIES);
     }
@@ -181,6 +183,53 @@ class TemplateIntegrationTest {
 
             assertThat(vector).isNotNull();
             assertThat(vector.values()).containsExactly(0.8f, 0.2f, 0f);
+        }
+    }
+
+    @Nested
+    @DisplayName("When using UUID attributes")
+    class WhenUsingUuid {
+
+        @BeforeEach
+        void insert() {
+            template.insert(IntegrationSupport.PROFILE);
+        }
+
+        @Test
+        @DisplayName("Should find by UUID id and restore UUID attributes and vector")
+        void shouldFindByUuid() {
+            var profile = template.find(UserProfile.class, IntegrationSupport.PROFILE_ID).orElseThrow();
+
+            assertThat(profile.id()).isEqualTo(IntegrationSupport.PROFILE_ID);
+            assertThat(profile.externalId()).isEqualTo(IntegrationSupport.PROFILE_EXTERNAL_ID);
+            assertThat(profile.embedding().values()).containsExactly(1f, 0f, 0f);
+        }
+
+        @Test
+        @DisplayName("Should update by UUID id")
+        void shouldUpdate() {
+            template.update(new UserProfile(IntegrationSupport.PROFILE_ID, "Grace",
+                    IntegrationSupport.PROFILE_EXTERNAL_ID, DenseVector.of(1f, 0f, 0f)));
+
+            assertThat(template.find(UserProfile.class, IntegrationSupport.PROFILE_ID).orElseThrow().name())
+                    .isEqualTo("Grace");
+        }
+
+        @Test
+        @DisplayName("Should select by a UUID attribute")
+        void shouldSelectByUuidAttribute() {
+            var result = template.select(UserProfile.class)
+                    .where("externalId").eq(IntegrationSupport.PROFILE_EXTERNAL_ID).result();
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should delete by UUID id")
+        void shouldDelete() {
+            template.delete(UserProfile.class, IntegrationSupport.PROFILE_ID);
+
+            assertThat(template.find(UserProfile.class, IntegrationSupport.PROFILE_ID)).isEmpty();
         }
     }
 }
