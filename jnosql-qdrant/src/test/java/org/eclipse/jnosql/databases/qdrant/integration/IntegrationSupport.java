@@ -21,6 +21,7 @@ import org.eclipse.jnosql.mapping.core.config.MappingConfigurations;
 import org.eclipse.jnosql.mapping.vector.DenseVector;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Shared bootstrap and deterministic data for the Qdrant integration tests.
@@ -37,6 +38,13 @@ final class IntegrationSupport {
             new Movie("b", "Speed", "action", 2024, DenseVector.of(0.8f, 0.2f, 0f)),
             new Movie("c", "Amelie", "drama", 2025, DenseVector.of(0f, 1f, 0f)));
 
+    static final UUID PROFILE_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+
+    static final UUID PROFILE_EXTERNAL_ID = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+
+    static final UserProfile PROFILE = new UserProfile(PROFILE_ID, "Ada", PROFILE_EXTERNAL_ID,
+            DenseVector.of(1f, 0f, 0f));
+
     private IntegrationSupport() {
     }
 
@@ -44,6 +52,7 @@ final class IntegrationSupport {
         return entities.stream().map(entity -> switch (entity) {
             case Article article -> article.id();
             case Movie movie -> movie.id();
+            case UserProfile profile -> profile.id().toString();
             default -> throw new IllegalArgumentException("unexpected entity " + entity);
         }).toList();
     }
