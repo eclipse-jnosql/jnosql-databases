@@ -76,7 +76,7 @@ public class QdrantConfiguration implements DatabaseConfiguration {
         int port = settings.get(QdrantConfigurations.PORT, Integer.class).orElse(DEFAULT_PORT);
         boolean tls = settings.get(QdrantConfigurations.TLS, Boolean.class).orElse(false);
 
-        QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(host, port, tls);
+        QdrantGrpcClient.Builder builder = QdrantGrpcClient.newBuilder(host, port, tls, false);
         settings.get(QdrantConfigurations.API_KEY, String.class).ifPresent(builder::withApiKey);
         settings.get(QdrantConfigurations.TIMEOUT, Long.class)
                 .map(Duration::ofMillis)
