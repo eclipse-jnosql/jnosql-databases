@@ -2621,6 +2621,106 @@ Each entity maps to a Qdrant collection, which is created on the first insert wh
 
 The distance is part of the collection configuration (`jnosql.qdrant.collection.distance`). It is not selected per `VectorTemplate.search(...)` query.
 
+[[milvus]]
+=== Milvus
+
+==== Description
+
+https://milvus.io/[Milvus] is an open-source vector database. This driver uses the Milvus V2 Java client and integrates it with Jakarta NoSQL mapping, `Template`, the Eclipse JNoSQL `VectorTemplate`, and Jakarta Data repositories.
+
+This driver provides support for the *Vector* NoSQL API.
+
+==== How to Install
+
+You can use either the Maven or Gradle dependencies:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-milvus</artifactId>
+  <version>1.1.21-SNAPSHOT</version>
+</dependency>
+----
+
+==== Configuration
+
+You can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification (or system properties). The keys are exposed through the `MilvusConfigurations` enum.
+
+[cols="Milvus"]
+|===
+|Configuration property |Description
+
+|`jnosql.vector.database`
+|The Milvus database used by the mapping layer. It is created when it does not exist. Required.
+
+|`jnosql.vector.provider`
+|The configuration class, `org.eclipse.jnosql.databases.milvus.communication.MilvusConfiguration`.
+
+|`jnosql.milvus.host`
+|The Milvus host. Default: `localhost`.
+
+|`jnosql.milvus.port`
+|The Milvus gRPC port. Default: `19530`.
+
+|`jnosql.milvus.tls`
+|Whether the connection uses TLS. Default: `false`.
+
+|`jnosql.milvus.uri`
+|The complete endpoint, e.g. `https://cluster.example.com:443`. Overrides host, port and TLS.
+
+|`jnosql.milvus.token`
+|The token (`user:password` or API key) used to authenticate.
+
+|`jnosql.milvus.timeout`
+|Timeout in milliseconds applied to each call. When absent, the client default is used.
+
+|`jnosql.milvus.consistency`
+|The consistency level of collections and queries: `STRONG`, `BOUNDED`, `SESSION` or `EVENTUALLY`. Default: `STRONG`.
+
+|`jnosql.milvus.collection.metric`
+|The metric used when a collection is created (case-insensitive). Default: `COSINE`.
+
+|`jnosql.milvus.collection.vector.size`
+|The vector dimension used when a collection is created. When absent, the dimension of the first inserted vector is used.
+
+|`jnosql.milvus.collection.string.max.length`
+|The maximum length of text columns created in a collection (1 to 65535). Default: `65535`.
+
+|===
+
+[source,properties]
+----
+jnosql.vector.database=library
+jnosql.vector.provider=org.eclipse.jnosql.databases.milvus.communication.MilvusConfiguration
+jnosql.milvus.host=localhost
+jnosql.milvus.port=19530
+jnosql.milvus.collection.metric=COSINE
+jnosql.milvus.collection.vector.size=3
+----
+
+Each entity maps to a Milvus collection. The collection and its schema (primary key `_id`, scalar columns, the vector field and an `AUTOINDEX` index using the configured metric) are created from the first persisted entity. Later entities are validated against that schema: a different vector dimension, id type or column type fails with an `IllegalArgumentException` instead of silently changing the collection. Attributes that were not present in the first entity are stored in the collection's dynamic field.
+
+===== Metric
+
+`MilvusMetric` lists the supported metrics:
+
+[cols="1,3"]
+|===
+|Value |Useful when
+
+|`COSINE`
+|the relative direction of the vectors matters more than their magnitude (text embeddings).
+
+|`EUCLIDEAN` (`L2`)
+|the absolute distance between vectors matters.
+
+|`INNER_PRODUCT` (`IP`)
+|direction and magnitude both influence the similarity.
+|===
+
+The metric is part of the collection configuration (`jnosql.milvus.collection.metric`). It is not selected per `VectorTemplate.search(...)` query. The query threshold follows the metric: it is the exclusive minimum score for `COSINE` and `INNER_PRODUCT`, and the exclusive maximum distance for `EUCLIDEAN`.
+
 [[graph]]
 == Graph
 
