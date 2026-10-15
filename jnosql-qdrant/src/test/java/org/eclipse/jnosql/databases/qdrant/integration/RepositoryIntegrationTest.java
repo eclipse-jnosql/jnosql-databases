@@ -65,10 +65,14 @@ class RepositoryIntegrationTest {
     @Inject
     private MovieRepository movieRepository;
 
+    @Inject
+    private UserProfileRepository userProfileRepository;
+
     @BeforeEach
     void seed() {
         template.delete(Article.class).execute();
         template.delete(Movie.class).execute();
+        template.delete(UserProfile.class).execute();
         template.insert(IntegrationSupport.ARTICLES);
         template.insert(IntegrationSupport.MOVIES);
     }
@@ -168,6 +172,30 @@ class RepositoryIntegrationTest {
 
             assertThat(vector).isNotNull();
             assertThat(vector.values()).containsExactly(0.8f, 0.2f, 0f);
+        }
+    }
+
+    @Nested
+    @DisplayName("When using UUID identifiers")
+    class WhenUsingUuid {
+
+        @Test
+        @DisplayName("Should save and find by UUID id")
+        void shouldSaveAndFind() {
+            userProfileRepository.save(IntegrationSupport.PROFILE);
+
+            var profile = userProfileRepository.findById(IntegrationSupport.PROFILE_ID).orElseThrow();
+            assertThat(profile.id()).isEqualTo(IntegrationSupport.PROFILE_ID);
+            assertThat(profile.externalId()).isEqualTo(IntegrationSupport.PROFILE_EXTERNAL_ID);
+        }
+
+        @Test
+        @DisplayName("Should delete by UUID id")
+        void shouldDeleteById() {
+            userProfileRepository.save(IntegrationSupport.PROFILE);
+            userProfileRepository.deleteById(IntegrationSupport.PROFILE_ID);
+
+            assertThat(userProfileRepository.findById(IntegrationSupport.PROFILE_ID)).isEmpty();
         }
     }
 }
