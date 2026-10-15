@@ -15,7 +15,6 @@
 package org.eclipse.jnosql.databases.qdrant.communication;
 
 import io.qdrant.client.QdrantClient;
-import io.qdrant.client.QdrantGrpcClient;
 import jakarta.data.Sort;
 import org.assertj.core.api.SoftAssertions;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
@@ -25,12 +24,9 @@ import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.mapping.vector.DenseVector;
 import org.eclipse.jnosql.mapping.vector.VectorSelectQuery;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.qdrant.QdrantContainer;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,28 +39,12 @@ import static org.eclipse.jnosql.communication.semistructured.SelectQuery.select
 
 class QdrantVectorManagerOperationsTest {
 
-    private static QdrantContainer qdrant;
+    private static final QdrantClient client = VectorDatabase.INSTANCE.client();
 
-    private static QdrantClient client;
-
-    private static QdrantVectorManager manager;
+    private static final QdrantVectorManager manager = new QdrantVectorManager(client, "library",
+            new QdrantCollectionSettings(QdrantDistance.COSINE, null));
 
     private String collection;
-
-    @BeforeAll
-    static void start() {
-        qdrant = new QdrantContainer("qdrant/qdrant:latest");
-        qdrant.start();
-        client = new QdrantClient(QdrantGrpcClient.newBuilder(qdrant.getHost(), qdrant.getGrpcPort(), false).build());
-        manager = new QdrantVectorManager(client, "library",
-                new QdrantCollectionSettings(QdrantDistance.COSINE, null));
-    }
-
-    @AfterAll
-    static void stop() {
-        client.close();
-        qdrant.stop();
-    }
 
     private String newCollection() {
         collection = "c" + UUID.randomUUID().toString().replace("-", "");
