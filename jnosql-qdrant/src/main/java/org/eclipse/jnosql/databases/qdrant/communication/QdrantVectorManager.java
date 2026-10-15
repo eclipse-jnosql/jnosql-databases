@@ -48,6 +48,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.StreamSupport;
+import java.util.function.Consumer;
+import java.util.Spliterators;
+import java.util.Spliterator;
+import java.util.Deque;
+import java.util.ArrayDeque;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -173,37 +179,12 @@ final class QdrantVectorManager implements VectorManager {
         boolean sorted = !query.sorts().isEmpty();
         long skip = query.skip();
         long limit = query.limit();
-        long needed = sorted || limit <= 0 ? Long.MAX_VALUE : skip + limit;
 
-        List<CommunicationEntity> entities = new ArrayList<>();
-        try {
-            PointId offset = null;
-            do {
-                ScrollPoints.Builder builder = ScrollPoints.newBuilder()
-                        .setCollectionName(collection)
-                        .setFilter(filter)
-                        .setLimit((int) Math.min(PAGE_SIZE, Math.max(1, needed - entities.size())))
-                        .setWithPayload(payloadSelector(sorted ? List.of() : query.columns()))
-                        .setWithVectors(WithVectorsSelectorFactory.enable(true));
-                if (offset != null) {
-                    builder.setOffset(offset);
-                }
-                ScrollResponse response = QdrantCalls.await(client.scrollAsync(builder.build()));
-                for (RetrievedPoint point : response.getResultList()) {
-                    entities.add(QdrantPointConverter.toEntity(collection, point.getId(),
-                            point.getPayloadMap(), point.getVectors()));
-                }
-                offset = response.hasNextPageOffset() ? response.getNextPageOffset() : null;
-            } while (offset != null && entities.size() < needed);
-        } catch (RuntimeException exception) {
-            if (QdrantCalls.isNotFound(exception)) {
-                return Stream.empty();
-            }
-            throw exception;
-        }
-        Stream<CommunicationEntity> stream = entities.stream();
+        Stream<CommunicationEntity> stream;
         if (sorted) {
-            stream = stream.sorted(comparator(query.sorts()));
+            stream = scroll(collection, filter, List.of(), Long.MAX_VALUE).sorted(comparator(query.sorts()));
+        } else {
+            stream = scroll(collection, filter, query.columns(), limit <= 0 ? Long.MAX_VALUE : skip + limit);
         }
         stream = stream.map(entity -> project(entity, query.columns()));
         if (skip > 0) {
@@ -213,6 +194,57 @@ final class QdrantVectorManager implements VectorManager {
             stream = stream.limit(limit);
         }
         return stream;
+    }
+
+    private Stream<CommunicationEntity> scroll(String collection, Filter filter, List<String> columns, long needed) {
+        int pageSize = (int) Math.min(PAGE_SIZE, Math.max(1, needed));
+        Spliterator<CommunicationEntity> spliterator = new Spliterators.AbstractSpliterator<>(Long.MAX_VALUE,
+                Spliterator.ORDERED) {
+
+            private final Deque<CommunicationEntity> buffer = new ArrayDeque<>();
+            private PointId offset;
+            private boolean finished;
+
+            @Override
+            public boolean tryAdvance(Consumer<? super CommunicationEntity> action) {
+                while (buffer.isEmpty() && !finished) {
+                    fetchPage();
+                }
+                CommunicationEntity next = buffer.poll();
+                if (next == null) {
+                    return false;
+                }
+                action.accept(next);
+                return true;
+            }
+
+            private void fetchPage() {
+                ScrollPoints.Builder builder = ScrollPoints.newBuilder()
+                        .setCollectionName(collection)
+                        .setFilter(filter)
+                        .setLimit(pageSize)
+                        .setWithPayload(payloadSelector(columns))
+                        .setWithVectors(WithVectorsSelectorFactory.enable(true));
+                if (offset != null) {
+                    builder.setOffset(offset);
+                }
+                try {
+                    ScrollResponse response = QdrantCalls.await(client.scrollAsync(builder.build()));
+                    for (RetrievedPoint point : response.getResultList()) {
+                        buffer.add(QdrantPointConverter.toEntity(collection, point.getId(),
+                                point.getPayloadMap(), point.getVectors()));
+                    }
+                    offset = response.hasNextPageOffset() ? response.getNextPageOffset() : null;
+                    finished = offset == null;
+                } catch (RuntimeException exception) {
+                    if (!QdrantCalls.isNotFound(exception)) {
+                        throw exception;
+                    }
+                    finished = true;
+                }
+            }
+        };
+        return StreamSupport.stream(spliterator, false);
     }
 
     @Override
