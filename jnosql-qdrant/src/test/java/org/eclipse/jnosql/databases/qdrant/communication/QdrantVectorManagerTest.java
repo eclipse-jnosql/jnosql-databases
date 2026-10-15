@@ -16,10 +16,8 @@ package org.eclipse.jnosql.databases.qdrant.communication;
 
 import io.qdrant.client.QdrantClient;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
-import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
-import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.mapping.vector.VectorManager;
-import org.eclipse.jnosql.mapping.vector.VectorSelectQuery;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -71,73 +69,49 @@ class QdrantVectorManagerTest {
     }
 
     @Nested
-    @DisplayName("When executing operations not implemented yet")
-    class WhenTheOperationIsUnsupported {
+    @DisplayName("When the arguments are invalid")
+    class WhenTheArgumentsAreInvalid {
 
         @Test
-        @DisplayName("Should not support inserting an entity")
-        void shouldNotInsert() {
-            assertUnsupported(() -> manager.insert(entity));
+        @DisplayName("Should reject null arguments")
+        void shouldRejectNulls() {
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThatThrownBy(() -> manager.insert((CommunicationEntity) null))
+                        .isInstanceOf(NullPointerException.class);
+                soft.assertThatThrownBy(() -> manager.insert((Iterable<CommunicationEntity>) null))
+                        .isInstanceOf(NullPointerException.class);
+                soft.assertThatThrownBy(() -> manager.update((CommunicationEntity) null))
+                        .isInstanceOf(NullPointerException.class);
+                soft.assertThatThrownBy(() -> manager.update((Iterable<CommunicationEntity>) null))
+                        .isInstanceOf(NullPointerException.class);
+                soft.assertThatThrownBy(() -> manager.delete(null)).isInstanceOf(NullPointerException.class);
+                soft.assertThatThrownBy(() -> manager.select(null)).isInstanceOf(NullPointerException.class);
+                soft.assertThatThrownBy(() -> manager.count((String) null)).isInstanceOf(NullPointerException.class);
+                soft.assertThatThrownBy(() -> manager.search(null)).isInstanceOf(NullPointerException.class);
+            });
         }
 
         @Test
-        @DisplayName("Should not support inserting an entity with TTL")
+        @DisplayName("Should not support inserting with TTL")
         void shouldNotInsertWithTtl() {
-            assertUnsupported(() -> manager.insert(entity, Duration.ofSeconds(1)));
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThatThrownBy(() -> manager.insert(entity, Duration.ofSeconds(1)))
+                        .isInstanceOf(UnsupportedOperationException.class);
+                soft.assertThatThrownBy(() -> manager.insert(List.of(entity), Duration.ofSeconds(1)))
+                        .isInstanceOf(UnsupportedOperationException.class);
+            });
         }
 
         @Test
-        @DisplayName("Should not support inserting entities")
-        void shouldNotInsertEntities() {
-            assertUnsupported(() -> manager.insert(List.of(entity)));
+        @DisplayName("Should require the _id to update")
+        void shouldRequireIdToUpdate() {
+            assertThatThrownBy(() -> manager.update(entity)).isInstanceOf(UnsupportedOperationException.class);
         }
 
         @Test
-        @DisplayName("Should not support inserting entities with TTL")
-        void shouldNotInsertEntitiesWithTtl() {
-            assertUnsupported(() -> manager.insert(List.of(entity), Duration.ofSeconds(1)));
-        }
-
-        @Test
-        @DisplayName("Should not support updating an entity")
-        void shouldNotUpdate() {
-            assertUnsupported(() -> manager.update(entity));
-        }
-
-        @Test
-        @DisplayName("Should not support updating entities")
-        void shouldNotUpdateEntities() {
-            assertUnsupported(() -> manager.update(List.of(entity)));
-        }
-
-        @Test
-        @DisplayName("Should not support deleting")
-        void shouldNotDelete() {
-            assertUnsupported(() -> manager.delete(Mockito.mock(DeleteQuery.class)));
-        }
-
-        @Test
-        @DisplayName("Should not support selecting")
-        void shouldNotSelect() {
-            assertUnsupported(() -> manager.select(Mockito.mock(SelectQuery.class)));
-        }
-
-        @Test
-        @DisplayName("Should not support counting")
-        void shouldNotCount() {
-            assertUnsupported(() -> manager.count("documents"));
-        }
-
-        @Test
-        @DisplayName("Should not support searching")
-        void shouldNotSearch() {
-            assertUnsupported(() -> manager.search(Mockito.mock(VectorSelectQuery.class)));
-        }
-
-        private void assertUnsupported(org.assertj.core.api.ThrowableAssert.ThrowingCallable callable) {
-            assertThatThrownBy(callable)
-                    .isInstanceOf(UnsupportedOperationException.class)
-                    .hasMessage("not supported yet");
+        @DisplayName("Should require exactly one vector to insert")
+        void shouldRequireOneVector() {
+            assertThatThrownBy(() -> manager.insert(entity)).isInstanceOf(IllegalArgumentException.class);
         }
     }
 }
