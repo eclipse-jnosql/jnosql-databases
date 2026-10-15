@@ -20,7 +20,6 @@ import io.qdrant.client.grpc.Common.PointId;
 import io.qdrant.client.grpc.JsonWithInt.Value;
 import io.qdrant.client.grpc.Points.PointStruct;
 import io.qdrant.client.grpc.Points.VectorsOutput;
-import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.mapping.vector.DenseVector;
@@ -48,7 +47,7 @@ final class QdrantPointConverter {
 
     static Element vectorElement(CommunicationEntity entity) {
         List<Element> vectors = entity.elements().stream()
-                .filter(element -> ValueUtil.convert(element.value()) instanceof Vector)
+                .filter(element -> QdrantValueWriteDecorator.convert(element.value()) instanceof Vector)
                 .toList();
         if (vectors.size() != 1) {
             throw new IllegalArgumentException("The entity " + entity.name()
@@ -58,7 +57,7 @@ final class QdrantPointConverter {
     }
 
     static float[] values(Element vectorElement) {
-        Object vector = ValueUtil.convert(vectorElement.value());
+        Object vector = QdrantValueWriteDecorator.convert(vectorElement.value());
         if (vector instanceof DenseVector dense) {
             return dense.values();
         }
@@ -68,7 +67,7 @@ final class QdrantPointConverter {
 
     static Object ensureId(CommunicationEntity entity) {
         return entity.find(QdrantPointIds.ID_FIELD)
-                .map(element -> ValueUtil.convert(element.value()))
+                .map(element -> QdrantValueWriteDecorator.convert(element.value()))
                 .filter(id -> id != null)
                 .orElseGet(() -> {
                     String generated = UUID.randomUUID().toString();
