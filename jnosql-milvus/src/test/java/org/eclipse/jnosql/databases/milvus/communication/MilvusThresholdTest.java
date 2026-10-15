@@ -26,14 +26,39 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class MilvusThresholdTest {
 
     @Test
-    @DisplayName("Should send the threshold as the radius of every metric")
-    void shouldApply() {
-        for (MilvusMetric metric : MilvusMetric.values()) {
+    @DisplayName("Should send the threshold unchanged for similarity metrics")
+    void shouldApplySimilarity() {
+        for (MilvusMetric metric : new MilvusMetric[]{MilvusMetric.COSINE, MilvusMetric.INNER_PRODUCT}) {
             Map<String, Object> params = new HashMap<>();
             MilvusThreshold.apply(metric, 0.5f, params);
 
             assertThat(params).containsEntry("radius", 0.5d);
         }
+    }
+
+    @Test
+    @DisplayName("Should square the Euclidean distance because Milvus L2 scores are squared")
+    void shouldSquareEuclidean() {
+        Map<String, Object> params = new HashMap<>();
+        MilvusThreshold.apply(MilvusMetric.EUCLIDEAN, 2f, params);
+
+        assertThat(params).containsEntry("radius", 4d);
+    }
+
+    @Test
+    @DisplayName("Should accept a zero Euclidean threshold")
+    void shouldAcceptZeroEuclidean() {
+        Map<String, Object> params = new HashMap<>();
+        MilvusThreshold.apply(MilvusMetric.EUCLIDEAN, 0f, params);
+
+        assertThat(params).containsEntry("radius", 0d);
+    }
+
+    @Test
+    @DisplayName("Should reject a negative Euclidean threshold")
+    void shouldRejectNegativeEuclidean() {
+        assertThatThrownBy(() -> MilvusThreshold.apply(MilvusMetric.EUCLIDEAN, -1f, new HashMap<>()))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
