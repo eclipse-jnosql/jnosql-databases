@@ -20,7 +20,6 @@ import io.qdrant.client.grpc.Common.Filter;
 import io.qdrant.client.grpc.Common.PointId;
 import io.qdrant.client.grpc.Common.Range;
 import org.eclipse.jnosql.communication.TypeReference;
-import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 
 import java.util.List;
@@ -57,7 +56,7 @@ final class QdrantFilterConverter {
 
     private static Condition toCondition(CriteriaCondition criteria) {
         String field = criteria.element().name();
-        Object value = ValueUtil.convert(criteria.element().value());
+        Object value = QdrantValueWriteDecorator.convert(criteria.element().value());
         return switch (criteria.condition()) {
             case AND, OR, NOT -> ConditionFactory.filter(toFilter(criteria));
             case EQUALS -> equalsTo(field, value);
@@ -96,7 +95,7 @@ final class QdrantFilterConverter {
     }
 
     private static Condition between(String field, CriteriaCondition criteria) {
-        List<Object> values = ValueUtil.convertToList(criteria.element().value());
+        List<Object> values = QdrantValueWriteDecorator.convertToList(criteria.element().value());
         if (values.size() != 2) {
             throw new IllegalArgumentException("BETWEEN requires exactly two values");
         }
@@ -105,7 +104,7 @@ final class QdrantFilterConverter {
     }
 
     private static Condition in(String field, CriteriaCondition criteria) {
-        List<Object> values = ValueUtil.convertToList(criteria.element().value());
+        List<Object> values = QdrantValueWriteDecorator.convertToList(criteria.element().value());
         if (QdrantPointIds.ID_FIELD.equals(field)) {
             List<PointId> ids = values.stream().map(QdrantPointIds::of).toList();
             return ConditionFactory.hasId(ids);
