@@ -2721,6 +2721,83 @@ Each entity maps to a Milvus collection. The collection and its schema (primary 
 
 The metric is part of the collection configuration (`jnosql.milvus.collection.metric`). It is not selected per `VectorTemplate.search(...)` query. The query threshold follows the metric: it is the exclusive minimum score for `COSINE` and `INNER_PRODUCT`, and the exclusive maximum distance for `EUCLIDEAN`.
 
+=== Weaviate
+
+==== Description
+
+https://weaviate.io/[Weaviate] is an open-source vector database. This driver uses the official Weaviate Java client v6 (`io.weaviate:client6`, HTTP and gRPC) and integrates it with Jakarta NoSQL mapping, `Template`, the Eclipse JNoSQL `VectorTemplate`, and Jakarta Data repositories.
+
+This driver provides support for the *Vector* NoSQL API.
+
+==== How to Install
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.eclipse.jnosql.databases</groupId>
+  <artifactId>jnosql-weaviate</artifactId>
+  <version>1.1.21-SNAPSHOT</version>
+</dependency>
+----
+
+==== Configuration
+
+You can establish properties using the https://microprofile.io/microprofile-config/[MicroProfile Config] specification (or system properties). The keys are exposed through the `WeaviateConfigurations` enum.
+
+[cols="Weaviate"]
+|===
+|Configuration property |Description
+
+|`jnosql.vector.provider`
+|The configuration class, `org.eclipse.jnosql.databases.weaviate.communication.WeaviateConfiguration`.
+
+|`jnosql.vector.database`
+|A label for the mapping layer. Weaviate has no databases; collections are named after the entities.
+
+|`jnosql.weaviate.host`
+|The Weaviate host. Default: `localhost`.
+
+|`jnosql.weaviate.http.port`
+|The HTTP port. Default: `8080`.
+
+|`jnosql.weaviate.grpc.port`
+|The gRPC port, required by the v6 client. Default: `50051`.
+
+|`jnosql.weaviate.secure`
+|Whether the connection uses TLS. Default: `false`.
+
+|`jnosql.weaviate.api.key`
+|The API key used to authenticate.
+
+|`jnosql.weaviate.timeout`
+|Timeout in seconds applied to the client. When absent, the client default is used.
+
+|`jnosql.weaviate.collection.distance`
+|The distance used when a collection is created (case-insensitive): `COSINE`, `DOT`, `EUCLIDEAN`, `MANHATTAN` or `HAMMING`. Default: `COSINE`.
+
+|===
+
+[source,properties]
+----
+jnosql.vector.database=library
+jnosql.vector.provider=org.eclipse.jnosql.databases.weaviate.communication.WeaviateConfiguration
+jnosql.weaviate.host=localhost
+jnosql.weaviate.http.port=8080
+jnosql.weaviate.grpc.port=50051
+jnosql.weaviate.collection.distance=COSINE
+----
+
+===== Distance
+
+The distance is part of the collection configuration, not of the query. The query threshold follows the distance of the collection: for `COSINE` it is the minimum similarity, for `DOT` the minimum dot product, for `EUCLIDEAN` the maximum Euclidean distance, and for `MANHATTAN` and `HAMMING` the maximum distance.
+
+===== Differences and limits
+
+- Sorting, `LIKE`, `CONTAINS`, range conditions on text and conditions on array properties throw `UnsupportedOperationException`; time to live is not supported.
+- The JNoSQL `_id` is kept in the `_jnosql_id` property; the Weaviate object UUID is the id when it is a UUID, or a name-based UUID derived from it otherwise. The names `id`, `_id` and `_additional` cannot be used as properties.
+- A vector is returned only when no columns are projected or the vector column is requested.
+- Collection names must match `[A-Z][_0-9A-Za-z]*` after capitalization.
+
 [[graph]]
 == Graph
 
