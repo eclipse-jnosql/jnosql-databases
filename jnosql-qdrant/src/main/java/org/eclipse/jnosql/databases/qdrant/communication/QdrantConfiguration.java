@@ -22,7 +22,6 @@ import org.eclipse.jnosql.communication.SettingsBuilder;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
@@ -71,8 +70,8 @@ public class QdrantConfiguration implements DatabaseConfiguration {
     public QdrantVectorManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");
 
-        String host = settings.getSupplier(List.of(QdrantConfigurations.HOST, Configurations.HOST))
-                .map(Object::toString)
+        String host = settings.get(QdrantConfigurations.HOST, String.class)
+                .or(() -> settings.get(Configurations.HOST, String.class))
                 .orElse(DEFAULT_HOST);
         int port = settings.get(QdrantConfigurations.PORT, Integer.class).orElse(DEFAULT_PORT);
         boolean tls = settings.get(QdrantConfigurations.TLS, Boolean.class).orElse(false);
