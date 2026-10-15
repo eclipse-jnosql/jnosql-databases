@@ -74,6 +74,13 @@ final class QdrantPayloadConverter {
         if (value instanceof Iterable<?> iterable) {
             return fromIterable(iterable);
         }
+        if (value.getClass().isArray()) {
+            List<Value> items = new ArrayList<>();
+            for (int index = 0; index < java.lang.reflect.Array.getLength(value); index++) {
+                items.add(toValue(java.lang.reflect.Array.get(value, index)));
+            }
+            return ValueFactory.list(items);
+        }
         return ValueFactory.value(value instanceof Enum<?> enumeration ? enumeration.name() : value.toString());
     }
 
