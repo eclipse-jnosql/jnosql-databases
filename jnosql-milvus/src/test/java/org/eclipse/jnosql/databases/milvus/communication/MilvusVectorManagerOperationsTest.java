@@ -448,6 +448,21 @@ class MilvusVectorManagerOperationsTest {
         }
 
         @Test
+        @DisplayName("Should update an entity of a released collection")
+        void shouldUpdateReleasedCollection() {
+            newCollection();
+            seed();
+            VectorDatabase.INSTANCE.client().releaseCollection(
+                    io.milvus.v2.service.collection.request.ReleaseCollectionReq.builder()
+                            .databaseName("library").collectionName(collection).build());
+
+            manager.update(book("a", "Dune Messiah", 1969, 0f, 0f, 1f));
+
+            var entity = manager.select(select().from(collection).where("_id").eq("a").build()).findFirst().orElseThrow();
+            assertThat(entity.find("title").orElseThrow().get()).isEqualTo("Dune Messiah");
+        }
+
+        @Test
         @DisplayName("Should update several entities")
         void shouldUpdateBatch() {
             newCollection();
@@ -725,6 +740,22 @@ class MilvusVectorManagerOperationsTest {
         @DisplayName("Should use the maximum distance as threshold for the Euclidean metric")
         void shouldUseEuclidean() {
             run(MilvusMetric.EUCLIDEAN, 2f, "Near");
+        }
+
+        @Test
+        @DisplayName("Should compare the Euclidean threshold with the real distance, not the squared one")
+        void shouldUseRealEuclideanDistance() {
+            newCollection();
+            VectorManager configured = VectorDatabase.INSTANCE.get("library", MilvusMetric.EUCLIDEAN);
+            configured.insert(List.of(
+                    book("a", "Mid", 1, 2.5f, 0f),
+                    book("b", "Far", 2, 4f, 4f)));
+
+            var inside = configured.search(search(new float[]{1f, 0f}, null, 10, 2f));
+            var outside = configured.search(search(new float[]{1f, 0f}, null, 10, 1f));
+
+            assertThat(inside).extracting(e -> e.find("title").orElseThrow().get()).containsExactly("Mid");
+            assertThat(outside).isEmpty();
         }
 
         @Test
