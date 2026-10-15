@@ -27,6 +27,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 class MilvusVectorManagerFactoryTest {
@@ -69,6 +70,32 @@ class MilvusVectorManagerFactoryTest {
             ArgumentCaptor<CreateDatabaseReq> request = ArgumentCaptor.forClass(CreateDatabaseReq.class);
             Mockito.verify(client).createDatabase(request.capture());
             assertThat(request.getValue().getDatabaseName()).isEqualTo("library");
+        }
+
+        @Test
+        @DisplayName("Should use the database created concurrently by another caller")
+        void shouldTolerateConcurrentCreation() {
+            ListDatabasesResp missing = Mockito.mock(ListDatabasesResp.class);
+            Mockito.when(missing.getDatabaseNames()).thenReturn(List.of("default"));
+            ListDatabasesResp created = Mockito.mock(ListDatabasesResp.class);
+            Mockito.when(created.getDatabaseNames()).thenReturn(List.of("default", "library"));
+            Mockito.when(client.listDatabases()).thenReturn(missing, created);
+            Mockito.doThrow(new IllegalStateException("database already exists"))
+                    .when(client).createDatabase(Mockito.any());
+
+            var manager = (MilvusVectorManager) factory.apply("library");
+
+            assertThat(manager.name()).isEqualTo("library");
+        }
+
+        @Test
+        @DisplayName("Should propagate the failure when the database is still missing")
+        void shouldPropagateCreationFailure() {
+            databases("default");
+            Mockito.doThrow(new IllegalStateException("denied")).when(client).createDatabase(Mockito.any());
+
+            assertThatThrownBy(() -> factory.apply("library"))
+                    .isInstanceOf(IllegalStateException.class).hasMessage("denied");
         }
 
         @Test
