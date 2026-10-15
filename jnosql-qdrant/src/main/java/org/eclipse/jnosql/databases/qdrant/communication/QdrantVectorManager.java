@@ -33,7 +33,6 @@ import io.qdrant.client.grpc.Points.ScrollPoints;
 import io.qdrant.client.grpc.Points.ScrollResponse;
 import io.qdrant.client.grpc.Points.UpsertPoints;
 import jakarta.data.Sort;
-import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
@@ -118,14 +117,14 @@ final class QdrantVectorManager implements VectorManager {
         Objects.requireNonNull(entity, "entity is required");
         Element idElement = entity.find(QdrantPointIds.ID_FIELD).orElseThrow(() ->
                 new UnsupportedOperationException("To update this CommunicationEntity the field `_id` is required"));
-        PointId id = QdrantPointIds.of(ValueUtil.convert(idElement.value()));
+        PointId id = QdrantPointIds.of(QdrantValueWriteDecorator.convert(idElement.value()));
         String collection = entity.name();
         Filter byId = Filter.newBuilder().addMust(ConditionFactory.hasId(id)).build();
         if (!exists(collection, byId)) {
             return entity;
         }
         List<Element> vectors = entity.elements().stream()
-                .filter(element -> ValueUtil.convert(element.value()) instanceof org.eclipse.jnosql.mapping.vector.Vector)
+                .filter(element -> QdrantValueWriteDecorator.convert(element.value()) instanceof org.eclipse.jnosql.mapping.vector.Vector)
                 .toList();
         if (vectors.size() > 1) {
             throw new IllegalArgumentException("The entity " + collection + " must have at most one vector element");
@@ -134,7 +133,7 @@ final class QdrantVectorManager implements VectorManager {
                 QdrantPayloadConverter.toPayload(entity.elements().stream()
                         .filter(element -> !vectors.contains(element)).toList()));
         payload.put(QdrantPointIds.ID_FIELD, QdrantPayloadConverter.toValue(
-                QdrantPointIds.storedValue(ValueUtil.convert(idElement.value()))));
+                QdrantPointIds.storedValue(QdrantValueWriteDecorator.convert(idElement.value()))));
         if (!vectors.isEmpty()) {
             float[] values = QdrantPointConverter.values(vectors.get(0));
             validateDimension(collection, values.length);
@@ -378,7 +377,7 @@ final class QdrantVectorManager implements VectorManager {
         for (Sort<?> sort : sorts) {
             Comparator<CommunicationEntity> current = Comparator.comparing(
                     entity -> (Comparable) entity.find(sort.property())
-                            .map(element -> ValueUtil.convert(element.value())).orElse(null),
+                            .map(element -> QdrantValueWriteDecorator.convert(element.value())).orElse(null),
                     Comparator.nullsFirst(Comparator.naturalOrder()));
             if (!sort.isAscending()) {
                 current = current.reversed();
