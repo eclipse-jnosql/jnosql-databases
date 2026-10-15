@@ -19,12 +19,16 @@ import org.eclipse.jnosql.communication.Settings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.MATCHES;
+import static org.eclipse.jnosql.communication.driver.IntegrationTest.NAMED;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@EnabledIfSystemProperty(named = NAMED, matches = MATCHES)
 class QdrantConnectionTest {
 
     private Settings settings(String apiKey) {
