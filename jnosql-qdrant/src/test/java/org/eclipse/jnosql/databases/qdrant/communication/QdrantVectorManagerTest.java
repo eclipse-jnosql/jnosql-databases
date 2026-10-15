@@ -14,7 +14,13 @@
  */
 package org.eclipse.jnosql.databases.qdrant.communication;
 
+import com.google.common.util.concurrent.Futures;
+import io.qdrant.client.PointIdFactory;
 import io.qdrant.client.QdrantClient;
+import io.qdrant.client.grpc.Points.RetrievedPoint;
+import io.qdrant.client.grpc.Points.ScrollPoints;
+import io.qdrant.client.grpc.Points.ScrollResponse;
+import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.mapping.vector.VectorManager;
 import org.assertj.core.api.SoftAssertions;
@@ -112,6 +118,46 @@ class QdrantVectorManagerTest {
         @DisplayName("Should require exactly one vector to insert")
         void shouldRequireOneVector() {
             assertThatThrownBy(() -> manager.insert(entity)).isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("When selecting lazily")
+    class WhenSelectingLazily {
+
+        private RetrievedPoint point(long id) {
+            return RetrievedPoint.newBuilder().setId(PointIdFactory.id(id)).build();
+        }
+
+        @Test
+        @DisplayName("Should not fetch further pages when the consumer short-circuits")
+        void shouldFetchOnlyTheFirstPage() {
+            var page = ScrollResponse.newBuilder()
+                    .addResult(point(1))
+                    .addResult(point(2))
+                    .setNextPageOffset(PointIdFactory.id(3))
+                    .build();
+            Mockito.when(client.scrollAsync(Mockito.any(ScrollPoints.class)))
+                    .thenReturn(Futures.immediateFuture(page));
+
+            var first = manager.select(SelectQuery.select().from("documents").build()).findFirst();
+
+            assertThat(first).isPresent();
+            Mockito.verify(client, Mockito.times(1)).scrollAsync(Mockito.any(ScrollPoints.class));
+        }
+
+        @Test
+        @DisplayName("Should follow the next page offset while the consumer needs more entities")
+        void shouldFollowPages() {
+            var first = ScrollResponse.newBuilder().addResult(point(1)).setNextPageOffset(PointIdFactory.id(2)).build();
+            var second = ScrollResponse.newBuilder().addResult(point(2)).build();
+            Mockito.when(client.scrollAsync(Mockito.any(ScrollPoints.class)))
+                    .thenReturn(Futures.immediateFuture(first), Futures.immediateFuture(second));
+
+            var result = manager.select(SelectQuery.select().from("documents").build()).toList();
+
+            assertThat(result).hasSize(2);
+            Mockito.verify(client, Mockito.times(2)).scrollAsync(Mockito.any(ScrollPoints.class));
         }
     }
 }
