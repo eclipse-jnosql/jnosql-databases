@@ -18,7 +18,6 @@ import io.qdrant.client.ValueFactory;
 import io.qdrant.client.grpc.JsonWithInt.ListValue;
 import io.qdrant.client.grpc.JsonWithInt.Struct;
 import io.qdrant.client.grpc.JsonWithInt.Value;
-import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.mapping.vector.Vector;
 
@@ -39,7 +38,7 @@ final class QdrantPayloadConverter {
 
     static Map<String, Value> toPayload(List<Element> elements) {
         Map<String, Value> payload = new LinkedHashMap<>();
-        elements.forEach(element -> payload.put(element.name(), toValue(ValueUtil.convert(element.value()))));
+        elements.forEach(element -> payload.put(element.name(), toValue(QdrantValueWriteDecorator.convert(element.value()))));
         return payload;
     }
 
@@ -100,7 +99,7 @@ final class QdrantPayloadConverter {
 
     private static Value struct(List<Element> elements) {
         Map<String, Value> fields = new LinkedHashMap<>();
-        elements.forEach(element -> fields.put(element.name(), toValue(ValueUtil.convert(element.value()))));
+        elements.forEach(element -> fields.put(element.name(), toValue(QdrantValueWriteDecorator.convert(element.value()))));
         return ValueFactory.value(fields);
     }
 
