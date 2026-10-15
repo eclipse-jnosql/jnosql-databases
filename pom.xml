@@ -71,6 +71,7 @@
         <module>jnosql-oracle-nosql</module>
         <module>jnosql-neo4j</module>
         <module>jnosql-qdrant</module>
+        <module>jnosql-milvus</module>
         <module>jnosql-tinkerpop</module>
     </modules>
 
