@@ -68,6 +68,10 @@ class RepositoryInjectionIntegrationTest {
         @Database(DatabaseType.VECTOR)
         private MovieRepository movieRepository;
 
+        @Inject
+        @Database(DatabaseType.VECTOR)
+        private UserProfileRepository userProfileRepository;
+
         @Test
         @DisplayName("Should resolve the qualified ArticleRepository")
         void shouldResolveArticleRepository() {
@@ -78,6 +82,12 @@ class RepositoryInjectionIntegrationTest {
         @DisplayName("Should resolve the qualified MovieRepository")
         void shouldResolveMovieRepository() {
             assertThat(movieRepository).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should resolve the qualified UserProfileRepository")
+        void shouldResolveUserProfileRepository() {
+            assertThat(userProfileRepository).isNotNull();
         }
     }
 
@@ -91,6 +101,9 @@ class RepositoryInjectionIntegrationTest {
         @Inject
         private MovieRepository movieRepository;
 
+        @Inject
+        private UserProfileRepository userProfileRepository;
+
         @Test
         @DisplayName("Should resolve the default ArticleRepository")
         void shouldResolveArticleRepository() {
@@ -101,6 +114,12 @@ class RepositoryInjectionIntegrationTest {
         @DisplayName("Should resolve the default MovieRepository")
         void shouldResolveMovieRepository() {
             assertThat(movieRepository).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should resolve the default UserProfileRepository")
+        void shouldResolveUserProfileRepository() {
+            assertThat(userProfileRepository).isNotNull();
         }
     }
 }
