@@ -112,7 +112,12 @@ final class QdrantFilterConverter {
         if (!values.isEmpty() && values.stream().allMatch(QdrantFilterConverter::isIntegral)) {
             return ConditionFactory.matchValues(field, values.stream().map(v -> ((Number) v).longValue()).toList());
         }
-        return ConditionFactory.matchKeywords(field, values.stream().map(QdrantFilterConverter::text).toList());
+        if (values.stream().allMatch(value -> value instanceof CharSequence
+                || value instanceof UUID || value instanceof Enum<?>)) {
+            return ConditionFactory.matchKeywords(field, values.stream().map(QdrantFilterConverter::text).toList());
+        }
+        return ConditionFactory.filter(Filter.newBuilder()
+                .addAllShould(values.stream().map(value -> equalsTo(field, value)).toList()).build());
     }
 
     private static boolean isIntegral(Object value) {
