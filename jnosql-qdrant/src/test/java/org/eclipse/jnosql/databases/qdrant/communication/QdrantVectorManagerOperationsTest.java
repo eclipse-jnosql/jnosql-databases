@@ -325,6 +325,36 @@ class QdrantVectorManagerOperationsTest {
     }
 
     @Nested
+    @DisplayName("When using UUID identifiers")
+    class WhenUsingUuid {
+
+        private final UUID id = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+
+        @Test
+        @DisplayName("Should store, select and delete an entity by UUID id")
+        void shouldRoundTrip() {
+            newCollection();
+            CommunicationEntity entity = CommunicationEntity.of(collection);
+            entity.add("_id", id);
+            entity.add("externalId", UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            entity.add("embedding", DenseVector.of(1f, 0f, 0f));
+            manager.insert(entity);
+
+            var found = manager.select(select().from(collection).where("_id").eq(id).build()).toList();
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(found).hasSize(1);
+                soft.assertThat(found.get(0).find("_id").orElseThrow().get())
+                        .isEqualTo("550e8400-e29b-41d4-a716-446655440000");
+                soft.assertThat(found.get(0).find("externalId").orElseThrow().get())
+                        .isEqualTo("123e4567-e89b-12d3-a456-426614174000");
+            });
+
+            manager.delete(delete().from(collection).where("_id").eq(id).build());
+            assertThat(manager.count(collection)).isZero();
+        }
+    }
+
+    @Nested
     @DisplayName("When deleting")
     class WhenDeleting {
 
