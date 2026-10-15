@@ -65,6 +65,8 @@ class VectorTemplateIntegrationTest {
     void seed() {
         vectorTemplate.delete(Article.class).execute();
         vectorTemplate.delete(Movie.class).execute();
+        vectorTemplate.delete(UserProfile.class).execute();
+        vectorTemplate.insert(IntegrationSupport.PROFILE);
         vectorTemplate.insert(IntegrationSupport.ARTICLES);
         vectorTemplate.insert(IntegrationSupport.MOVIES);
     }
@@ -139,6 +141,23 @@ class VectorTemplateIntegrationTest {
             assertThat(IntegrationSupport.ids(result)).containsExactly("a", "b");
             assertThat(result.get(1).embedding()).isNotNull();
             assertThat(result.get(1).embedding().values()).containsExactly(0.8f, 0.2f, 0f);
+        }
+    }
+
+    @Nested
+    @DisplayName("When searching entities with UUID attributes")
+    class WhenSearchingWithUuid {
+
+        @Test
+        @DisplayName("Should restore the UUID id, the UUID attribute and the vector")
+        void shouldSearchProfiles() {
+            var result = vectorTemplate.search(UserProfile.class).vector(QUERY).limit(Limit.of(1)).result();
+
+            assertThat(result).hasSize(1);
+            var profile = result.get(0);
+            assertThat(profile.id()).isEqualTo(IntegrationSupport.PROFILE_ID);
+            assertThat(profile.externalId()).isEqualTo(IntegrationSupport.PROFILE_EXTERNAL_ID);
+            assertThat(profile.embedding().values()).containsExactly(1f, 0f, 0f);
         }
     }
 }
