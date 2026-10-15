@@ -209,37 +209,60 @@ final class MilvusVectorManager implements VectorManager {
 
     private Stream<CommunicationEntity> iterate(String collection, QueryIteratorReq request,
                                                 MilvusCollectionSchema schema) {
-        Spliterator<CommunicationEntity> spliterator = new Spliterators.AbstractSpliterator<>(Long.MAX_VALUE,
-                Spliterator.ORDERED) {
+        RowSpliterator spliterator = new RowSpliterator(collection, request, schema);
+        return StreamSupport.stream(spliterator, false).onClose(spliterator::close);
+    }
 
-            private final Deque<CommunicationEntity> buffer = new ArrayDeque<>();
-            private QueryIterator iterator;
-            private boolean finished;
+    private final class RowSpliterator extends Spliterators.AbstractSpliterator<CommunicationEntity> {
 
-            @Override
-            public boolean tryAdvance(Consumer<? super CommunicationEntity> action) {
-                if (iterator == null) {
+        private final String collection;
+        private final QueryIteratorReq request;
+        private final MilvusCollectionSchema schema;
+        private final Deque<CommunicationEntity> buffer = new ArrayDeque<>();
+        private QueryIterator iterator;
+        private boolean finished;
+
+        private RowSpliterator(String collection, QueryIteratorReq request, MilvusCollectionSchema schema) {
+            super(Long.MAX_VALUE, Spliterator.ORDERED);
+            this.collection = collection;
+            this.request = request;
+            this.schema = schema;
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super CommunicationEntity> action) {
+            try {
+                if (iterator == null && !finished) {
                     iterator = client.queryIterator(request);
                 }
                 while (buffer.isEmpty() && !finished) {
                     List<QueryResultsWrapper.RowRecord> page = iterator.next();
                     if (page.isEmpty()) {
-                        finished = true;
-                        iterator.close();
+                        close();
                     }
                     page.forEach(row -> buffer.add(MilvusRowConverter.toEntity(collection,
                             row.getFieldValues(), schema.vectorField())));
                 }
-                CommunicationEntity next = buffer.poll();
-                if (next == null) {
-                    return false;
-                }
-                action.accept(next);
-                return true;
+            } catch (RuntimeException exception) {
+                close();
+                throw exception;
             }
-        };
-        return StreamSupport.stream(spliterator, false).onClose(() -> {
-        });
+            CommunicationEntity next = buffer.poll();
+            if (next == null) {
+                return false;
+            }
+            action.accept(next);
+            return true;
+        }
+
+        private void close() {
+            finished = true;
+            if (iterator != null) {
+                QueryIterator current = iterator;
+                iterator = null;
+                current.close();
+            }
+        }
     }
 
     @Override
