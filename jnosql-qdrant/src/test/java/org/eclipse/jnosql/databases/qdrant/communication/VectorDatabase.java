@@ -26,11 +26,11 @@ import java.util.Map;
 /**
  * Shared Qdrant instances for the integration tests, started once per JVM.
  */
-enum VectorDatabase {
+public enum VectorDatabase {
 
     INSTANCE;
 
-    static final String API_KEY = "test-key";
+    public static final String API_KEY = "test-key";
 
     private final QdrantContainer qdrant = new QdrantContainer("qdrant/qdrant:latest");
 
@@ -41,24 +41,24 @@ enum VectorDatabase {
         secured.start();
     }
 
-    QdrantClient client() {
+    public QdrantClient client() {
         return new QdrantClient(QdrantGrpcClient.newBuilder(qdrant.getHost(), qdrant.getGrpcPort(), false).build());
     }
 
-    Settings settings() {
+    public Settings settings() {
         return settings(qdrant, null);
     }
 
     /** Settings of an instance that requires {@link #API_KEY}. */
-    Settings securedSettings(boolean withApiKey) {
+    public Settings securedSettings(boolean withApiKey) {
         return settings(secured, withApiKey ? API_KEY : null);
     }
 
-    VectorManager get(String database) {
+    public VectorManager get(String database) {
         return new QdrantConfiguration().apply(settings(qdrant, null)).apply(database);
     }
 
-    VectorManager get(String database, QdrantDistance distance) {
+    public VectorManager get(String database, QdrantDistance distance) {
         Settings settings = Settings.builder()
                 .putAll(settings().toMap())
                 .put(QdrantConfigurations.DISTANCE, distance.name())
