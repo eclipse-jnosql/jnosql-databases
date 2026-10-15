@@ -16,6 +16,7 @@ package org.eclipse.jnosql.databases.qdrant.communication;
 
 import io.qdrant.client.QdrantClient;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
+import org.eclipse.jnosql.mapping.vector.VectorManager;
 
 import java.util.Objects;
 
@@ -35,7 +36,7 @@ public class QdrantVectorManagerFactory implements DatabaseManagerFactory {
     }
 
     @Override
-    public QdrantVectorManager apply(String database) {
+    public VectorManager apply(String database) {
         Objects.requireNonNull(database, "database is required");
         return new QdrantVectorManager(client, database, collectionSettings);
     }
