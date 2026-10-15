@@ -43,6 +43,13 @@ final class MilvusThreshold {
         if (metric == null) {
             throw new IllegalStateException("The metric of the collection is unknown");
         }
-        searchParams.put(RADIUS, (double) threshold);
+        double radius = threshold;
+        if (metric == MilvusMetric.EUCLIDEAN) {
+            if (threshold < 0) {
+                throw new IllegalArgumentException("The Euclidean threshold must be nonnegative");
+            }
+            radius = (double) threshold * threshold;
+        }
+        searchParams.put(RADIUS, radius);
     }
 }
