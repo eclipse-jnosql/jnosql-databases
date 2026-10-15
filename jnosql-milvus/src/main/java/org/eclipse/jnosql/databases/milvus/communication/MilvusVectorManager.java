@@ -133,6 +133,7 @@ final class MilvusVectorManager implements VectorManager {
         }
         Map<String, Object> parameters = Map.of("id", id instanceof String ? id
                 : MilvusFilterConverter.normalize(id));
+        ensureLoaded(collection);
         QueryResp found = client.query(QueryReq.builder()
                 .databaseName(database)
                 .collectionName(collection)
