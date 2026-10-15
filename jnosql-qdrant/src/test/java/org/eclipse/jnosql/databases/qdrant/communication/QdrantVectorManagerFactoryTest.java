@@ -38,7 +38,7 @@ class QdrantVectorManagerFactoryTest {
         @Test
         @DisplayName("Should create a manager named after the database")
         void shouldCreateManager() {
-            var manager = factory.apply("library");
+            var manager = (QdrantVectorManager) factory.apply("library");
 
             assertSoftly(softly -> {
                 softly.assertThat(manager).as("manager").isNotNull();
@@ -50,7 +50,7 @@ class QdrantVectorManagerFactoryTest {
         @DisplayName("Should hand the collection settings to the manager")
         void shouldPassCollectionSettings() {
             var settings = new QdrantCollectionSettings(QdrantDistance.COSINE, 128L);
-            var manager = new QdrantVectorManagerFactory(client, settings).apply("library");
+            var manager = (QdrantVectorManager) new QdrantVectorManagerFactory(client, settings).apply("library");
 
             assertThat(manager.collectionSettings()).isEqualTo(settings);
         }
