@@ -1,14 +1,36 @@
 = Eclipse JNoSQL databases
 :toc: auto
 
-The Eclipse JNoSQL Database API is a collection of implementations from the https://github.com/eclipse-ee4j/nosql[Jakarta NoSQL] specification.
+This repository provides database-specific integrations for Eclipse JNoSQL.
+
+The integrations build on the APIs and abstractions provided by:
+
+* https://github.com/eclipse-jnosql/jnosql[Eclipse JNoSQL]
+* https://github.com/jakartaee/nosql[Jakarta NoSQL]
+* https://github.com/jakartaee/data[Jakarta Data]
+* https://github.com/jakartaee/query[Jakarta Query]
+
+This documentation focuses on what is specific to each database provider, such as installation, configuration, specialized APIs, converters, limitations, and provider-specific capabilities.
+
+////
+Database logo convention:
+- use the canonical asset from https://jnosql.github.io/img/logos/
+- center the image
+- use width=25%
+- do not set height
+- use the database name as alt text
+////
+
+////
+Database sections should document provider-specific behavior.
+Generic Jakarta NoSQL, Jakarta Data, Jakarta Query, and Eclipse JNoSQL APIs should be referenced rather than re-documented.
+Preserve existing provider-specific information when restructuring.
+////
 
 [[key-value]]
 == Key-Value
 
-Key-value databases organize data as values addressed by unique keys. This model is well suited to direct lookups, caching, session data, and other access patterns where applications retrieve a value by its key.
-
-Eclipse JNoSQL provides the Key-Value API for portable operations, while individual drivers may expose additional database-specific capabilities.
+Key-Value databases store values associated with unique keys and are commonly used for fast lookups, caching, session state, and simple data models.
 
 [[arangodb-key-value]]
 === ArangoDB
@@ -30,15 +52,13 @@ DynamoDB supports both Key-Value and Document APIs in this project. Its full ins
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/hazelcast.svg[Hazelcast Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/hazelcast.svg[Hazelcast,align="center",width=25%]
 
 https://hazelcast.com/[Hazelcast] is an open source in-memory data grid based on Java.
 
 This driver provides support for the *Key-Value* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -109,8 +129,7 @@ public class ManagerSupplier implements Supplier<HazelcastBucketManager> {
 }
 ----
 
-
-==== Template API
+==== Template Specialization
 
 The `HazelcastTemplate` interface is a specialization of the `KeyValueTemplate` interface that allows execution of a Hazelcast query.
 
@@ -121,7 +140,7 @@ Collection<Person> people2 = template.query("age = :age", singletonMap("age", 10
 Collection<Person> people3 = template.query(Predicates.equal("name",  "Poliana"));
 ----
 
-==== Repository Support
+==== Repository Specialization
 
 [source,java]
 ----
@@ -141,15 +160,13 @@ interface PersonRepository extends HazelcastRepository<Person, String> {
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/infinispan.svg[Infinista Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/infinispan.svg[Infinispan,align="center",width=25%]
 
 https://infinispan.org/[Infinispan] is a distributed in-memory key/value data store with optional schema, available under the Apache License 2.0.
 
 This driver provides support for the *Key-Value* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -191,7 +208,7 @@ jnosql.infinispan.config=infinispan.xml
 
 ==== Description
 
-image::https://www.jnosql.org/img/logos/memcached.png[Memcached Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/memcached.png[Memcached,align="center",width=25%]
 
 https://memcached.org/[Memcached] is a general-purpose distributed memory caching system.
 It is often used to speed up dynamic database-driven websites by caching data and objects in RAM to reduce the number of times an external data source (such as a database or API) must be read.
@@ -200,9 +217,7 @@ Memcached runs on Unix-like operating systems (at least Linux and OS X) and on M
 
 This driver provides support for the *Key-Value* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -266,7 +281,7 @@ Please note that you can establish properties using the https://microprofile.io/
 
 |===
 
-This is an example using Memcached's Document API with MicroProfile Config.
+This is an example using Memcached's Key-Value API with MicroProfile Config.
 
 [source,properties]
 ----
@@ -285,16 +300,14 @@ Oracle NoSQL supports both Key-Value and Document APIs in this project. Its full
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/redis.png[Redis Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/redis.png[Redis,align="center",width=25%]
 
 https://redis.com/[Redis] is a software project that implements data structure servers.
 It is open-source, networked, in-memory, and stores keys with optional durability.
 
 This driver provides support for the *Key-Value* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -463,9 +476,7 @@ Please note that you can establish properties using the https://microprofile.io/
 |`jnosql.redis.cluster.max.total.retries.duration` |The value for the max total retries configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 10000 milliseconds.
 |===
 
-==== Database-Specific Capabilities
-
-===== `RedisBucketManagerFactory`
+==== `RedisBucketManagerFactory`
 
 The `RedisBucketManagerFactory` is a specialization of the `BucketManagerFactory` that enables ranking and counter feature.
 
@@ -507,22 +518,20 @@ SortedSet game;
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/riak.png[Riak Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/riak.png[Riak,align="center",width=25%]
 
 https://riak.com/[Riak] (pronounced "ree-ack") is a distributed NoSQL key-value data store that offers high availability, fault tolerance, operational simplicity, and scalability.
 In addition to the open-source version, it comes in a supported enterprise version and a cloud storage version.
 
 This driver provides support for the *Key-Value* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
-  <artifactId>jnosql-redis</artifactId>
+  <artifactId>jnosql-riak</artifactId>
     <version>1.1.20</version>
 </dependency>
 ----
@@ -554,16 +563,14 @@ jnosql.keyvalue.database=heroes
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/valkey.png[Valkey Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/valkey.png[Valkey,align="center",width=25%]
 
 https://valkey.io/[Valkey] is a software project that implements data structure servers.
 It is open-source, networked, in-memory, and stores keys with optional durability.
 
 This driver provides support for the *Key-Value* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -732,9 +739,7 @@ Please note that you can establish properties using the https://microprofile.io/
 |`jnosql.valkey.cluster.max.total.retries.duration` |The value for the max total retries configuration attribute for the cluster jedis client configuration with this configuration instance. Default is 10000 milliseconds.
 |===
 
-==== Database-Specific Capabilities
-
-===== `ValkeyBucketManagerFactory`
+==== `ValkeyBucketManagerFactory`
 
 The `ValkeyBucketManagerFactory` is a specialization of the `BucketManagerFactory` that enables ranking and counter feature.
 
@@ -774,24 +779,20 @@ SortedSet game;
 [[column-family]]
 == Column Family
 
-Column-family databases store related values in rows grouped into column families. They are designed for distributed, scalable access to structured or sparsely populated records.
-
-Eclipse JNoSQL provides a common Column Family API while allowing each driver to retain database-specific data types and query features.
+Column Family databases store related values in rows grouped into column families and are designed for distributed, scalable access to structured or sparsely populated records.
 
 [[cassandra]]
 === Cassandra
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/cassandra.png[Apache Cassandra,align="center"width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/cassandra.png[Apache Cassandra,align="center",width=25%]
 
 https://cassandra.apache.org/[Apache Cassandra] is a free and open-source distributed database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure.
 
 This driver provides support for the *Column Family* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -863,45 +864,7 @@ public class ManagerSupplier implements Supplier<CassandraColumnManager> {
 }
 ----
 
-==== Database-Specific Capabilities
-
-===== UDT at Column Annotation
-
-The `@Column` contains a UDT attribute for mapping annotation that allows defining a field to be stored as a user-defined type in Cassandra.
-
-[source,java]
-----
-@Entity
-public class Person {
-
-    @Id("name")
-    private String name;
-
-    @Column
-    private Integer age;
-
-    @Column(udt="address")
-    private Address home;
- }
-----
-
-===== Converters
-
-* TimestampConverter: That converts to/from java.util.Date
-* LocalDateConverter: That converts to/from com.datastax.driver.core.LocalDate
-
-[source,java]
-----
-    @Column
-    @Convert(value = TimestampConverter.class)
-    private LocalDateTime localDateTime;
-
-    @Column
-    @Convert(value = LocalDateConverter.class)
-    private Calendar calendar;
-----
-
-==== Template API
+==== Template Specialization
 
 The `CassandraTemplate` interface is a specialization of `ColumnTemplate` interface that allows using CQL.
 
@@ -913,7 +876,7 @@ CassandraTemplate template;
 template.save(person, ConsistencyLevel.ONE);
 ----
 
-==== Repository Support
+==== Repository Specialization
 
 The `CassandraRepository` interface is an extension of the `Repository` interface that allows execution of CQL and Consistency Level via the `@CQL` annotation.
 
@@ -933,18 +896,54 @@ interface PersonRepository extends CassandraRepository<Person, String> {
  }
 ----
 
+==== Converters
+
+* TimestampConverter: That converts to/from java.util.Date
+* LocalDateConverter: That converts to/from com.datastax.driver.core.LocalDate
+
+[source,java]
+----
+    @Column
+    @Convert(value = TimestampConverter.class)
+    private LocalDateTime localDateTime;
+
+    @Column
+    @Convert(value = LocalDateConverter.class)
+    private Calendar calendar;
+----
+
+==== UDT at Column Annotation
+
+The `@Column` contains a UDT attribute for mapping annotation that allows defining a field to be stored as a user-defined type in Cassandra.
+
+[source,java]
+----
+@Entity
+public class Person {
+
+    @Id("name")
+    private String name;
+
+    @Column
+    private Integer age;
+
+    @Column(udt="address")
+    private Address home;
+ }
+----
+
 [[scylladb]]
 === ScyllaDB
 
 ==== Description
 
+image::https://jnosql.github.io/img/logos/scylladb.png[ScyllaDB,align="center",width=25%]
+
 https://www.scylladb.com/[ScyllaDB] is a distributed, highly available database compatible with Apache Cassandra's CQL protocol and designed for predictable, low-latency workloads.
 
 This driver provides support for the *Column Family* NoSQL API using the ScyllaDB Java driver.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -1020,40 +1019,7 @@ public class ManagerSupplier implements Supplier<ScyllaDBColumnManager> {
 }
 ----
 
-==== Database-Specific Capabilities
-
-===== UDT at Column Annotation
-
-The `@Column` annotation supports the `udt` attribute for mapping a field to a ScyllaDB user-defined type.
-
-[source,java]
-----
-@Entity
-public class Person {
-
-    @Id("name")
-    private String name;
-
-    @Column
-    private Integer age;
-
-    @Column(udt = "address")
-    private Address home;
-}
-----
-
-===== Converters
-
-The `TimestampConverter` converts values to and from `java.util.Date`.
-
-[source,java]
-----
-@Column
-@Convert(TimestampConverter.class)
-private LocalDateTime localDateTime;
-----
-
-==== Template API
+==== Template Specialization
 
 The `ScyllaDBTemplate` interface specializes `ColumnTemplate` and supports CQL operations.
 
@@ -1065,7 +1031,7 @@ ScyllaDBTemplate template;
 template.save(person, ConsistencyLevel.ONE);
 ----
 
-==== Repository Support
+==== Repository Specialization
 
 The `ScyllaDBRepository` interface extends `Repository` and supports CQL queries and consistency levels through the `@CQL` annotation.
 
@@ -1085,20 +1051,49 @@ interface PersonRepository extends ScyllaDBRepository<Person, String> {
 }
 ----
 
+==== Converters
+
+The `TimestampConverter` converts values to and from `java.util.Date`.
+
+[source,java]
+----
+@Column
+@Convert(TimestampConverter.class)
+private LocalDateTime localDateTime;
+----
+
+==== UDT at Column Annotation
+
+The `@Column` annotation supports the `udt` attribute for mapping a field to a ScyllaDB user-defined type.
+
+[source,java]
+----
+@Entity
+public class Person {
+
+    @Id("name")
+    private String name;
+
+    @Column
+    private Integer age;
+
+    @Column(udt = "address")
+    private Address home;
+}
+----
+
 [[hbase]]
 === HBase
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/hbase.png[Hbase Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/hbase.png[Apache HBase,align="center",width=25%]
 
 https://hbase.apache.org/[HBase] is an open source, non-relational, distributed database modeled after Google's BigTable and is written in Java.
 
 This driver provides support for the *Column Family* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -1134,7 +1129,7 @@ jnosql.column.database=heroes
 [[document]]
 == Document
 
-Document databases store records as self-contained documents whose fields can be queried and evolved without requiring every record to share an identical structure. Eclipse JNoSQL's Document API provides portable entity mapping and operations, with specialized extensions documented only where a driver supplies them.
+Document databases store records as self-contained documents whose fields can be queried and evolved without requiring every record to share an identical structure.
 
 [[arangodb]]
 [[arangodb-document]]
@@ -1142,7 +1137,7 @@ Document databases store records as self-contained documents whose fields can be
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/ArangoDB.png[Arangodb Project,align="center"width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/ArangoDB.png[ArangoDB,align="center",width=25%]
 
 https://www.arangodb.com/[ArangoDB] is a native multi-model database with flexible data models for documents, graphs, and key-values.
 Build high performance applications using a convenient SQL-like query language or JavaScript extensions.
@@ -1150,9 +1145,7 @@ Build high performance applications using a convenient SQL-like query language o
 This API offers support for **Document** and **Key-Value** types.
 The Graph is possible through Apache TinkerPop.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -1240,34 +1233,7 @@ public class ManagerSupplier implements Supplier<ArangoDBDocumentManager> {
 }
 ----
 
-
-==== Database-Specific Capabilities
-
-===== How `@Id` Works in ArangoDB
-
-In ArangoDB, the `_id` field is a read-only, auto-generated value created by the database. It is a combination of the collection name and the `_key` field in the format `<collection-name>/<_key>`. The `_id` is automatically managed by the database, meaning any value set by the client will be ignored.
-
-To map the `_id` and `_key` fields in your entities, you can use the `@Id` annotation and specify the `_key` field explicitly. This allows you to manage the `_key` value directly in your code while letting the database handle the `_id` generation.
-
-For example:
-
-[source,java]
-----
-@Entity
-public class User {
-
-    @Id("_key")
-    private String key;
-
-    private String name;
-
-}
-----
-
-In this example, the `_key` field is annotated with `@Id("_key")`, allowing the application to control the `_key` value while the database auto-generates the corresponding `_id` field. This approach is useful for scenarios where you need to set or manage the `_key` value explicitly in your application logic.
-
-
-==== Template API
+==== Template Specialization
 
 The `ArangoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using both synchronous and asynchronous AQL.
 
@@ -1279,7 +1245,7 @@ private ArangoDBTemplate template;
 List<Person> people = template.aql("FOR p IN Person FILTER p.name = @name RETURN p", params);
 ----
 
-==== Repository Support
+==== Repository Specialization
 
 The `ArangoDBRepository` interface is an extension of the Repository interface that allows execution of AQL via the `@AQL` annotation. Also, it's possible to combine with `@Param` annotation to execute parameterized AQL queries:
 
@@ -1325,21 +1291,42 @@ interface OrderRepository extends ArangoDBRepository<Order, String> {
 }
 ----
 
+==== How `@Id` Works in ArangoDB
+
+In ArangoDB, the `_id` field is a read-only, auto-generated value created by the database. It is a combination of the collection name and the `_key` field in the format `<collection-name>/<_key>`. The `_id` is automatically managed by the database, meaning any value set by the client will be ignored.
+
+To map the `_id` and `_key` fields in your entities, you can use the `@Id` annotation and specify the `_key` field explicitly. This allows you to manage the `_key` value directly in your code while letting the database handle the `_id` generation.
+
+For example:
+
+[source,java]
+----
+@Entity
+public class User {
+
+    @Id("_key")
+    private String key;
+
+    private String name;
+
+}
+----
+
+In this example, the `_key` field is annotated with `@Id("_key")`, allowing the application to control the `_key` value while the database auto-generates the corresponding `_id` field. This approach is useful for scenarios where you need to set or manage the `_key` value explicitly in your application logic.
+
 [[couchbase]]
 [[couchbase-document]]
 === Couchbase
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/couchbase.svg[Couchbase Project,align="center"width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/couchbase.svg[Couchbase,align="center",width=25%]
 
 The https://www.couchbase.com/[Couchbase] driver provides an API integration between Java and the database through a standard communication level.
 
 This driver has support for two NoSQL API types: *Document* and *Key-Value*.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -1425,7 +1412,7 @@ public class ManagerSupplier implements Supplier<CouchbaseDocumentManager> {
 }
 ----
 
-==== Template API
+==== Template Specialization
 
 The `CouchbaseTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using N1QL on both synchronous and asynchronous.
 
@@ -1434,7 +1421,7 @@ The `CouchbaseTemplate` interface is a specialization of the `DocumentTemplate` 
 List<Person> people = template.n1qlQuery("select * from Person where name = $name", params);
 ----
 
-==== Repository Support
+==== Repository Specialization
 
 The `CouchbaseRepository` interface is an extension of the `Repository` interface that allows execution of N1QL via the `@N1QL` annotation.
 
@@ -1458,15 +1445,13 @@ List<Person> findByName(@Param("name") String name);
 
 ==== Description
 
-image::https://www.jnosql.org/img/logos/couchdb.png[CouchDB,align="center"width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/couchdb.png[Apache CouchDB,align="center",width=25%]
 
 The https://couchdb.apache.org/[CouchDB] driver provides an API integration between Java and the database through a standard communication level.
 
 This driver provides support for the *Document* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -1541,15 +1526,13 @@ jnosql.couchdb.password=password
 
 ==== Description
 
-image::https://user-images.githubusercontent.com/6509926/70553550-f033b980-1b40-11ea-9192-759b3b1053b3.png[Redis Project,align="center" width=50%,height=50%]
+image::https://jnosql.github.io/img/logos/dynamodb.svg[DynamoDB,align="center",width=25%]
 
 https://aws.amazon.com/dynamodb/[Amazon DynamoDB] is a fully managed, serverless, key-value and document NoSQL database designed to run high-performance applications at any scale. DynamoDB offers built-in security, continuous backups, automated multi-Region replication, in-memory caching, and data import and export tools.
 
 This driver has support for two NoSQL API types: *Key-Value* and *Document*.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -1626,10 +1609,44 @@ public class ManagerSupplier implements Supplier<DynamoDBDocumentManager> {
 }
 ----
 
+==== Template Specialization
 
-==== Database-Specific Capabilities
+The `DynamoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using PartiQL queries.
 
-===== Creating the Tables On the Fly
+WARNING: DynamoDB supports a limited subset of
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
+
+NOTE: This implementation doesn't provide pagination on the queries.
+
+[source,java]
+----
+List<Person> people = template.partiQL("select * from Person where name = ? ", Person.class, params);
+----
+
+==== Repository Specialization
+
+The `DynamoDBRepository` interface is an extension of the `Repository` interface that allows execution of PartiQL via the `@PartiQL` annotation.
+
+WARNING: DynamoDB supports a limited subset of
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
+
+NOTE: This implementation doesn't provide pagination on the queries.
+
+[source,java]
+----
+@Repository
+interface PersonRepository extends DynamoDBRepository<Person, String> {
+
+@PartiQL("select * from Person")
+List<Person> findAll();
+
+@PartiQL("select * from Person where name = ?")
+List<Person> findByName(@Param("") String name);
+
+}
+----
+
+==== Creating the Tables On the Fly
 
 [IMPORTANT]
 ====
@@ -1664,49 +1681,12 @@ Please note that you can establish properties using the https://microprofile.io/
 
 |===
 
-==== Template API
-
-The `DynamoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using PartiQL queries.
-
-WARNING: DynamoDB supports a limited subset of
-https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
-
-NOTE: This implementation doesn't provide pagination on the queries.
-
-[source,java]
-----
-List<Person> people = template.partiQL("select * from Person where name = ? ", Person.class, params);
-----
-
-==== Repository Support
-
-The `DynamoDBRepository` interface is an extension of the `Repository` interface that allows execution of PartiQL via the `@PartiQL` annotation.
-
-WARNING: DynamoDB supports a limited subset of
-https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html[PartiQL].
-
-NOTE: This implementation doesn't provide pagination on the queries.
-
-[source,java]
-----
-@Repository
-interface PersonRepository extends DynamoDBRepository<Person, String> {
-
-@PartiQL("select * from Person")
-List<Person> findAll();
-
-@PartiQL("select * from Person where name = ?")
-List<Person> findByName(@Param("") String name);
-
-}
-----
-
 [[elasticsearch]]
 === Elasticsearch
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/elastic.svg[Elasticsearch Project,align="center"width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/elastic.svg[Elasticsearch,align="center",width=25%]
 
 https://www.elastic.co/[Elasticsearch] is a search engine based on Lucene.
 It provides a distributed, multitenant-capable full-text search engine with an HTTP web interface and schema-free JSON documents.
@@ -1715,9 +1695,7 @@ Elasticsearch is the most popular enterprise search engine followed by Apache So
 
 This driver provides support for the *Document* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -1776,8 +1754,7 @@ public class ManagerSupplier implements Supplier<ElasticsearchDocumentManager> {
 }
 ----
 
-
-==== Template API
+==== Template Specialization
 
 The `ElasticsearchTemplate` interface is a specialization of the `DocumentTemplate` interface that allows using a search engine on both synchronous and asynchronous.
 
@@ -1796,16 +1773,14 @@ List<Person> people = template.search(queryBuilder, "Person");
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/mongodb.png[MongoDB Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/mongodb.png[MongoDB,align="center",width=25%]
 
 https://www.mongodb.com/[MongoDB] is a free and open-source cross-platform document-oriented database program.
 Classified as a NoSQL database program, MongoDB uses JSON-like documents with schemas.
 
 This driver provides support for the *Document* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -1876,10 +1851,22 @@ public class ManagerSupplier implements Supplier<MongoDBDocumentManager> {
 }
 ----
 
+==== Template Specialization
 
-==== Database-Specific Capabilities
+The `MongoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows MongoDB particular behavior such as delete and select elements using a `Bson` implementation and aggreate query.
 
-===== `ObjectID` Converter
+
+[source,java]
+----
+@Inject
+MongoDBTemplate template;
+...
+
+Bson filter = eq("name", "Poliana");
+Stream<Person> stream = template.select(Person.class , filter);
+----
+
+==== Converters
 
 In this extension, you have the option to convert to/from the MongoDB `ObjectID`.
 
@@ -1895,34 +1882,19 @@ public class Music {
 }
 ----
 
-==== Template API
-
-The `MongoDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows MongoDB particular behavior such as delete and select elements using a `Bson` implementation and aggreate query.
-
-
-[source,java]
-----
-@Inject
-MongoDBTemplate template;
-...
-
-Bson filter = eq("name", "Poliana");
-Stream<Person> stream = template.select(Person.class , filter);
-----
-
 [[oracle-nosql]]
 [[oracle-nosql-document]]
 === Oracle NoSQL
 
 ==== Description
 
-image::https://www.jnosql.org/img/logos/oracle.png[Oracle NoSQL Project,align="center"width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/oracle.png[Oracle NoSQL,align="center",width=25%]
 
 https://www.oracle.com/database/nosql/technologies/nosql/[Oracle NoSQL Database] is a versatile multi-model database offering flexible data models for documents, graphs, and key-value pairs. It empowers developers to build high-performance applications using a user-friendly SQL-like query language or JavaScript extensions.
 
 This API provides support for *Document* and *Key-Value* data types.
 
-==== How to Install
+==== Installation
 
 You can include Oracle NoSQL as a dependency using either Maven or Gradle:
 
@@ -2027,8 +1999,7 @@ public class ManagerSupplier implements Supplier<OracleNoSQLDocumentManager> {
 }
 ----
 
-
-==== Template API
+==== Template Specialization
 
 The `OracleNoSQLTemplate` interface, an extension of the `DocumentTemplate`, enables synchronous SQL operations.
 
@@ -2040,8 +2011,7 @@ private OracleNoSQLTemplate template;
 List<Person> people = template.sql("select * from people where people.content.name =?", "Ada");
 ----
 
-
-==== Repository Support
+==== Repository Specialization
 
 The `OracleNoSQLRepository` interface extends the Repository interface and allows executing SQL queries using the `@SQL` annotation. You can also combine it with the `@Param` annotation for parameterized SQL queries:
 
@@ -2063,7 +2033,7 @@ interface PersonRepository extends OracleNoSQLRepository<Person, String> {
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/orientdb.png[Orient Project,align="center" width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/orientdb.png[OrientDB,align="center",width=25%]
 
 https://orientdb.org/[OrientDB] is an open source NoSQL database management system written in Java.
 It is a multi-model database, supporting graph, document, key/value, and object models, but the relationships are managed as in graph databases with direct connections between records.
@@ -2072,9 +2042,7 @@ It has a strong security profiling system based on users and roles and supports 
 
 This driver provides support for the *Document* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -2140,7 +2108,7 @@ public class ManagerSupplier implements Supplier<OrientDBDocumentManager> {
 }
 ----
 
-==== Template API
+==== Template Specialization
 
 The `OrientDBTemplate` interface is a specialization of the `DocumentTemplate` interface that allows execution of a SQL query and live query on both synchronous and asynchronous.
 
@@ -2154,7 +2122,7 @@ Stream<Person> stream = template.sql("select * from Person where name = ?", "Ada
 template.live("select from Person where name = ?", callBack, "Ada");
 ----
 
-==== Repository Support
+==== Repository Specialization
 
 The `OrientDBCrudRepository` interface  is an extension of the `Repository` interface that allows execution of a SQL Query via the `@SQL` annotation.
 
@@ -2179,16 +2147,14 @@ The `OrientDBCrudRepository` interface  is an extension of the `Repository` inte
 
 ==== Description
 
-image::https://www.jnosql.org/img/logos/ravendb.png[RavenDB Project,align="center",align="center" width=50%,height=50%]
+image::https://jnosql.github.io/img/logos/ravendb.png[RavenDB,align="center",width=25%]
 
 https://ravendb.net/[RavenDB] is a fully Transactional Open Source NoSQL Document Database.
 Easy to use, rapidly scalable, offers high availability, and takes your Business into the Next Generation of Data Performance.
 
 This driver provides support for the *Document* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -2226,7 +2192,7 @@ jnosql.document.database=heroes
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/solr.svg[Apache Solr Project,align="center" width=25%,height=25%"]
+image::https://jnosql.github.io/img/logos/solr.svg[Apache Solr,align="center",width=25%]
 
 https://solr.apache.org/[Solr] is an open-source enterprise-search platform, written in Java, from the Apache Lucene project.
 Its major features include full-text search, hit highlighting, faceted search, real-time indexing, dynamic clustering, database integration, NoSQL features and rich document (e.g., Word, PDF) handling.
@@ -2235,9 +2201,7 @@ Solr is widely used for enterprise search and analytics use cases and has an act
 
 This driver provides support for the *Document* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -2299,7 +2263,7 @@ public class ManagerSupplier implements Supplier<SolrDocumentManager> {
 }
 ----
 
-==== Template API
+==== Template Specialization
 
 The `SolrTemplate` interface is a specialization of the `DocumentTemplate` that allows execution of a Solr query.
 
@@ -2311,7 +2275,7 @@ SolrTemplate template;
 List<Person> people = template.solr("age:@age AND type:@type AND _entity:@entity", params);
 ----
 
-==== Repository Support
+==== Repository Specialization
 
 The `SolrRepository` interface is an extension of the `Repository` interface that allows using Solr query annotation that executes Solr query.
 
@@ -2331,20 +2295,20 @@ interface PersonRepository extends SolrRepository<Person, String> {
 [[time-series]]
 == Time Series
 
-Time-series databases organize observations around timestamps and are optimized for ingestion, retention, and analysis of measurements over time. The drivers in this section implement the Eclipse JNoSQL Time Series Mapping API, including `TimeSeriesTemplate` and repository integration where provided by that API.
+Time Series databases organize observations around timestamps and are optimized for ingestion, retention, and analysis of measurements over time.
 
 [[influxdb]]
 === InfluxDB
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/influxdb.png[InfluxDB,align="center" width=25%,height=25%"]
+image::https://jnosql.github.io/img/logos/influxdb.png[InfluxDB,align="center",width=25%]
 
 https://www.influxdata.com/[InfluxDB] is a time-series database optimized for timestamped metrics, events, monitoring, and IoT data.
 
 The Eclipse JNoSQL InfluxDB driver connects the *Time Series* Mapping API to InfluxDB 3. Applications can use `TimeSeriesTemplate` and Jakarta Data repositories while keeping InfluxDB connection and data-model details in the driver.
 
-==== How to Install
+==== Installation
 
 Add the driver to the application. It already includes the JNoSQL Time Series Mapping API:
 
@@ -2393,14 +2357,14 @@ jnosql.influxdb.token=${INFLUXDB_TOKEN}
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/apache-io-tbd.png[Apache IoTDB,align="center" width=25%,height=25%"]
+image::https://jnosql.github.io/img/logos/apache-io-tbd.png[Apache IoTDB,align="center",width=25%]
 
 https://iotdb.apache.org/[Apache IoTDB] is a time-series database designed for IoT data management and analysis.
 
 The Eclipse JNoSQL IoTDB driver connects the *Time Series* Mapping API to IoTDB's native Table Model API without
 vendor-specific entity annotations.
 
-==== How to Install
+==== Installation
 
 [source,xml]
 ----
@@ -2473,13 +2437,13 @@ jnosql.iotdb.password=root
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/questdb.png[QuestDB,align="center" width=25%,height=25%"]
+image::https://jnosql.github.io/img/logos/questdb.png[QuestDB,align="center",width=25%]
 
 https://questdb.com/[QuestDB] is a high-performance time-series database with native ingestion and SQL querying.
 
 The Eclipse JNoSQL QuestDB driver uses the standard Time Series Mapping API and does not require vendor-specific annotations.
 
-==== How to Install
+==== Installation
 
 [source,xml]
 ----
@@ -2523,20 +2487,20 @@ jnosql.questdb.url=ws::addr=localhost:9000;
 [[vector]]
 == Vector
 
-Vector databases store embeddings and retrieve the entries closest to a query vector. Eclipse JNoSQL provides the `VectorTemplate` API for similarity search on top of the regular `Template`.
+Vector databases store embeddings and retrieve the entries closest to a query vector, and are commonly used for similarity search and semantic retrieval.
 
 [[qdrant]]
 === Qdrant
 
 ==== Description
 
+image::https://jnosql.github.io/img/logos/qdrant.png[Qdrant,align="center",width=25%]
+
 https://qdrant.tech/[Qdrant] is an open-source vector database. This driver integrates it with Jakarta NoSQL mapping, `Template`, the Eclipse JNoSQL `VectorTemplate`, and Jakarta Data repositories.
 
 This driver provides support for the *Vector* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -2598,7 +2562,7 @@ jnosql.qdrant.collection.vector.size=3
 
 Each entity maps to a Qdrant collection, which is created on the first insert when it does not exist yet.
 
-===== Distance
+==== Distance Metrics
 
 `QdrantDistance` lists the supported metrics:
 
@@ -2626,13 +2590,13 @@ The distance is part of the collection configuration (`jnosql.qdrant.collection.
 
 ==== Description
 
+image::https://jnosql.github.io/img/logos/milvus.png[Milvus,align="center",width=25%]
+
 https://milvus.io/[Milvus] is an open-source vector database. This driver uses the Milvus V2 Java client and integrates it with Jakarta NoSQL mapping, `Template`, the Eclipse JNoSQL `VectorTemplate`, and Jakarta Data repositories.
 
 This driver provides support for the *Vector* NoSQL API.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -2701,7 +2665,7 @@ jnosql.milvus.collection.vector.size=3
 
 Each entity maps to a Milvus collection. The collection and its schema (primary key `_id`, scalar columns, the vector field and an `AUTOINDEX` index using the configured metric) are created from the first persisted entity. Later entities are validated against that schema: a different vector dimension, id type or column type fails with an `IllegalArgumentException` instead of silently changing the collection. Attributes that were not present in the first entity are stored in the collection's dynamic field.
 
-===== Metric
+==== Distance Metrics
 
 `MilvusMetric` lists the supported metrics:
 
@@ -2721,15 +2685,18 @@ Each entity maps to a Milvus collection. The collection and its schema (primary 
 
 The metric is part of the collection configuration (`jnosql.milvus.collection.metric`). It is not selected per `VectorTemplate.search(...)` query. The query threshold follows the metric: it is the exclusive minimum score for `COSINE` and `INNER_PRODUCT`, and the exclusive maximum distance for `EUCLIDEAN`.
 
+[[weaviate]]
 === Weaviate
 
 ==== Description
+
+image::https://jnosql.github.io/img/logos/weaviate.png[Weaviate,align="center",width=25%]
 
 https://weaviate.io/[Weaviate] is an open-source vector database. This driver uses the official Weaviate Java client v6 (`io.weaviate:client6`, HTTP and gRPC) and integrates it with Jakarta NoSQL mapping, `Template`, the Eclipse JNoSQL `VectorTemplate`, and Jakarta Data repositories.
 
 This driver provides support for the *Vector* NoSQL API.
 
-==== How to Install
+==== Installation
 
 [source,xml]
 ----
@@ -2787,11 +2754,11 @@ jnosql.weaviate.grpc.port=50051
 jnosql.weaviate.collection.distance=COSINE
 ----
 
-===== Distance
+==== Distance Metrics
 
 The distance is part of the collection configuration, not of the query. The query threshold follows the distance of the collection: for `COSINE` it is the minimum similarity, for `DOT` the minimum dot product, for `EUCLIDEAN` the maximum Euclidean distance, and for `MANHATTAN` and `HAMMING` the maximum distance.
 
-===== Differences and limits
+==== Limitations
 
 - Sorting, `LIKE`, `CONTAINS`, range conditions on text and conditions on array properties throw `UnsupportedOperationException`; time to live is not supported.
 - The JNoSQL `_id` is kept in the `_jnosql_id` property; the Weaviate object UUID is the id when it is a UUID, or a name-based UUID derived from it otherwise. The names `id`, `_id` and `_additional` cannot be used as properties.
@@ -2801,20 +2768,20 @@ The distance is part of the collection configuration, not of the query. The quer
 [[graph]]
 == Graph
 
-Graph databases represent entities as vertices and their relationships as edges, enabling traversal and relationship-focused queries. Eclipse JNoSQL provides graph support through its Apache TinkerPop integration layer and dedicated provider integrations; Apache TinkerPop is an abstraction and integration framework, not a database.
+Graph databases represent entities as vertices and their relationships as edges, enabling traversal and relationship-focused queries. Graph support is provided through the Apache TinkerPop integration layer and dedicated provider integrations; Apache TinkerPop is an abstraction and integration framework, not a database.
 
 [[tinkerpop-integration]]
 === Apache TinkerPop Integration
 
 ==== Description
 
-Currently, the Jakarta NoSQL doesn't define an API for Graph database types but Eclipse JNoSQL provides a Graph template to explore the specific behavior of this NoSQL type.
+image::https://jnosql.github.io/img/logos/apache-tinkerpop.png[Apache TinkerPop,align="center",width=25%]
 
-Eclipse JNoSQL offers a mapping implementation for Graph NoSQL types:
+Jakarta NoSQL does not currently define an API for Graph databases; Eclipse JNoSQL provides a Graph template to explore the specific behavior of this NoSQL type.
 
-Despite the other three NoSQL types, Eclipse JNoSQL API does not offer a communication layer for Graph NoSQL types. Instead, it integrates with https://tinkerpop.apache.org/[Apache Tinkerpop 3.x].
+Unlike the other NoSQL types, Eclipse JNoSQL does not offer a communication layer for Graph databases. Instead, it integrates with https://tinkerpop.apache.org/[Apache Tinkerpop 3.x].
 
-==== How to Install
+==== Installation
 
 [source,xml]
 ----
@@ -2831,12 +2798,12 @@ Eclipse JNoSQL does not provide https://mvnrepository.com/artifact/org.apache.ti
 ----
 <dependency>
     <groupId>org.apache.tinkerpop</groupId>
-    <artifactId>jnosql-gremlin-core</artifactId>
+    <artifactId>gremlin-core</artifactId>
     <version>${tinkerpop.version}</version>
 </dependency>
 <dependency>
     <groupId>org.apache.tinkerpop</groupId>
-    <artifactId>jnosql-gremlin-groovy</artifactId>
+    <artifactId>gremlin-groovy</artifactId>
     <version>${tinkerpop.version}</version>
 </dependency>
 ----
@@ -2897,7 +2864,7 @@ public Graph getManagerB() {
 }
 ----
 
-==== Template API
+==== Template Specialization
 
 The `TinkerpopTemplate` extends the Eclipse JNoSQL Graph template with Apache TinkerPop traversal operations. The following example uses the provider-independent traversal API exposed by the integration.
 
@@ -2934,14 +2901,13 @@ ArangoDB also supports graph access through the xref:#tinkerpop-integration[Apac
 
 ==== Description
 
-image::https://jnosql.github.io/img/logos/neo4j.png[Neo4J Project,align="center",width=25%,height=25%]
+image::https://jnosql.github.io/img/logos/neo4j.png[Neo4j,align="center",width=25%]
+
 https://neo4j.com/[Neo4J] is a highly scalable, native graph database designed to manage complex relationships in data. It enables developers to build applications that leverage the power of graph traversal, pattern matching, and high-performance querying using the **Cypher** query language.
 
 This API provides support for **Graph** database operations, including entity persistence, query execution via Cypher, and relationship traversal.
 
-==== How to Install
-
-You can use either the Maven or Gradle dependencies:
+==== Installation
 
 [source,xml]
 ----
@@ -2976,7 +2942,7 @@ jnosql.neo4j.password=yourpassword
 jnosql.neo4j.database=neo4j
 ----
 
-==== Template API
+==== Template Specialization
 
 The `Neo4JTemplate` interface extends `GraphTemplate` and allows for dynamic Cypher execution.
 
@@ -2989,7 +2955,7 @@ List<Person> people = template.cypherQuery("MATCH (p:Person) WHERE p.name = $nam
 var edge = template.edge(otavio, "FRIENDS_WITH", ada);
 ----
 
-==== Repository Support
+==== Repository Specialization
 
 The `Neo4JRepository` interface extends the `NoSQLRepository` interface and enables query execution using the `@Cypher` annotation.
 
