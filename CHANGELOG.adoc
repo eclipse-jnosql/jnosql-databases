@@ -12,6 +12,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 - Added the Qdrant vector database driver (`jnosql-qdrant`) with support for `VectorManager`, `VectorTemplate` and repositories, including `UUID` identifiers and attributes
 - Added the Milvus vector database driver (`jnosql-milvus`) using the Milvus V2 Java client, with support for `VectorManager`, `VectorTemplate` and repositories, automatic collection and schema creation, configurable metric and consistency, and `UUID` identifiers and attributes
+- Added the Weaviate vector database driver (`jnosql-weaviate`) using the Weaviate Java client v6, with automatic collection and schema creation, configurable distance, `UUID` support, filtering, and vector search with threshold
 
 == [1.1.20] - 2026-10-08
 
