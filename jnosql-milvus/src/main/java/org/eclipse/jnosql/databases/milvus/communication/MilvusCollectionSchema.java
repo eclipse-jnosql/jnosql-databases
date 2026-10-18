@@ -20,8 +20,10 @@ import io.milvus.v2.service.collection.request.CreateCollectionReq;
 import io.milvus.v2.service.collection.response.DescribeCollectionResp;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
+import org.eclipse.jnosql.mapping.vector.Vector;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,15 +33,22 @@ import java.util.UUID;
  *
  * @param idType      the type of the primary key {@code _id}
  * @param vectorField the name of the vector field
- * @param dimension   the vector dimension
+ * @param dimension   the vector dimension, zero for sparse vectors
  * @param fields      the scalar fields by name
+ * @param kind        the vector representation of the vector field
  */
-record MilvusCollectionSchema(DataType idType, String vectorField, int dimension, Map<String, DataType> fields) {
+record MilvusCollectionSchema(DataType idType, String vectorField, int dimension, Map<String, DataType> fields,
+                              MilvusVectors.Kind kind) {
+
+    MilvusCollectionSchema(DataType idType, String vectorField, int dimension, Map<String, DataType> fields) {
+        this(idType, vectorField, dimension, fields, MilvusVectors.Kind.DENSE);
+    }
 
     static MilvusCollectionSchema of(DescribeCollectionResp description) {
         DataType idType = null;
         String vectorField = null;
         int dimension = 0;
+        MilvusVectors.Kind kind = MilvusVectors.Kind.DENSE;
         Map<String, DataType> fields = new HashMap<>();
         for (CreateCollectionReq.FieldSchema field : description.getCollectionSchema().getFieldSchemaList()) {
             if (Boolean.TRUE.equals(field.getIsPrimaryKey())) {
@@ -47,15 +56,30 @@ record MilvusCollectionSchema(DataType idType, String vectorField, int dimension
             } else if (field.getDataType() == DataType.FloatVector) {
                 vectorField = field.getName();
                 dimension = field.getDimension();
+            } else if (field.getDataType() == DataType.SparseFloatVector) {
+                vectorField = field.getName();
+                kind = MilvusVectors.Kind.SPARSE;
             } else {
                 fields.put(field.getName(), field.getDataType());
             }
         }
+        List<CreateCollectionReq.StructFieldSchema> structs = description.getCollectionSchema().getStructFields();
+        if (structs != null) {
+            for (CreateCollectionReq.StructFieldSchema struct : structs) {
+                for (CreateCollectionReq.FieldSchema nested : struct.getFields()) {
+                    if (nested.getDataType() == DataType.FloatVector) {
+                        vectorField = struct.getName();
+                        dimension = nested.getDimension();
+                        kind = MilvusVectors.Kind.MULTI;
+                    }
+                }
+            }
+        }
         if (idType == null || vectorField == null) {
             throw new IllegalStateException("The collection " + description.getCollectionName()
-                    + " was not created by JNoSQL: it needs a primary key and a float vector field");
+                    + " was not created by JNoSQL: it needs a primary key and a vector field");
         }
-        return new MilvusCollectionSchema(idType, vectorField, dimension, fields);
+        return new MilvusCollectionSchema(idType, vectorField, dimension, fields, kind);
     }
 
     static CreateCollectionReq.CollectionSchema create(CommunicationEntity entity, Element vectorElement,
@@ -73,8 +97,7 @@ record MilvusCollectionSchema(DataType idType, String vectorField, int dimension
             idField.dataType(DataType.VarChar).maxLength(maxLength);
         }
         schema.addField(idField.build());
-        schema.addField(AddFieldReq.builder().fieldName(vectorElement.name())
-                .dataType(DataType.FloatVector).dimension(dimension).build());
+        addVectorField(schema, vectorElement, dimension);
         for (Element element : entity.elements()) {
             String name = element.name();
             if (element == vectorElement || MilvusRowConverter.ID_FIELD.equals(name)) {
@@ -95,12 +118,34 @@ record MilvusCollectionSchema(DataType idType, String vectorField, int dimension
         return schema;
     }
 
+    private static void addVectorField(CreateCollectionReq.CollectionSchema schema, Element vectorElement,
+                                       int dimension) {
+        Vector vector = (Vector) MilvusValueWriteDecorator.convert(vectorElement.value());
+        switch (MilvusVectors.kind(vector)) {
+            case DENSE -> schema.addField(AddFieldReq.builder().fieldName(vectorElement.name())
+                    .dataType(DataType.FloatVector).dimension(dimension).build());
+            case SPARSE -> schema.addField(AddFieldReq.builder().fieldName(vectorElement.name())
+                    .dataType(DataType.SparseFloatVector).build());
+            default -> schema.addField(AddFieldReq.builder().fieldName(vectorElement.name())
+                    .dataType(DataType.Array).elementType(DataType.Struct)
+                    .maxCapacity(MilvusVectors.maxCapacity())
+                    .addStructField(AddFieldReq.builder().fieldName(MilvusVectors.MULTI_FIELD)
+                            .dataType(DataType.FloatVector).dimension(dimension).build())
+                    .build());
+        }
+    }
+
     void validate(String collection, CommunicationEntity entity, Element vectorElement, int size) {
+        Vector vector = (Vector) MilvusValueWriteDecorator.convert(vectorElement.value());
+        if (MilvusVectors.kind(vector) != kind) {
+            throw new IllegalArgumentException("The collection " + collection + " stores " + kind
+                    + " vectors but the entity uses " + MilvusVectors.kind(vector));
+        }
         if (!vectorField.equals(vectorElement.name())) {
             throw new IllegalArgumentException("The collection " + collection + " has the vector field "
                     + vectorField + " but the entity uses " + vectorElement.name());
         }
-        if (dimension != size) {
+        if (kind != MilvusVectors.Kind.SPARSE && dimension != size) {
             throw new IllegalArgumentException("The vector has " + size + " dimensions but the collection "
                     + collection + " expects " + dimension);
         }
