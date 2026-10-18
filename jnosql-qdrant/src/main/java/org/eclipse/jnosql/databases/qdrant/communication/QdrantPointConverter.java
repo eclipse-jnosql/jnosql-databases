@@ -15,14 +15,13 @@
 package org.eclipse.jnosql.databases.qdrant.communication;
 
 import io.qdrant.client.ValueFactory;
-import io.qdrant.client.VectorsFactory;
 import io.qdrant.client.grpc.Common.PointId;
 import io.qdrant.client.grpc.JsonWithInt.Value;
 import io.qdrant.client.grpc.Points.PointStruct;
 import io.qdrant.client.grpc.Points.VectorsOutput;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
-import org.eclipse.jnosql.mapping.vector.DenseVector;
+import org.eclipse.jnosql.mapping.vector.SparseVector;
 import org.eclipse.jnosql.mapping.vector.Vector;
 
 import java.util.ArrayList;
@@ -56,13 +55,14 @@ final class QdrantPointConverter {
         return vectors.get(0);
     }
 
-    static float[] values(Element vectorElement) {
-        Object vector = QdrantValueWriteDecorator.convert(vectorElement.value());
-        if (vector instanceof DenseVector dense) {
-            return dense.values();
+    static Vector vector(Element vectorElement) {
+        return (Vector) QdrantValueWriteDecorator.convert(vectorElement.value());
+    }
+
+    static void putSparseDimensions(Map<String, Value> payload, Vector vector) {
+        if (vector instanceof SparseVector sparse) {
+            payload.put(QdrantVectors.SPARSE_DIMENSIONS_FIELD, ValueFactory.value(sparse.dimensions()));
         }
-        throw new UnsupportedOperationException("Qdrant only supports dense vectors but got: "
-                + vector.getClass().getName());
     }
 
     static Object ensureId(CommunicationEntity entity) {
@@ -78,7 +78,7 @@ final class QdrantPointConverter {
 
     static PointStruct toPoint(CommunicationEntity entity) {
         Element vectorElement = vectorElement(entity);
-        float[] values = values(vectorElement);
+        Vector vector = vector(vectorElement);
         Object id = ensureId(entity);
         List<Element> payloadElements = entity.elements().stream()
                 .filter(element -> element != vectorElement)
@@ -86,9 +86,10 @@ final class QdrantPointConverter {
         Map<String, Value> payload = new LinkedHashMap<>(QdrantPayloadConverter.toPayload(payloadElements));
         payload.put(QdrantPointIds.ID_FIELD, QdrantPayloadConverter.toValue(QdrantPointIds.storedValue(id)));
         payload.put(VECTOR_FIELD, ValueFactory.value(vectorElement.name()));
+        putSparseDimensions(payload, vector);
         return PointStruct.newBuilder()
                 .setId(QdrantPointIds.of(id))
-                .setVectors(VectorsFactory.vectors(values))
+                .setVectors(QdrantVectors.toVectors(vector))
                 .putAllPayload(payload)
                 .build();
     }
@@ -97,27 +98,15 @@ final class QdrantPointConverter {
                                         VectorsOutput vectors) {
         Map<String, Value> fields = new LinkedHashMap<>(payload);
         Value vectorField = fields.remove(VECTOR_FIELD);
+        Value sparseDimensions = fields.remove(QdrantVectors.SPARSE_DIMENSIONS_FIELD);
         String vectorName = vectorField == null ? DEFAULT_VECTOR_NAME : vectorField.getStringValue();
         List<Element> elements = new ArrayList<>(QdrantPayloadConverter.toElements(fields));
         if (elements.stream().noneMatch(element -> QdrantPointIds.ID_FIELD.equals(element.name()))) {
             elements.add(0, Element.of(QdrantPointIds.ID_FIELD, QdrantPointIds.value(id)));
         }
-        if (vectors != null && vectors.hasVector()) {
-            float[] values = denseValues(vectors);
-            if (values.length > 0) {
-                elements.add(Element.of(vectorName, DenseVector.of(values)));
-            }
-        }
+        QdrantVectors.toVector(vectors, sparseDimensions == null ? Map.of()
+                : Map.of(QdrantVectors.SPARSE_DIMENSIONS_FIELD, sparseDimensions))
+                .ifPresent(vector -> elements.add(Element.of(vectorName, vector)));
         return CommunicationEntity.of(collection, elements);
-    }
-
-    private static float[] denseValues(VectorsOutput vectors) {
-        var output = vectors.getVector();
-        List<Float> data = output.hasDense() ? output.getDense().getDataList() : output.getDataList();
-        float[] values = new float[data.size()];
-        for (int index = 0; index < values.length; index++) {
-            values[index] = data.get(index);
-        }
-        return values;
     }
 }
