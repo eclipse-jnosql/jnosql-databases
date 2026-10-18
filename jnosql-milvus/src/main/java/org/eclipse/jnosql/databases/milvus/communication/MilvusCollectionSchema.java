@@ -56,8 +56,10 @@ record MilvusCollectionSchema(DataType idType, String vectorField, int dimension
             } else if (field.getDataType() == DataType.FloatVector) {
                 vectorField = field.getName();
                 dimension = field.getDimension();
+                kind = MilvusVectors.Kind.DENSE;
             } else if (field.getDataType() == DataType.SparseFloatVector) {
                 vectorField = field.getName();
+                dimension = 0;
                 kind = MilvusVectors.Kind.SPARSE;
             } else {
                 fields.put(field.getName(), field.getDataType());
