@@ -20,8 +20,10 @@ import io.weaviate.client6.v1.api.collections.Property;
 import io.weaviate.client6.v1.api.collections.Tokenization;
 import io.weaviate.client6.v1.api.collections.VectorConfig;
 import io.weaviate.client6.v1.api.collections.vectorindex.Hnsw;
+import io.weaviate.client6.v1.api.collections.vectorindex.MultiVector;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
+import org.eclipse.jnosql.mapping.vector.Vector;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -42,12 +44,19 @@ final class WeaviateCollectionSchema {
 
     private final WeaviateDistance distance;
 
+    private final WeaviateVectors.Kind kind;
+
     private WeaviateCollectionSchema(String collection, Map<String, String> properties, String vectorName,
-                                     WeaviateDistance distance) {
+                                     WeaviateDistance distance, WeaviateVectors.Kind kind) {
         this.collection = collection;
         this.properties = properties;
         this.vectorName = vectorName;
         this.distance = distance;
+        this.kind = kind;
+    }
+
+    WeaviateVectors.Kind kind() {
+        return kind;
     }
 
     String vectorName() {
@@ -81,10 +90,16 @@ final class WeaviateCollectionSchema {
         }
         Map.Entry<String, VectorConfig> vector = config.vectors().entrySet().iterator().next();
         WeaviateDistance distance = settings.distance();
-        if (vector.getValue().vectorIndex() instanceof Hnsw hnsw && hnsw.distance() != null) {
-            distance = WeaviateDistance.from(hnsw.distance());
+        WeaviateVectors.Kind kind = WeaviateVectors.Kind.DENSE;
+        if (vector.getValue().vectorIndex() instanceof Hnsw hnsw) {
+            if (hnsw.distance() != null) {
+                distance = WeaviateDistance.from(hnsw.distance());
+            }
+            if (hnsw.multiVector() != null && hnsw.multiVector().enabled()) {
+                kind = WeaviateVectors.Kind.MULTI;
+            }
         }
-        return new WeaviateCollectionSchema(config.collectionName(), properties, vector.getKey(), distance);
+        return new WeaviateCollectionSchema(config.collectionName(), properties, vector.getKey(), distance, kind);
     }
 
     static CollectionConfig create(String collection, CommunicationEntity entity, Element vector,
@@ -104,11 +119,22 @@ final class WeaviateCollectionSchema {
             properties.add(property(name, type));
         }
         String vectorName = WeaviateNames.vectorName(vector.name());
+        boolean multi = WeaviateVectors.kind(vectorOf(vector)) == WeaviateVectors.Kind.MULTI;
         return CollectionConfig.of(collection, builder -> builder
                 .properties(properties)
                 .invertedIndex(index -> index.indexNulls(true))
                 .vectorConfig(VectorConfig.selfProvided(vectorName,
-                        self -> self.vectorIndex(Hnsw.of(hnsw -> hnsw.distance(settings.distance().toDistance()))))));
+                        self -> self.vectorIndex(Hnsw.of(hnsw -> {
+                            hnsw.distance(settings.distance().toDistance());
+                            if (multi) {
+                                hnsw.multiVector(MultiVector.of());
+                            }
+                            return hnsw;
+                        })))));
+    }
+
+    private static Vector vectorOf(Element element) {
+        return (Vector) WeaviateValueWriteDecorator.convert(element.value());
     }
 
     private static Property property(String name, String type) {
@@ -126,6 +152,11 @@ final class WeaviateCollectionSchema {
     }
 
     void validate(CommunicationEntity entity, Element vector) {
+        WeaviateVectors.Kind actual = WeaviateVectors.kind(vectorOf(vector));
+        if (actual != kind) {
+            throw new IllegalArgumentException("The collection " + collection + " stores " + kind
+                    + " vectors but the entity uses " + actual);
+        }
         String name = WeaviateNames.vectorName(vector.name());
         if (!name.equals(vectorName)) {
             throw new IllegalArgumentException("The collection " + collection + " has the vector " + vectorName
