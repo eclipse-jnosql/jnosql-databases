@@ -160,7 +160,7 @@ final class MilvusRowConverter {
                                         MilvusVectors.Kind kind) {
         List<Element> elements = new ArrayList<>();
         row.forEach((name, value) -> {
-            if (DYNAMIC_FIELD.equals(name) || MilvusVectors.SPARSE_DIMENSIONS.equals(name) || value == null) {
+            if (DYNAMIC_FIELD.equals(name) || (kind == MilvusVectors.Kind.SPARSE && MilvusVectors.SPARSE_DIMENSIONS.equals(name)) || value == null) {
                 return;
             }
             if (name.equals(vectorField)) {
