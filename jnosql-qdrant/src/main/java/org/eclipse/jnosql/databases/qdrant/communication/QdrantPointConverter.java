@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -98,15 +99,18 @@ final class QdrantPointConverter {
                                         VectorsOutput vectors) {
         Map<String, Value> fields = new LinkedHashMap<>(payload);
         Value vectorField = fields.remove(VECTOR_FIELD);
-        Value sparseDimensions = fields.remove(QdrantVectors.SPARSE_DIMENSIONS_FIELD);
+        Value sparseDimensions = fields.get(QdrantVectors.SPARSE_DIMENSIONS_FIELD);
+        Optional<Vector> vector = QdrantVectors.toVector(vectors, sparseDimensions == null ? Map.of()
+                : Map.of(QdrantVectors.SPARSE_DIMENSIONS_FIELD, sparseDimensions));
+        if (vector.orElse(null) instanceof SparseVector) {
+            fields.remove(QdrantVectors.SPARSE_DIMENSIONS_FIELD);
+        }
         String vectorName = vectorField == null ? DEFAULT_VECTOR_NAME : vectorField.getStringValue();
         List<Element> elements = new ArrayList<>(QdrantPayloadConverter.toElements(fields));
         if (elements.stream().noneMatch(element -> QdrantPointIds.ID_FIELD.equals(element.name()))) {
             elements.add(0, Element.of(QdrantPointIds.ID_FIELD, QdrantPointIds.value(id)));
         }
-        QdrantVectors.toVector(vectors, sparseDimensions == null ? Map.of()
-                : Map.of(QdrantVectors.SPARSE_DIMENSIONS_FIELD, sparseDimensions))
-                .ifPresent(vector -> elements.add(Element.of(vectorName, vector)));
+        vector.ifPresent(value -> elements.add(Element.of(vectorName, value)));
         return CommunicationEntity.of(collection, elements);
     }
 }
