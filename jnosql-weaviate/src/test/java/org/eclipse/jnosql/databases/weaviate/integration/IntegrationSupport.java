@@ -50,6 +50,8 @@ final class IntegrationSupport {
         return entities.stream().map(entity -> switch (entity) {
             case Article article -> article.id();
             case Movie movie -> movie.id();
+            case ScientificArticle article -> article.id();
+            case MediaItem item -> item.id();
             case UserProfile profile -> profile.id().toString();
             default -> throw new IllegalArgumentException("unexpected entity " + entity);
         }).toList();
