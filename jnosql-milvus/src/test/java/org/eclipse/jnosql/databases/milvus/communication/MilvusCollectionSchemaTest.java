@@ -22,8 +22,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import io.milvus.v2.service.collection.request.AddFieldReq;
+import io.milvus.v2.service.collection.request.CreateCollectionReq;
+import io.milvus.v2.service.collection.response.DescribeCollectionResp;
+
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -88,6 +93,49 @@ class MilvusCollectionSchemaTest {
 
             assertThatThrownBy(() -> schema.validate("c", entity, vector, 3))
                     .isInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("When describing a collection")
+    class WhenDescribing {
+
+        private DescribeCollectionResp describe(AddFieldReq... fields) {
+            var schema = CreateCollectionReq.CollectionSchema.builder().build();
+            schema.addField(AddFieldReq.builder().fieldName("_id").dataType(DataType.VarChar).maxLength(64)
+                    .isPrimaryKey(true).build());
+            for (AddFieldReq field : fields) {
+                schema.addField(field);
+            }
+            return DescribeCollectionResp.builder().collectionName("c").collectionSchema(schema).build();
+        }
+
+        private AddFieldReq dense() {
+            return AddFieldReq.builder().fieldName("dense").dataType(DataType.FloatVector).dimension(3).build();
+        }
+
+        private AddFieldReq sparse() {
+            return AddFieldReq.builder().fieldName("sparse").dataType(DataType.SparseFloatVector).build();
+        }
+
+        @Test
+        @DisplayName("Should keep a consistent name, dimension and kind when the sparse field comes first")
+        void shouldHandleSparseThenDense() {
+            var result = MilvusCollectionSchema.of(describe(sparse(), dense()));
+
+            assertThat(result.vectorField()).isEqualTo("dense");
+            assertThat(result.dimension()).isEqualTo(3);
+            assertThat(result.kind()).isEqualTo(MilvusVectors.Kind.DENSE);
+        }
+
+        @Test
+        @DisplayName("Should keep a consistent name, dimension and kind when the dense field comes first")
+        void shouldHandleDenseThenSparse() {
+            var result = MilvusCollectionSchema.of(describe(dense(), sparse()));
+
+            assertThat(result.vectorField()).isEqualTo("sparse");
+            assertThat(result.dimension()).isZero();
+            assertThat(result.kind()).isEqualTo(MilvusVectors.Kind.SPARSE);
         }
     }
 }
