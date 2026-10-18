@@ -29,6 +29,11 @@ import io.qdrant.client.grpc.Collections.VectorsConfig;
 import io.qdrant.client.grpc.Common.Filter;
 import io.qdrant.client.grpc.Common.PointId;
 import io.qdrant.client.grpc.Points.PointStruct;
+import io.qdrant.client.grpc.Points.PointsIdsList;
+import io.qdrant.client.grpc.Points.PointsSelector;
+import io.qdrant.client.grpc.Points.PointsUpdateOperation;
+import io.qdrant.client.grpc.Points.PointsUpdateOperation.SetPayload;
+import io.qdrant.client.grpc.Points.PointsUpdateOperation.UpdateVectors;
 import io.qdrant.client.grpc.Points.PointVectors;
 import io.qdrant.client.grpc.Points.QueryPoints;
 import io.qdrant.client.grpc.Points.RetrievedPoint;
@@ -149,8 +154,15 @@ final class QdrantVectorManager implements VectorManager {
             validate(collection, vector);
             payload.put(QdrantPointConverter.VECTOR_FIELD, ValueFactory.value(vectors.get(0).name()));
             QdrantPointConverter.putSparseDimensions(payload, vector);
-            QdrantCalls.await(client.updateVectorsAsync(collection, List.of(PointVectors.newBuilder()
-                    .setId(id).setVectors(QdrantVectors.toVectors(vector)).build()), true, null, null));
+            PointsSelector selector = PointsSelector.newBuilder()
+                    .setPoints(PointsIdsList.newBuilder().addIds(id)).build();
+            QdrantCalls.await(client.batchUpdateAsync(collection, List.of(
+                    PointsUpdateOperation.newBuilder().setUpdateVectors(UpdateVectors.newBuilder()
+                            .addPoints(PointVectors.newBuilder().setId(id)
+                                    .setVectors(QdrantVectors.toVectors(vector)))).build(),
+                    PointsUpdateOperation.newBuilder().setSetPayload(SetPayload.newBuilder()
+                            .putAllPayload(payload).setPointsSelector(selector)).build()), true, null, null));
+            return entity;
         }
         QdrantCalls.await(client.setPayloadAsync(collection, payload, id, true, null, null));
         return entity;
