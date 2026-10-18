@@ -28,7 +28,6 @@ import io.milvus.v2.service.vector.request.QueryIteratorReq;
 import io.milvus.v2.service.vector.request.QueryReq;
 import io.milvus.v2.service.vector.request.SearchReq;
 import io.milvus.v2.service.vector.request.UpsertReq;
-import io.milvus.v2.service.vector.request.data.FloatVec;
 import io.milvus.v2.service.vector.response.QueryResp;
 import io.milvus.v2.service.vector.response.SearchResp;
 import com.google.gson.JsonObject;
@@ -36,7 +35,7 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
-import org.eclipse.jnosql.mapping.vector.DenseVector;
+import org.eclipse.jnosql.mapping.vector.Vector;
 import org.eclipse.jnosql.mapping.vector.VectorManager;
 import org.eclipse.jnosql.mapping.vector.VectorSelectQuery;
 
@@ -241,7 +240,7 @@ final class MilvusVectorManager implements VectorManager {
                         close();
                     }
                     page.forEach(row -> buffer.add(MilvusRowConverter.toEntity(collection,
-                            row.getFieldValues(), schema.vectorField())));
+                            row.getFieldValues(), schema.vectorField(), schema.kind())));
                 }
             } catch (RuntimeException exception) {
                 close();
@@ -283,10 +282,7 @@ final class MilvusVectorManager implements VectorManager {
     @Override
     public List<CommunicationEntity> search(VectorSelectQuery query) {
         Objects.requireNonNull(query, "query is required");
-        if (!(query.vector() instanceof DenseVector dense)) {
-            throw new UnsupportedOperationException("Milvus only supports dense vectors but got: "
-                    + query.vector().getClass().getName());
-        }
+        MilvusVectors.Kind kind = MilvusVectors.kind(query.vector());
         if (query.limit() <= 0) {
             throw new IllegalArgumentException("A vector search requires a positive limit");
         }
@@ -296,18 +292,23 @@ final class MilvusVectorManager implements VectorManager {
             return List.of();
         }
         MilvusCollectionSchema description = schema.get();
-        if (description.dimension() != dense.dimensions()) {
-            throw new IllegalArgumentException("The query vector has " + dense.dimensions()
+        if (description.kind() != kind) {
+            throw new IllegalArgumentException("The collection " + collection + " stores " + description.kind()
+                    + " vectors but the query vector is " + kind);
+        }
+        int queryDimension = MilvusVectors.dimension(query.vector());
+        if (kind != MilvusVectors.Kind.SPARSE && description.dimension() != queryDimension) {
+            throw new IllegalArgumentException("The query vector has " + queryDimension
                     + " dimensions but the collection " + collection + " expects " + description.dimension());
         }
         ensureLoaded(collection);
         Map<String, Object> searchParams = new HashMap<>();
-        query.threshold().ifPresent(threshold -> MilvusThreshold.apply(settings.metric(), threshold, searchParams));
+        query.threshold().ifPresent(threshold -> MilvusThreshold.apply(MilvusVectors.effectiveMetric(kind, settings.metric()), threshold, searchParams));
         SearchReq.SearchReqBuilder builder = SearchReq.builder()
                 .databaseName(database)
                 .collectionName(collection)
-                .annsField(description.vectorField())
-                .data(List.of(new FloatVec(dense.values())))
+                .annsField(MilvusVectors.indexField(kind, description.vectorField()))
+                .data(List.of(MilvusVectors.toQuery(query.vector())))
                 .limit((int) query.limit())
                 .offset(query.skip())
                 .outputFields(outputFields(query.columns(), description))
@@ -321,7 +322,7 @@ final class MilvusVectorManager implements VectorManager {
             for (SearchResp.SearchResult result : response.getSearchResults().get(0)) {
                 Map<String, Object> row = new LinkedHashMap<>(result.getEntity());
                 row.putIfAbsent(MilvusRowConverter.ID_FIELD, result.getId());
-                entities.add(MilvusRowConverter.toEntity(collection, row, description.vectorField()));
+                entities.add(MilvusRowConverter.toEntity(collection, row, description.vectorField(), kind));
             }
         }
         return entities;
@@ -343,16 +344,17 @@ final class MilvusVectorManager implements VectorManager {
         }
         List<Element> vectors = new ArrayList<>();
         for (CommunicationEntity entity : entities) {
-            Element vector = MilvusRowConverter.vectorElement(entity);
-            MilvusRowConverter.values(vector);
+            vectors.add(MilvusRowConverter.vectorElement(entity));
             MilvusRowConverter.ensureId(entity);
-            vectors.add(vector);
         }
-        int dimension = MilvusRowConverter.values(vectors.get(0)).length;
-        for (Element vector : vectors) {
-            if (MilvusRowConverter.values(vector).length != dimension) {
+        Vector first = vector(vectors.get(0));
+        MilvusVectors.Kind kind = MilvusVectors.kind(first);
+        int dimension = MilvusVectors.dimension(first);
+        for (Element element : vectors) {
+            Vector vector = vector(element);
+            if (MilvusVectors.kind(vector) != kind || MilvusVectors.dimension(vector) != dimension) {
                 throw new IllegalArgumentException("All vectors of the collection " + collection
-                        + " must have the same dimension");
+                        + " must have the same type and dimension");
             }
         }
         Optional<MilvusCollectionSchema> existing = schema(collection);
@@ -373,18 +375,23 @@ final class MilvusVectorManager implements VectorManager {
                 .build());
     }
 
+    private static Vector vector(Element element) {
+        return (Vector) MilvusValueWriteDecorator.convert(element.value());
+    }
+
     private void createCollection(String collection, CommunicationEntity entity, Element vector, int dimension) {
+        MilvusVectors.Kind kind = MilvusVectors.kind(vector(vector));
         int size = settings.vectorSize() == null ? dimension : settings.vectorSize();
-        if (size != dimension) {
+        if (kind != MilvusVectors.Kind.SPARSE && size != dimension) {
             throw new IllegalArgumentException("The vector has " + dimension
                     + " dimensions but the configured size is " + size);
         }
         CreateCollectionReq.CollectionSchema schema = MilvusCollectionSchema.create(entity, vector, dimension,
                 settings.maxLength(), client);
         IndexParam index = IndexParam.builder()
-                .fieldName(vector.name())
-                .indexType(IndexParam.IndexType.AUTOINDEX)
-                .metricType(settings.metric().toMetricType())
+                .fieldName(MilvusVectors.indexField(kind, vector.name()))
+                .indexType(MilvusVectors.indexType(kind))
+                .metricType(MilvusVectors.metricType(kind, settings.metric()))
                 .build();
         try {
             client.createCollection(CreateCollectionReq.builder()
@@ -443,11 +450,15 @@ final class MilvusVectorManager implements VectorManager {
 
     private static List<String> outputFields(List<String> columns, MilvusCollectionSchema schema) {
         if (columns.isEmpty()) {
-            return List.of("*");
+            return schema.kind() == MilvusVectors.Kind.SPARSE ? List.of("*", MilvusVectors.SPARSE_DIMENSIONS)
+                    : List.of("*");
         }
         List<String> fields = new ArrayList<>(columns);
         fields.add(MilvusRowConverter.ID_FIELD);
         fields.add(schema.vectorField());
+        if (schema.kind() == MilvusVectors.Kind.SPARSE) {
+            fields.add(MilvusVectors.SPARSE_DIMENSIONS);
+        }
         return fields.stream().distinct().toList();
     }
 
