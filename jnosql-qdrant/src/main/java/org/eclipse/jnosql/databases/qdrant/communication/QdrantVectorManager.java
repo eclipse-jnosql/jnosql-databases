@@ -15,16 +15,25 @@
 package org.eclipse.jnosql.databases.qdrant.communication;
 
 import io.qdrant.client.QdrantClient;
-import io.qdrant.client.QueryFactory;
 import io.qdrant.client.ValueFactory;
-import io.qdrant.client.VectorsFactory;
 import io.qdrant.client.WithPayloadSelectorFactory;
 import io.qdrant.client.WithVectorsSelectorFactory;
 import io.qdrant.client.ConditionFactory;
+import io.qdrant.client.grpc.Collections.CreateCollection;
+import io.qdrant.client.grpc.Collections.MultiVectorComparator;
+import io.qdrant.client.grpc.Collections.MultiVectorConfig;
+import io.qdrant.client.grpc.Collections.SparseVectorConfig;
+import io.qdrant.client.grpc.Collections.SparseVectorParams;
 import io.qdrant.client.grpc.Collections.VectorParams;
+import io.qdrant.client.grpc.Collections.VectorsConfig;
 import io.qdrant.client.grpc.Common.Filter;
 import io.qdrant.client.grpc.Common.PointId;
 import io.qdrant.client.grpc.Points.PointStruct;
+import io.qdrant.client.grpc.Points.PointsIdsList;
+import io.qdrant.client.grpc.Points.PointsSelector;
+import io.qdrant.client.grpc.Points.PointsUpdateOperation;
+import io.qdrant.client.grpc.Points.PointsUpdateOperation.SetPayload;
+import io.qdrant.client.grpc.Points.PointsUpdateOperation.UpdateVectors;
 import io.qdrant.client.grpc.Points.PointVectors;
 import io.qdrant.client.grpc.Points.QueryPoints;
 import io.qdrant.client.grpc.Points.RetrievedPoint;
@@ -37,7 +46,7 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
-import org.eclipse.jnosql.mapping.vector.DenseVector;
+import org.eclipse.jnosql.mapping.vector.Vector;
 import org.eclipse.jnosql.mapping.vector.VectorManager;
 import org.eclipse.jnosql.mapping.vector.VectorSelectQuery;
 
@@ -141,11 +150,19 @@ final class QdrantVectorManager implements VectorManager {
         payload.put(QdrantPointIds.ID_FIELD, QdrantPayloadConverter.toValue(
                 QdrantPointIds.storedValue(QdrantValueWriteDecorator.convert(idElement.value()))));
         if (!vectors.isEmpty()) {
-            float[] values = QdrantPointConverter.values(vectors.get(0));
-            validateDimension(collection, values.length);
+            Vector vector = QdrantPointConverter.vector(vectors.get(0));
+            validate(collection, vector);
             payload.put(QdrantPointConverter.VECTOR_FIELD, ValueFactory.value(vectors.get(0).name()));
-            QdrantCalls.await(client.updateVectorsAsync(collection, List.of(PointVectors.newBuilder()
-                    .setId(id).setVectors(VectorsFactory.vectors(values)).build()), true, null, null));
+            QdrantPointConverter.putSparseDimensions(payload, vector);
+            PointsSelector selector = PointsSelector.newBuilder()
+                    .setPoints(PointsIdsList.newBuilder().addIds(id)).build();
+            QdrantCalls.await(client.batchUpdateAsync(collection, List.of(
+                    PointsUpdateOperation.newBuilder().setUpdateVectors(UpdateVectors.newBuilder()
+                            .addPoints(PointVectors.newBuilder().setId(id)
+                                    .setVectors(QdrantVectors.toVectors(vector)))).build(),
+                    PointsUpdateOperation.newBuilder().setSetPayload(SetPayload.newBuilder()
+                            .putAllPayload(payload).setPointsSelector(selector)).build()), true, null, null));
+            return entity;
         }
         QdrantCalls.await(client.setPayloadAsync(collection, payload, id, true, null, null));
         return entity;
@@ -266,26 +283,21 @@ final class QdrantVectorManager implements VectorManager {
     @Override
     public List<CommunicationEntity> search(VectorSelectQuery query) {
         Objects.requireNonNull(query, "query is required");
-        if (!(query.vector() instanceof DenseVector dense)) {
-            throw new UnsupportedOperationException("Qdrant only supports dense vectors but got: "
-                    + query.vector().getClass().getName());
-        }
+        Vector vector = query.vector();
         String collection = query.name();
-        Optional<Integer> size = collectionSize(collection);
-        if (size.isEmpty()) {
+        Optional<Layout> layout = layout(collection);
+        if (layout.isEmpty()) {
             return List.of();
         }
-        if (size.get() != dense.dimensions()) {
-            throw new IllegalArgumentException("The query vector has " + dense.dimensions()
-                    + " dimensions but the collection " + collection + " expects " + size.get());
-        }
+        validate(collection, layout.get(), vector);
         QueryPoints.Builder builder = QueryPoints.newBuilder()
                 .setCollectionName(collection)
-                .setQuery(QueryFactory.nearest(dense.values()))
+                .setQuery(QdrantVectors.toQuery(vector))
                 .setLimit(query.limit())
                 .setOffset(query.skip())
                 .setWithPayload(payloadSelector(query.columns()))
                 .setWithVectors(WithVectorsSelectorFactory.enable(true));
+        QdrantVectors.using(vector).ifPresent(builder::setUsing);
         QdrantFilterConverter.convert(query.condition()).ifPresent(builder::setFilter);
         query.threshold().ifPresent(builder::setScoreThreshold);
         List<ScoredPoint> points = QdrantCalls.await(client.queryAsync(builder.build()));
@@ -310,38 +322,56 @@ final class QdrantVectorManager implements VectorManager {
         if (points.isEmpty()) {
             return;
         }
-        List<Integer> dimensions = entities.stream()
-                .map(entity -> QdrantPointConverter.values(QdrantPointConverter.vectorElement(entity)).length)
+        List<Vector> vectors = entities.stream()
+                .map(entity -> QdrantPointConverter.vector(QdrantPointConverter.vectorElement(entity)))
                 .toList();
-        int dimension = dimensions.get(0);
-        dimensions.forEach(size -> {
-            if (size != dimension) {
+        Vector first = vectors.get(0);
+        QdrantVectors.Kind kind = QdrantVectors.Kind.of(first);
+        vectors.forEach(vector -> {
+            if (QdrantVectors.Kind.of(vector) != kind) {
+                throw new IllegalArgumentException("All vectors of the collection " + collection
+                        + " must have the same representation");
+            }
+            if (kind != QdrantVectors.Kind.SPARSE && QdrantVectors.dimension(vector) != QdrantVectors.dimension(first)) {
                 throw new IllegalArgumentException("All vectors of the collection " + collection
                         + " must have the same dimension");
             }
         });
-        ensureCollection(collection, dimension);
+        ensureCollection(collection, first);
         QdrantCalls.await(client.upsertAsync(UpsertPoints.newBuilder()
                 .setCollectionName(collection).setWait(true).addAllPoints(points).build()));
     }
 
-    private void ensureCollection(String collection, int dimension) {
+    private void ensureCollection(String collection, Vector vector) {
         if (Boolean.TRUE.equals(QdrantCalls.await(client.collectionExistsAsync(collection)))) {
-            validateDimension(collection, dimension);
+            validate(collection, vector);
             return;
         }
-        QdrantDistance distance = collectionSettings.distanceOptional().orElseThrow(() ->
-                new IllegalStateException("The collection " + collection + " does not exist and "
-                        + QdrantConfigurations.DISTANCE.get()
-                        + " is not configured to create it"));
-        long size = collectionSettings.vectorSizeOptional().orElse((long) dimension);
-        if (size != dimension) {
-            throw new IllegalArgumentException("The vector has " + dimension
-                    + " dimensions but the configured size is " + size);
+        QdrantVectors.Kind kind = QdrantVectors.Kind.of(vector);
+        int dimension = QdrantVectors.dimension(vector);
+        CreateCollection.Builder builder = CreateCollection.newBuilder().setCollectionName(collection);
+        if (kind == QdrantVectors.Kind.SPARSE) {
+            builder.setSparseVectorsConfig(SparseVectorConfig.newBuilder()
+                    .putMap(QdrantVectors.SPARSE_NAME, SparseVectorParams.getDefaultInstance()));
+        } else {
+            QdrantDistance distance = collectionSettings.distanceOptional().orElseThrow(() ->
+                    new IllegalStateException("The collection " + collection + " does not exist and "
+                            + QdrantConfigurations.DISTANCE.get()
+                            + " is not configured to create it"));
+            long size = collectionSettings.vectorSizeOptional().orElse((long) dimension);
+            if (size != dimension) {
+                throw new IllegalArgumentException("The vector has " + dimension
+                        + " dimensions but the configured size is " + size);
+            }
+            VectorParams.Builder params = VectorParams.newBuilder().setSize(size).setDistance(distance.toDistance());
+            if (kind == QdrantVectors.Kind.MULTI) {
+                params.setMultivectorConfig(MultiVectorConfig.newBuilder()
+                        .setComparator(MultiVectorComparator.MaxSim));
+            }
+            builder.setVectorsConfig(VectorsConfig.newBuilder().setParams(params));
         }
         try {
-            QdrantCalls.await(client.createCollectionAsync(collection, VectorParams.newBuilder()
-                    .setSize(size).setDistance(distance.toDistance()).build()));
+            QdrantCalls.await(client.createCollectionAsync(builder.build()));
         } catch (RuntimeException exception) {
             if (!QdrantCalls.isAlreadyExists(exception)) {
                 throw exception;
@@ -349,23 +379,45 @@ final class QdrantVectorManager implements VectorManager {
         }
     }
 
-    private void validateDimension(String collection, int dimension) {
-        collectionSize(collection).filter(size -> size != dimension).ifPresent(size -> {
-            throw new IllegalArgumentException("The vector has " + dimension + " dimensions but the collection "
-                    + collection + " expects " + size);
-        });
+    private void validate(String collection, Vector vector) {
+        layout(collection).ifPresent(layout -> validate(collection, layout, vector));
     }
 
-    private Optional<Integer> collectionSize(String collection) {
+    private static void validate(String collection, Layout layout, Vector vector) {
+        QdrantVectors.Kind kind = QdrantVectors.Kind.of(vector);
+        if (layout.kind() != kind) {
+            throw new IllegalArgumentException("The vector is " + kind + " but the collection "
+                    + collection + " stores " + layout.kind() + " vectors");
+        }
+        int dimension = QdrantVectors.dimension(vector);
+        if (kind != QdrantVectors.Kind.SPARSE && layout.size() != dimension) {
+            throw new IllegalArgumentException("The vector has " + dimension + " dimensions but the collection "
+                    + collection + " expects " + layout.size());
+        }
+    }
+
+    private Optional<Layout> layout(String collection) {
         try {
-            var info = QdrantCalls.await(client.getCollectionInfoAsync(collection));
-            return Optional.of((int) info.getConfig().getParams().getVectorsConfig().getParams().getSize());
+            var params = QdrantCalls.await(client.getCollectionInfoAsync(collection)).getConfig().getParams();
+            if (params.hasVectorsConfig() && params.getVectorsConfig().hasParams()) {
+                VectorParams vectorParams = params.getVectorsConfig().getParams();
+                return Optional.of(new Layout(vectorParams.hasMultivectorConfig()
+                        ? QdrantVectors.Kind.MULTI : QdrantVectors.Kind.DENSE, (int) vectorParams.getSize()));
+            }
+            if (params.hasSparseVectorsConfig()
+                    && params.getSparseVectorsConfig().containsMap(QdrantVectors.SPARSE_NAME)) {
+                return Optional.of(new Layout(QdrantVectors.Kind.SPARSE, 0));
+            }
+            return Optional.of(new Layout(QdrantVectors.Kind.DENSE, 0));
         } catch (RuntimeException exception) {
             if (QdrantCalls.isNotFound(exception)) {
                 return Optional.empty();
             }
             throw exception;
         }
+    }
+
+    private record Layout(QdrantVectors.Kind kind, int size) {
     }
 
     private boolean exists(String collection, Filter filter) {
@@ -390,6 +442,7 @@ final class QdrantVectorManager implements VectorManager {
         List<String> fields = new ArrayList<>(columns);
         fields.add(QdrantPointIds.ID_FIELD);
         fields.add(QdrantPointConverter.VECTOR_FIELD);
+        fields.add(QdrantVectors.SPARSE_DIMENSIONS_FIELD);
         return WithPayloadSelectorFactory.include(fields);
     }
 

@@ -23,6 +23,7 @@ import org.eclipse.jnosql.communication.Value;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.mapping.vector.DenseVector;
+import org.eclipse.jnosql.mapping.vector.SparseVector;
 import org.eclipse.jnosql.mapping.vector.Vector;
 
 import java.lang.reflect.Array;
@@ -60,8 +61,7 @@ final class MilvusRowConverter {
         if (vector instanceof DenseVector dense) {
             return dense.values();
         }
-        throw new UnsupportedOperationException("Milvus only supports dense vectors but got: "
-                + vector.getClass().getName());
+        throw new UnsupportedOperationException("The vector is not dense: " + vector.getClass().getName());
     }
 
     static Object ensureId(CommunicationEntity entity) {
@@ -79,11 +79,11 @@ final class MilvusRowConverter {
         JsonObject row = new JsonObject();
         for (Element element : entity.elements()) {
             if (element == vectorElement) {
-                JsonArray array = new JsonArray();
-                for (float value : values(vectorElement)) {
-                    array.add(value);
+                Vector vector = (Vector) MilvusValueWriteDecorator.convert(vectorElement.value());
+                row.add(element.name(), MilvusVectors.toJson(vector));
+                if (vector instanceof SparseVector sparse) {
+                    row.addProperty(MilvusVectors.SPARSE_DIMENSIONS, sparse.dimensions());
                 }
-                row.add(element.name(), array);
                 continue;
             }
             Object value = MilvusValueWriteDecorator.convert(element.value());
@@ -153,13 +153,18 @@ final class MilvusRowConverter {
     }
 
     static CommunicationEntity toEntity(String collection, Map<String, Object> row, String vectorField) {
+        return toEntity(collection, row, vectorField, MilvusVectors.Kind.DENSE);
+    }
+
+    static CommunicationEntity toEntity(String collection, Map<String, Object> row, String vectorField,
+                                        MilvusVectors.Kind kind) {
         List<Element> elements = new ArrayList<>();
         row.forEach((name, value) -> {
-            if (DYNAMIC_FIELD.equals(name) || value == null) {
+            if (DYNAMIC_FIELD.equals(name) || (kind == MilvusVectors.Kind.SPARSE && MilvusVectors.SPARSE_DIMENSIONS.equals(name)) || value == null) {
                 return;
             }
             if (name.equals(vectorField)) {
-                elements.add(Element.of(name, DenseVector.of(floats(value))));
+                elements.add(Element.of(name, MilvusVectors.fromNative(kind, value, row.get(MilvusVectors.SPARSE_DIMENSIONS))));
             } else {
                 Object converted = fromJson(value);
                 if (converted != null) {
@@ -168,24 +173,6 @@ final class MilvusRowConverter {
             }
         });
         return CommunicationEntity.of(collection, elements);
-    }
-
-    private static float[] floats(Object value) {
-        if (value instanceof List<?> list) {
-            float[] values = new float[list.size()];
-            for (int index = 0; index < values.length; index++) {
-                values[index] = ((Number) list.get(index)).floatValue();
-            }
-            return values;
-        }
-        if (value instanceof JsonArray array) {
-            float[] values = new float[array.size()];
-            for (int index = 0; index < values.length; index++) {
-                values[index] = array.get(index).getAsFloat();
-            }
-            return values;
-        }
-        throw new IllegalStateException("Unexpected vector value: " + value.getClass().getName());
     }
 
     static Object fromJson(Object value) {

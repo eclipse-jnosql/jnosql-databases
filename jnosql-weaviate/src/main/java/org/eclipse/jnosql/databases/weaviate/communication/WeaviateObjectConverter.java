@@ -18,7 +18,6 @@ import io.weaviate.client6.v1.api.collections.Vectors;
 import io.weaviate.client6.v1.api.collections.WeaviateObject;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.Element;
-import org.eclipse.jnosql.mapping.vector.DenseVector;
 import org.eclipse.jnosql.mapping.vector.Vector;
 
 import java.util.ArrayList;
@@ -58,13 +57,8 @@ final class WeaviateObjectConverter {
         return vectors.get(0);
     }
 
-    static float[] values(Element vectorElement) {
-        Object vector = WeaviateValueWriteDecorator.convert(vectorElement.value());
-        if (vector instanceof DenseVector dense) {
-            return dense.values();
-        }
-        throw new UnsupportedOperationException("Weaviate only supports dense vectors but got: "
-                + vector.getClass().getName());
+    static Vector vector(Element vectorElement) {
+        return (Vector) WeaviateValueWriteDecorator.convert(vectorElement.value());
     }
 
     static String ensureId(CommunicationEntity entity) {
@@ -96,7 +90,7 @@ final class WeaviateObjectConverter {
         return WeaviateObject.of(builder -> builder
                 .uuid(WeaviateNames.objectId(id))
                 .properties(properties)
-                .vectors(Vectors.of(vectorName, values(vectorElement))));
+                .vectors(WeaviateVectors.toVectors(vectorName, vector(vectorElement))));
     }
 
     static CommunicationEntity toEntity(String name, WeaviateObject<Map<String, Object>> object,
@@ -117,7 +111,7 @@ final class WeaviateObjectConverter {
         }
         Vectors vectors = object.vectors();
         if (vectors != null && vectors.contains(schema.vectorName())) {
-            elements.add(Element.of(schema.vectorName(), DenseVector.of(vectors.getSingle(schema.vectorName()))));
+            elements.add(Element.of(schema.vectorName(), WeaviateVectors.fromVectors(schema.kind(), vectors, schema.vectorName())));
         }
         return CommunicationEntity.of(name, elements);
     }

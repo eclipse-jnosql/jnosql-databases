@@ -52,6 +52,10 @@ final class IntegrationSupport {
                 return article.id();
             } else if (entity instanceof Movie movie) {
                 return movie.id();
+            } else if (entity instanceof ScientificArticle article) {
+                return article.id();
+            } else if (entity instanceof MediaItem item) {
+                return item.id();
             } else if (entity instanceof UserProfile profile) {
                 return profile.id().toString();
             }
