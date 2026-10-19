@@ -47,20 +47,20 @@ final class IntegrationSupport {
     }
 
     static List<String> ids(List<?> entities) {
-        return entities.stream().map(IntegrationSupport::id).toList();
-    }
-
-    private static String id(Object entity) {
-        if (entity instanceof Article article) {
-            return article.id();
-        }
-        if (entity instanceof Movie movie) {
-            return movie.id();
-        }
-        if (entity instanceof UserProfile profile) {
-            return profile.id().toString();
-        }
-        throw new IllegalArgumentException("unexpected entity " + entity);
+        return entities.stream().map(entity -> {
+            if (entity instanceof Article article) {
+                return article.id();
+            } else if (entity instanceof Movie movie) {
+                return movie.id();
+            } else if (entity instanceof ScientificArticle article) {
+                return article.id();
+            } else if (entity instanceof MediaItem item) {
+                return item.id();
+            } else if (entity instanceof UserProfile profile) {
+                return profile.id().toString();
+            }
+            throw new IllegalArgumentException("unexpected entity " + entity);
+        }).toList();
     }
 
     static void configure() {
