@@ -140,5 +140,31 @@ class MilvusRowConverterTest {
                 soft.assertThat((Object) entity.find("tags").orElseThrow().value().get()).isEqualTo(List.of("sf"));
             });
         }
+
+        @Test
+        @DisplayName("Should keep a user property named like the sparse metadata in dense and multi collections")
+        void shouldKeepSparseDimensionsPropertyWhenNotSparse() {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("_id", "a");
+            row.put("_sparse_dimensions", 7L);
+            row.put("embedding", List.of(1f, 0.5f));
+
+            var dense = MilvusRowConverter.toEntity("c", row, "embedding", MilvusVectors.Kind.DENSE);
+
+            assertThat(dense.find("_sparse_dimensions").orElseThrow().get()).isEqualTo(7L);
+        }
+
+        @Test
+        @DisplayName("Should consume the sparse metadata only in sparse collections")
+        void shouldConsumeSparseDimensions() {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("_id", "a");
+            row.put("_sparse_dimensions", 10L);
+            row.put("embedding", new java.util.TreeMap<>(Map.of(2L, 7.0f, 8L, 3.0f)));
+
+            var sparse = MilvusRowConverter.toEntity("c", row, "embedding", MilvusVectors.Kind.SPARSE);
+
+            assertThat(sparse.find("_sparse_dimensions")).isEmpty();
+        }
     }
 }

@@ -22,13 +22,12 @@ import io.weaviate.client6.v1.api.collections.data.DeleteManyResponse;
 import io.weaviate.client6.v1.api.collections.data.InsertManyResponse;
 import io.weaviate.client6.v1.api.collections.query.Filter;
 import io.weaviate.client6.v1.api.collections.query.QueryResponse;
-import io.weaviate.client6.v1.api.collections.query.Target;
 import io.weaviate.client6.v1.api.WeaviateApiException;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
-import org.eclipse.jnosql.mapping.vector.DenseVector;
+import org.eclipse.jnosql.mapping.vector.Vector;
 import org.eclipse.jnosql.mapping.vector.VectorManager;
 import org.eclipse.jnosql.mapping.vector.VectorSelectQuery;
 
@@ -224,10 +223,8 @@ final class WeaviateVectorManager implements VectorManager {
     @Override
     public List<CommunicationEntity> search(VectorSelectQuery query) {
         Objects.requireNonNull(query, "query is required");
-        if (!(query.vector() instanceof DenseVector dense)) {
-            throw new UnsupportedOperationException("Weaviate only supports dense vectors but got: "
-                    + query.vector().getClass().getName());
-        }
+        Vector vector = query.vector();
+        WeaviateVectors.Kind kind = WeaviateVectors.kind(vector);
         if (query.limit() <= 0) {
             throw new IllegalArgumentException("A vector search requires a positive limit");
         }
@@ -237,6 +234,10 @@ final class WeaviateVectorManager implements VectorManager {
         }
         Request current = request.get();
         WeaviateCollectionSchema schema = current.schema;
+        if (schema.kind() != kind) {
+            throw new IllegalArgumentException("The collection " + query.name() + " stores " + schema.kind()
+                    + " vectors but the query vector is " + kind);
+        }
         Float maxDistance = query.threshold()
                 .map(threshold -> WeaviateThreshold.maxDistance(schema.distance(), threshold))
                 
@@ -244,9 +245,9 @@ final class WeaviateVectorManager implements VectorManager {
         CollectionHandle<Map<String, Object>> handle = client.collections.use(current.collection);
         QueryResponse<Map<String, Object>> response;
         try {
-            response = nearVector(handle, query, current, dense, maxDistance);
+            response = nearVector(handle, query, current, vector, maxDistance);
         } catch (WeaviateApiException exception) {
-            checkDimension(handle, schema, dense, exception);
+            checkDimension(handle, schema, vector, exception);
             throw exception;
         }
         return response.objects().stream()
@@ -255,25 +256,26 @@ final class WeaviateVectorManager implements VectorManager {
     }
 
     private void checkDimension(CollectionHandle<Map<String, Object>> handle, WeaviateCollectionSchema schema,
-                                DenseVector dense, WeaviateApiException cause) {
+                                Vector vector, WeaviateApiException cause) {
         handle.query.fetchObjects(fetch -> fetch.limit(1).returnProperties(List.of())
                         .includeVector(schema.vectorName())).objects().stream().findFirst()
                 .map(WeaviateObject::vectors)
                 .filter(vectors -> vectors.contains(schema.vectorName()))
-                .map(vectors -> vectors.getSingle(schema.vectorName()).length)
-                .filter(dimension -> dimension != dense.dimensions())
+                .map(vectors -> WeaviateVectors.dimension(WeaviateVectors.fromVectors(schema.kind(), vectors,
+                        schema.vectorName())))
+                .filter(dimension -> dimension != WeaviateVectors.dimension(vector))
                 .ifPresent(dimension -> {
-                    throw new IllegalArgumentException("The query vector has " + dense.dimensions()
+                    throw new IllegalArgumentException("The query vector has " + WeaviateVectors.dimension(vector)
                             + " dimensions but the collection expects " + dimension, cause);
                 });
     }
 
     private QueryResponse<Map<String, Object>> nearVector(CollectionHandle<Map<String, Object>> handle,
                                                           VectorSelectQuery query, Request current,
-                                                          DenseVector dense, Float maxDistance) {
+                                                          Vector vector, Float maxDistance) {
         WeaviateCollectionSchema schema = current.schema;
         return handle.query
-                .nearVector(Target.vector(schema.vectorName(), dense.values()), near -> {
+                .nearVector(WeaviateVectors.toTarget(schema.vectorName(), vector), near -> {
                     near.limit((int) query.limit())
                             .offset((int) query.skip())
                             .returnProperties(current.properties)
@@ -400,15 +402,18 @@ final class WeaviateVectorManager implements VectorManager {
         List<Element> vectors = new ArrayList<>();
         for (CommunicationEntity entity : entities) {
             Element vector = WeaviateObjectConverter.vectorElement(entity);
-            WeaviateObjectConverter.values(vector);
+            WeaviateVectors.kind(WeaviateObjectConverter.vector(vector));
             WeaviateObjectConverter.ensureId(entity);
             vectors.add(vector);
         }
-        int dimension = WeaviateObjectConverter.values(vectors.get(0)).length;
-        for (Element vector : vectors) {
-            if (WeaviateObjectConverter.values(vector).length != dimension) {
+        Vector first = WeaviateObjectConverter.vector(vectors.get(0));
+        WeaviateVectors.Kind kind = WeaviateVectors.kind(first);
+        int dimension = WeaviateVectors.dimension(first);
+        for (Element element : vectors) {
+            Vector vector = WeaviateObjectConverter.vector(element);
+            if (WeaviateVectors.kind(vector) != kind || WeaviateVectors.dimension(vector) != dimension) {
                 throw new IllegalArgumentException("All vectors of the collection " + collection
-                        + " must have the same dimension");
+                        + " must have the same type and dimension");
             }
         }
         Optional<WeaviateCollectionSchema> existing = schema(collection);

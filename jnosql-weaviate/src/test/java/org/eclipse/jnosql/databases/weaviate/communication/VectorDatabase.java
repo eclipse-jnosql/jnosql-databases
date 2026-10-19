@@ -14,6 +14,7 @@
  */
 package org.eclipse.jnosql.databases.weaviate.communication;
 
+import io.weaviate.client6.v1.api.WeaviateClient;
 import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.mapping.vector.VectorManager;
 import org.testcontainers.utility.DockerImageName;
@@ -34,6 +35,12 @@ public enum VectorDatabase {
 
     {
         weaviate.start();
+    }
+
+    public WeaviateClient client() {
+        return WeaviateClient.connectToCustom(custom -> custom.scheme("http")
+                .httpHost(weaviate.getHost()).httpPort(weaviate.getHttpPort())
+                .grpcHost(weaviate.getHost()).grpcPort(weaviate.getGrpcPort()));
     }
 
     public Settings settings() {
