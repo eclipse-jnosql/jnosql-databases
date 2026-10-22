@@ -39,8 +39,17 @@ public class CouchDBDocumentManagerFactory implements DatabaseManagerFactory {
         Objects.requireNonNull(database, "database is required");
 
         CouchDBHttpClient client = configuration.getClient(database);
-        client.createDatabase();
-        return new DefaultCouchDBDocumentManager(client, database);
+        try {
+            client.createDatabase();
+            return new DefaultCouchDBDocumentManager(client, database);
+        } catch (RuntimeException | Error e) {
+            try {
+                client.close();
+            } catch (RuntimeException closeException) {
+                e.addSuppressed(closeException);
+            }
+            throw e;
+        }
     }
 
 
