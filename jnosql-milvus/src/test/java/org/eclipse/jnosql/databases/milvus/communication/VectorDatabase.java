@@ -30,7 +30,7 @@ public enum VectorDatabase {
 
     INSTANCE;
 
-    private final MilvusContainer milvus = new MilvusContainer("milvusdb/milvus:v2.6.25")
+    private final MilvusContainer milvus = new MilvusContainer("milvusdb/milvus:v3.0.4")
             .withEnv("DEPLOY_MODE", "STANDALONE");
 
     {
