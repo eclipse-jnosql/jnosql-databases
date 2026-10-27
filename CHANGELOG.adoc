@@ -37,6 +37,17 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 === Changed
 
+- Updated Apache Cassandra Java Driver from 4.19.3 to 4.19.4
+- Updated ScyllaDB Java Driver from 4.19.2.2 to 4.19.2.3
+- Updated Couchbase Java Client from 3.12.3 to 3.13.0
+- Updated AWS DynamoDB SDK from 2.55.12 to 2.57.4
+- Updated Infinispan from 16.3.0 to 16.3.1
+- Updated QuestDB client from 1.3.9 to 1.3.11
+- Updated Milvus Java SDK from 2.6.25 to 2.6.26
+- Updated Qdrant client from 1.19.0 to 1.20.0
+- Updated Weaviate client from 6.3.1 to 6.3.2
+- Updated Jedis (Redis) from 8.0.1 to 8.0.2
+- Updated Apache Solr SolrJ from 10.0.0 to 10.1.0
 - Optimize update method for MongoDB Document Manager
 - Enhance updateDocument method for MongoDB with better error handling
 - Improve MongoDB document update tests
