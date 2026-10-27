@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to Milvus</description>
 
     <properties>
-        <milvus.client.version>2.6.25</milvus.client.version>
+        <milvus.client.version>3.0.10</milvus.client.version>
         <commons.lang3.version>3.18.0</commons.lang3.version>
     </properties>
     <dependencies>

@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to Qdrant</description>
 
     <properties>
-        <qdrant.client.version>1.19.0</qdrant.client.version>
+        <qdrant.client.version>1.20.0</qdrant.client.version>
     </properties>
     <dependencies>
         <dependency>
