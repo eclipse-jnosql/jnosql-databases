@@ -14,6 +14,16 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Added the Milvus vector database driver (`jnosql-milvus`) using the Milvus V2 Java client, with support for `VectorManager`, `VectorTemplate` and repositories, automatic collection and schema creation, configurable metric and consistency, and `UUID` identifiers and attributes
 - Added the Weaviate vector database driver (`jnosql-weaviate`) using the Weaviate Java client v6, with automatic collection and schema creation, configurable distance, `UUID` support, filtering, and vector search with threshold
 
+=== Changed
+
+- Updated Apache Cassandra Java Driver from 4.19.3 to 4.19.4
+- Updated ScyllaDB Java Driver from 4.19.2.2 to 4.19.2.3
+- Updated Couchbase Java Client from 3.12.3 to 3.13.0
+- Updated AWS DynamoDB SDK from 2.55.12 to 2.57.4
+- Updated Infinispan from 16.3.0 to 16.3.1
+- Updated Jedis (Redis) from 8.0.1 to 8.0.2
+- Updated Apache Solr SolrJ from 10.0.0 to 10.1.0
+
 == [1.1.20] - 2026-10-08
 
 === Changed

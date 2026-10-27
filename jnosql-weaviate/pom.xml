@@ -29,7 +29,7 @@
     <description>The Eclipse JNoSQL layer to Weaviate</description>
 
     <properties>
-        <weaviate.client.version>6.3.1</weaviate.client.version>
+        <weaviate.client.version>6.3.2</weaviate.client.version>
     </properties>
     <dependencies>
         <dependency>
