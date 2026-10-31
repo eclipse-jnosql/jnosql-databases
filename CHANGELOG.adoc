@@ -86,6 +86,30 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 - Escape Solr query values and native query parameters to prevent Lucene query injection
 - Bind TinkerPop Gremlin parameters through the script engine instead of interpolating values, preventing Gremlin query injection
 
+
+== [1.2.0] - 2026-10-31
+
+=== Added
+
+- Added Qdrant vector database integration with support for `VectorManager`, `VectorTemplate`, repositories, and `UUID` identifiers and attributes.
+- Added Milvus vector database integration using the Milvus V2 Java client, supporting automatic collection and schema creation, configurable metrics and consistency, and `UUID` identifiers and attributes.
+- Added Weaviate vector database integration using the Weaviate Java client v6, supporting automatic collection and schema creation, configurable distance metrics, filtering, and vector search with thresholds.
+
+=== Fixed
+
+- Fixed a CouchDB client resource leak.
+
+=== Changed
+
+- Updated Apache Cassandra Java Driver from 4.19.3 to 4.19.4.
+- Updated ScyllaDB Java Driver from 4.19.2.2 to 4.19.2.3.
+- Updated Couchbase Java Client from 3.12.3 to 3.13.0.
+- Updated AWS DynamoDB SDK from 2.55.12 to 2.57.4.
+- Updated Infinispan from 16.3.0 to 16.3.1.
+- Updated Jedis (Redis) from 8.0.1 to 8.0.2.
+- Updated Apache Solr SolrJ from 10.0.0 to 10.1.0.
+
+
 == [1.1.20] - 2026-10-08
 
 === Changed
