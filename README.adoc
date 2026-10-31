@@ -65,7 +65,7 @@ This driver provides support for the *Key-Value* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-hazelcast</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -173,7 +173,7 @@ This driver provides support for the *Key-Value* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-infinispan</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -224,7 +224,7 @@ This driver provides support for the *Key-Value* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-memcached</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -314,7 +314,7 @@ This driver provides support for the *Key-Value* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-redis</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -532,7 +532,7 @@ This driver provides support for the *Key-Value* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-riak</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -577,7 +577,7 @@ This driver provides support for the *Key-Value* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-valkey</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -799,7 +799,7 @@ This driver provides support for the *Column Family* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-cassandra</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -950,7 +950,7 @@ This driver provides support for the *Column Family* NoSQL API using the ScyllaD
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-scylladb</artifactId>
-  <version>1.1.20</version>
+  <version>1.2.0</version>
 </dependency>
 ----
 
@@ -1100,7 +1100,7 @@ This driver provides support for the *Column Family* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-hbase</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -1152,7 +1152,7 @@ The Graph is possible through Apache TinkerPop.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-arangodb</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -1333,7 +1333,7 @@ This driver has support for two NoSQL API types: *Document* and *Key-Value*.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-couchbase</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -1458,7 +1458,7 @@ This driver provides support for the *Document* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-couchdb</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -1539,7 +1539,7 @@ This driver has support for two NoSQL API types: *Key-Value* and *Document*.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-dynamodb</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -1702,7 +1702,7 @@ This driver provides support for the *Document* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-elasticsearch</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -1787,7 +1787,7 @@ This driver provides support for the *Document* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-mongodb</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -1903,7 +1903,7 @@ You can include Oracle NoSQL as a dependency using either Maven or Gradle:
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-oracle-nosql</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -2049,7 +2049,7 @@ This driver provides support for the *Document* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-orientdb</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -2161,7 +2161,7 @@ This driver provides support for the *Document* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-ravendb</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -2208,7 +2208,7 @@ This driver provides support for the *Document* NoSQL API.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-solr</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
@@ -2317,7 +2317,7 @@ Add the driver to the application. It already includes the JNoSQL Time Series Ma
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-influxdb</artifactId>
-  <version>1.1.20</version>
+  <version>1.2.0</version>
 </dependency>
 ----
 
@@ -2371,7 +2371,7 @@ vendor-specific entity annotations.
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-iotdb</artifactId>
-  <version>1.1.20</version>
+  <version>1.2.0</version>
 </dependency>
 ----
 
@@ -2450,7 +2450,7 @@ The Eclipse JNoSQL QuestDB driver uses the standard Time Series Mapping API and 
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-questdb</artifactId>
-  <version>1.1.20</version>
+  <version>1.2.0</version>
 </dependency>
 ----
 
@@ -2788,7 +2788,7 @@ Unlike the other NoSQL types, Eclipse JNoSQL does not offer a communication laye
 <dependency>
     <groupId>org.eclipse.jnosql.databases</groupId>
     <artifactId>jnosql-tinkerpop</artifactId>
-      <version>1.1.20</version>
+      <version>1.2.0</version>
 </dependency>
 ----
 
@@ -2914,7 +2914,7 @@ This API provides support for **Graph** database operations, including entity pe
 <dependency>
   <groupId>org.eclipse.jnosql.databases</groupId>
   <artifactId>jnosql-neo4j</artifactId>
-    <version>1.1.20</version>
+    <version>1.2.0</version>
 </dependency>
 ----
 
