@@ -157,12 +157,16 @@ public class MongoDBDocumentManager implements DatabaseManager {
 
     @Override
     public void delete(DeleteQuery query) {
+        deleteAndCount(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) {
         Objects.requireNonNull(query, "query is required");
 
         String collectionName = query.name();
-        MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
         Bson mongoDBQuery = query.condition().map(DocumentQueryConversor::convert).orElse(EMPTY);
-        collection.deleteMany(mongoDBQuery);
+        return delete(collectionName, mongoDBQuery);
     }
 
     @Override
