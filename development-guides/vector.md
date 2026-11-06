@@ -163,6 +163,15 @@ jnosql-acmevec/
 9. **Factory**: creates the database or namespace if missing, returns a `VectorManager`, and owns the client.
 10. Register the service file. Document `jnosql.vector.database` and `jnosql.vector.provider` for users.
 
+### UUID and API Documentation
+
+- `jnosql-milvus` stores UUIDs as text. `MilvusValueWriteDecorator` composes `UUIDValueWriter`, `MilvusRowConverter.toJson` writes a `UUID` as a string, `MilvusRowConverter.ensureId` generates a UUID string when `_id` is missing, and `MilvusFilterConverter` normalizes `UUID` to `String` in filters. Non-integral ids use a `VarChar` primary key in `MilvusCollectionSchema.create`.
+- The id comes back as text. `Element.get(UUID.class)` restores the `UUID` through `UUIDValueReader`.
+- Existing coverage: `MilvusValueWriteDecoratorTest`, `MilvusRowConverterTest`, `MilvusFilterConverterTest`. Add integration tests for a UUID id and a UUID attribute, retrieved by id and used in a `search` filter.
+- A vector database that restricts ids (for example to integers or UUIDs) must keep the mapping in one class and keep the original id recoverable.
+
+Rules and tests are in [UUID Compatibility and Conversion](common.md#uuid-compatibility-and-conversion). Any new public API must follow [`javadoc.md`](javadoc.md): document public interfaces, add a short example to important methods, and state null, empty-result and exception behavior.
+
 ## 8. Testing
 
 Follow [`TESTING-GUIDELINE.adoc`](../TESTING-GUIDELINE.adoc). Use the Milvus tests (`@Nested`, `@DisplayName`) as the closest style example, and then check them against the guideline.
