@@ -57,6 +57,19 @@ When implementing a new database driver, follow these steps in order:
 
 If a database supports several models, read **every** applicable guide. Do not force it into one category.
 
+### UUID and Javadoc (mandatory)
+
+Before writing code, read [UUID Compatibility and Conversion](development-guides/common.md#uuid-compatibility-and-conversion) and [`development-guides/javadoc.md`](development-guides/javadoc.md). The rules live there. Do not restate them here. An agent implementing a driver must:
+
+1. Verify UUID handling and converter behavior (ids, attributes, query parameters, results, round trip), reusing existing converters.
+2. Read the Javadoc guidelines before introducing public APIs.
+3. Document every new public-facing interface.
+4. Add short API examples to important public methods.
+5. Verify `@param`, `@return` and `@throws` against the real behavior.
+6. Make sure every example uses real, supported APIs.
+7. Run Javadoc validation where the build supports it, and report if it cannot run.
+8. Follow [`TESTING-GUIDELINE.adoc`](TESTING-GUIDELINE.adoc) for all tests, including the UUID tests.
+
 ## Documentation routing
 
 | Document | Use it for |
@@ -64,10 +77,12 @@ If a database supports several models, read **every** applicable guide. Do not f
 | [`CONTRIBUTING_DATABASE.adoc`](CONTRIBUTING_DATABASE.adoc) | Established contribution conventions. |
 | [`TESTING-GUIDELINE.adoc`](TESTING-GUIDELINE.adoc) | Authoritative testing conventions. |
 | [`development-guides/common.md`](development-guides/common.md) | Architecture, design principles, workflow, Definition of Done. |
+| [`development-guides/javadoc.md`](development-guides/javadoc.md) | **Mandatory** before introducing public APIs: Javadoc rules and examples. |
+| [`development-guides/common.md#uuid-compatibility-and-conversion`](development-guides/common.md#uuid-compatibility-and-conversion) | **Mandatory** UUID handling and conversion rules. |
 | [`development-guides/key-value.md`](development-guides/key-value.md) | Key-value drivers (reference: `jnosql-redis`). |
 | [`development-guides/column.md`](development-guides/column.md) | Column drivers (reference: `jnosql-cassandra`). |
 | [`development-guides/document.md`](development-guides/document.md) | Document drivers (reference: `jnosql-mongodb`). |
-| [`development-guides/graph.md`](development-guides/graph.md) | Graph drivers (reference: `jnosql-tinkerpop`). |
+| [`development-guides/graph.md`](development-guides/graph.md) | Graph drivers (reference: `jnosql-neo4j`). |
 | [`development-guides/time-series.md`](development-guides/time-series.md) | Time-series drivers (reference: `jnosql-influxdb`). |
 | [`development-guides/vector.md`](development-guides/vector.md) | Vector drivers (reference: `jnosql-milvus`). |
 
