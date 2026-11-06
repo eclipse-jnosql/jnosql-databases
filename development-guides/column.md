@@ -146,6 +146,15 @@ jnosql-acmedb/
 8. **Mapping** only if you need a CDI `Extension` or a database-specific template (`CassandraExtension`, `CassandraTemplate`). The generic column mapping handles the rest.
 9. Register `META-INF/services/org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration`.
 
+### UUID and API Documentation
+
+- Cassandra has native `uuid` and `timeuuid` column types. `CassandraConverter` reads values through the driver codec (`row.codecRegistry().codecFor(type)`), so a `uuid` column arrives as `java.util.UUID`, which `UUIDValueReader` accepts as is.
+- The existing Cassandra integration tests use `randomUUID().toString()` ids (text columns). There is no test for a native `uuid` partition key or clustering column. Add one if your schema uses them.
+- UUID values in `eq` and `in` conditions on partition or clustering keys must be bound with the same type as the column. Test the query path, not only the insert.
+- Do not add a text converter for a column that is natively `uuid`.
+
+Rules and tests are in [UUID Compatibility and Conversion](common.md#uuid-compatibility-and-conversion). Any new public API must follow [`javadoc.md`](javadoc.md): document public interfaces, add a short example to important methods, and state null, empty-result and exception behavior.
+
 ## 8. Testing
 
 Follow [`TESTING-GUIDELINE.adoc`](../TESTING-GUIDELINE.adoc). The existing Cassandra tests do not use `@Nested`, `@DisplayName` or soft assertions. New tests must.
