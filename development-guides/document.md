@@ -168,6 +168,15 @@ jnosql-acmedb/
 6. **Mapping** (optional): a database-named template for native features, plus CDI wiring, following `mapping/MongoDBTemplate` and `mapping/DefaultMongoDBTemplate`.
 7. Register services. Add Testcontainers, integration and TCK classes.
 
+### UUID and API Documentation
+
+- `MongoDBValueWriteDecorator` composes `CompositeValueWriter` with `UUIDValueWriter`, so a `UUID` is converted to `String` before it reaches the native client. `UUIDValueReader` converts it back through `Element.get(UUID.class)`.
+- Existing coverage: `MongoDBValueWriteDecoratorTest` and `MongoDBDocumentManagerTest.shouldInsertUUID`. Documents written by other tools with the BSON binary UUID are a different representation. Document that boundary instead of mixing the two.
+- UUID query values must pass through the same writer as stored values, in `DocumentQueryConversor` too.
+- Keep document identity (`_id`) rules in the Javadoc of the manager: what type is accepted and what is returned.
+
+Rules and tests are in [UUID Compatibility and Conversion](common.md#uuid-compatibility-and-conversion). Any new public API must follow [`javadoc.md`](javadoc.md): document public interfaces, add a short example to important methods, and state null, empty-result and exception behavior.
+
 ## 8. Testing
 
 Follow [`TESTING-GUIDELINE.adoc`](../TESTING-GUIDELINE.adoc). Existing Mongo tests do not use `@Nested`, `@DisplayName` or soft assertions. New tests must.
