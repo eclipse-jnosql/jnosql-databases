@@ -158,22 +158,27 @@ final class MilvusVectorManager implements VectorManager {
 
     @Override
     public void delete(DeleteQuery query) {
+        deleteAndCount(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) {
         Objects.requireNonNull(query, "query is required");
         String collection = query.name();
         Optional<MilvusCollectionSchema> schema = schema(collection);
         if (schema.isEmpty()) {
-            return;
+            return 0L;
         }
         ensureLoaded(collection);
         Expression expression = expression(query.condition().flatMap(c -> MilvusFilterConverter.convert(Optional.of(c))),
                 schema.get());
-        client.delete(DeleteReq.builder()
+        return client.delete(DeleteReq.builder()
                 .databaseName(database)
                 .collectionName(collection)
                 .filter(expression.text())
                 .filterTemplateValues(expression.parameters())
                 .consistencyLevel(settings.consistency())
-                .build());
+                .build()).getDeleteCnt();
     }
 
     @Override
