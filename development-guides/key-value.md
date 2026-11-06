@@ -161,6 +161,15 @@ jnosql-acmedb/
 6. **Register** the service file with the fully-qualified name of `AcmeDBConfiguration`.
 7. **Tests** as in section 8, then the TCK.
 
+### UUID and API Documentation
+
+- `RedisBucketManager` builds the stored key with `key.toString()` (through `RedisUtils.createKeyWithNameSpace`), so a `UUID` key is stored as its canonical text. Values are serialized by JSON-B (`jsonB.toJson(value)`).
+- No UUID test exists in `jnosql-redis`. Before relying on it, add tests that `put` and `get` with a `UUID` key, and that a `UUID` value read through `Value.get(UUID.class)` equals the original.
+- A key-value contract does not offer queries, so there are no UUID query parameters to convert.
+- Do not mix key formats (`UUID` versus its text) in one bucket without documenting it.
+
+Rules and tests are in [UUID Compatibility and Conversion](common.md#uuid-compatibility-and-conversion). Any new public API must follow [`javadoc.md`](javadoc.md): document public interfaces, add a short example to important methods, and state null, empty-result and exception behavior.
+
 ## 8. Testing
 
 Follow [`TESTING-GUIDELINE.adoc`](../TESTING-GUIDELINE.adoc). New tests must use `@Nested`, `@DisplayName`, Given/When/Then and soft assertions. The existing Redis tests predate this, so do not copy their style.
