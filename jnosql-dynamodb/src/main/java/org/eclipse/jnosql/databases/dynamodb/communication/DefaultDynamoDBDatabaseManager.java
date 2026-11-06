@@ -36,6 +36,7 @@ import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.Select;
@@ -263,6 +264,11 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
 
     @Override
     public void delete(DeleteQuery deleteQuery) {
+        deleteAndCount(deleteQuery);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery deleteQuery) {
         Objects.requireNonNull(deleteQuery, "deleteQuery is required");
 
         List<String> primaryKeys = getDescribeTableResponse(deleteQuery.name())
@@ -278,12 +284,16 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
 
         deleteQuery.condition().ifPresent(selectQueryBuilder::where);
 
-        select(selectQueryBuilder.build()).forEach(
-                documentEntity ->
+        // ALL_OLD returns attributes only when an item existed and was removed by this request
+        return select(selectQueryBuilder.build())
+                .map(documentEntity ->
                         dynamoDbClient().deleteItem(DeleteItemRequest.builder()
                                 .tableName(deleteQuery.name())
                                 .key(getItemKey(documentEntity))
-                                .build()));
+                                .returnValues(ReturnValue.ALL_OLD)
+                                .build()))
+                .filter(response -> !response.attributes().isEmpty())
+                .count();
     }
 
     @Override
