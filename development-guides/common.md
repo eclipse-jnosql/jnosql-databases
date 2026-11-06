@@ -127,6 +127,71 @@ Search here before writing a helper.
 - A `mapping` package is only needed for database-specific CDI beans/templates (`MongoDBTemplate`, `CassandraTemplate`, `BucketManagerFactorySupplier`).
   `jnosql-influxdb` and `jnosql-milvus` have none. The generic mapping modules supply `Template`/repository support, selected with `jnosql.<model>.provider` or by the single `DatabaseConfiguration` found.
 
+### UUID Compatibility and Conversion
+
+Every new driver must decide, explicitly, how `java.util.UUID` is stored, queried and read back. Do not assume a `UUID` can be handed to the native client, and do not assume a native UUID type removes the need for framework conversion.
+
+**Existing infrastructure (reuse it)**
+
+| Type | Module | Behavior |
+|---|---|---|
+| `org.eclipse.jnosql.communication.reader.UUIDValueReader` | `jnosql-communication-core` (framework repo `../jnosql`) | Registered `ValueReader`. `read(UUID.class, value)` returns a `UUID` as is, parses a `CharSequence` with `UUID.fromString`, throws `CommunicationException` (cause preserved) for malformed text, and returns `null` for any other input type. |
+| `jnosql-database-commons/src/main/java/org/eclipse/jnosql/communication/driver/UUIDValueWriter` | `jnosql-database-commons` | `ValueWriter<UUID, String>`. Supports only `UUID.class`. Writes `uuid.toString()`, and `null` for `null`. |
+| `CompositeValueWriter` | `jnosql-database-commons` | Composes writers. See `MongoDBValueWriteDecorator`, `MilvusValueWriteDecorator`. |
+
+Because `UUIDValueWriter` and `UUIDValueReader` already form a symmetric `UUID -> String -> UUID` pair, a driver that stores UUIDs as text should reuse them. Do not write another UUID-to-string converter.
+
+**Decide per database**
+
+| Database capability | What to do |
+|---|---|
+| No native UUID type | Write as `String` through `UUIDValueWriter` (as `jnosql-mongodb`, `jnosql-milvus`, `jnosql-arangodb`, `jnosql-qdrant` and `jnosql-weaviate` do through their `*ValueWriteDecorator`). The reader side is already covered by `UUIDValueReader`. |
+| Native UUID type | A native mapping is allowed (`QuestDBEntityConverter` writes and reads a native UUID; `FieldValueConverter` in `jnosql-oracle-nosql` maps it to a string field). Convert the native value back to `java.util.UUID` or to a UUID `String` in the `CommunicationEntity`. Never return a driver-specific UUID or binary type, because `UUIDValueReader` returns `null` for it. |
+| Restricted id types (for example Qdrant points accept unsigned integers or UUIDs) | Isolate the mapping in one class (`QdrantPointIds`), keep the original id recoverable, and document what happens to other id values. |
+
+**Where UUIDs appear.** Handle all five consistently, because bugs usually appear in only one:
+
+1. *Entity identifier*: the stored id must read back equal to the original `UUID`.
+2. *Entity attribute*: the same conversion as for ids.
+3. *Persistence and retrieval*: insert, update, select and delete by id.
+4. *Query parameters*: `eq`, `in`, `between` and similar conditions must convert UUID values with the same writer used for storage. A filter converter that skips this will never match stored data. `MilvusFilterConverter` normalizes `UUID` to `String` for this reason.
+5. *Query results*: convert the native representation back before returning the `CommunicationEntity`, so that `element.get(UUID.class)` works.
+
+**Rules**
+
+- *Symmetry*: `read(write(uuid))` must equal `uuid`, and a stored value written by an earlier version must remain readable.
+- *Invalid values*: malformed text must fail with `CommunicationException` and keep the cause (the `UUIDValueReader` behavior). Do not swallow it and do not return `null`. Tolerant fallbacks (such as the deterministic UUID in `QdrantPointIds`) are a documented, tested exception.
+- *Null*: `null` stays `null`. Do not turn it into an empty string or a zero UUID.
+- *Registration*: register custom `ValueReader` or `ValueWriter` implementations in `META-INF/services/org.eclipse.jnosql.communication.ValueReader` and `ValueWriter`, or compose them in a decorator used by your converters. Verify that the registration is actually exercised. A writer that exists but is not on the conversion path has no effect.
+- *Contracts*: do not change `CommunicationEntity`, `Element` or `Value` semantics. They already convert through the registered readers.
+- *Model limits*: if a model cannot carry UUIDs in some position (for example, a key-value store that only stores opaque values, or a time-series measurement with a restricted timestamp field), document the limitation in the model guide and in the driver Javadoc. Do not write a test for unsupported behavior.
+
+**Tests** (style: [`TESTING-GUIDELINE.adoc`](../TESTING-GUIDELINE.adoc); verified examples: `UUIDValueWriterTest`, `MongoDBValueWriteDecoratorTest`, `MilvusValueWriteDecoratorTest`, `MongoDBDocumentManagerTest.shouldInsertUUID`)
+
+- Unit: the writer or decorator converts a UUID, leaves other types untouched, and `test(UUID.class)` is true only for UUID.
+- Unit: round trip `UUID -> stored representation -> UUID` returns an equal value, for the native and the converted form if both exist.
+- Unit: malformed text raises `CommunicationException`. `null` stays `null`.
+- Integration: UUID as entity id, persisted and found again by that id.
+- Integration: UUID as an attribute, where the model supports attributes.
+- Integration: UUID as a query parameter (`eq`, and `in` where supported) returns the stored entity.
+
+```java
+// Adapted from MongoDBDocumentManagerTest.shouldInsertUUID and the select-by-_id usage
+var id = UUID.randomUUID();
+var entity = CommunicationEntity.of("person");
+entity.add("_id", id);
+entity.add("uuid", UUID.randomUUID());
+
+manager.insert(entity);
+
+var query = select().from("person").where("_id").eq(id).build();
+var found = manager.select(query).findFirst().orElseThrow();
+
+assertThat(found.find("_id").orElseThrow().get(UUID.class)).isEqualTo(id);
+```
+
+`select` and `CommunicationEntity` come from `org.eclipse.jnosql.communication.semistructured`. Whether `_id` is the id field name depends on the database. Check the driver's own convention.
+
 ---
 
 ## 2. Semantic design
@@ -389,6 +454,7 @@ Avoid tests coupled to implementation details (private method names, the exact o
 - [ ] `mvn -pl jnosql-<db> verify` is green, and the module builds as part of the root build.
 
 **Compatibility**
+- [ ] UUID handling is decided and tested (native or converted, ids, attributes, query parameters, results). See [UUID Compatibility and Conversion](#uuid-compatibility-and-conversion).
 - [ ] Builds on the Java version in the parent POM (currently 21).
 - [ ] Existing drivers and their tests are unaffected.
 
