@@ -28,6 +28,7 @@ import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -53,6 +54,9 @@ import static org.apache.tinkerpop.gremlin.process.traversal.Order.desc;
 public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatabaseManager {
 
     public static final String ID_PROPERTY = "_id";
+
+    private static final String DELETED_SIDE_EFFECT = "deleted";
+
     private final Graph graph;
 
     DefaultTinkerpopGraphDatabaseManager(Graph graph) {
@@ -122,6 +126,11 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
 
     @Override
     public void delete(DeleteQuery query) {
+        deleteAndCount(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) {
         Objects.requireNonNull(query, "delete is required");
         GraphTraversal<Vertex, Vertex> traversal = graph.traversal().V().hasLabel(query.name());
         query.condition().ifPresent(c -> {
@@ -129,8 +138,11 @@ public class DefaultTinkerpopGraphDatabaseManager implements TinkerpopGraphDatab
             traversal.filter(predicate);
         });
 
-        traversal.drop().iterate();
+        // aggregate records each vertex reaching the drop step within the same traversal, not a separate pre-count query
+        traversal.aggregate(DELETED_SIDE_EFFECT).drop().iterate();
+        long deleted = traversal.asAdmin().getSideEffects().<Collection<Vertex>>get(DELETED_SIDE_EFFECT).size();
         GraphTransactionUtil.transaction(graph);
+        return deleted;
     }
 
     @Override
