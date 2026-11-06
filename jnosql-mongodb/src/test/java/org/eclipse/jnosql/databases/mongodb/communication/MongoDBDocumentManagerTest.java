@@ -30,6 +30,8 @@ import org.eclipse.jnosql.mapping.semistructured.MappingQuery;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
@@ -169,22 +171,6 @@ class MongoDBDocumentManagerTest {
             });
         }
 
-    }
-
-    @Test
-    void shouldRemoveEntity() {
-        var documentEntity = entityManager.insert(getEntity());
-
-        Optional<Element> id = documentEntity.find("_id");
-        var query = select().from(COLLECTION_NAME)
-                .where("_id").eq(id.get().get())
-                .build();
-        var deleteQuery = delete().from(COLLECTION_NAME).where("_id")
-                .eq(id.get().get())
-                .build();
-
-        entityManager.delete(deleteQuery);
-        assertTrue(entityManager.select(query).findAny().isEmpty());
     }
 
     @Test
@@ -473,38 +459,142 @@ class MongoDBDocumentManagerTest {
         assertFalse(entities.isEmpty());
     }
 
-    @Test
-    void shouldDeleteAll() {
-        entityManager.insert(getEntity());
-        SelectQuery query = select().from(COLLECTION_NAME).build();
-        List<CommunicationEntity> entities = entityManager.select(query).collect(Collectors.toList());
-        assertFalse(entities.isEmpty());
-        DeleteQuery deleteQuery = delete().from(COLLECTION_NAME).build();
-        entityManager.delete(deleteQuery);
-        entities = entityManager.select(query).toList();
-        assertTrue(entities.isEmpty());
-    }
+    @Nested
+    @DisplayName("When executing deletion")
+    class WhenTheDeleteOperation {
 
-    @Test
-    void shouldDeleteAndCountAll() {
-        entityManager.insert(getEntity());
-        entityManager.insert(getEntity());
-        DeleteQuery deleteQuery = delete().from(COLLECTION_NAME).build();
-        assertThat(entityManager.deleteAndCount(deleteQuery)).isEqualTo(2L);
-        assertThat(entityManager.count(COLLECTION_NAME)).isZero();
-    }
+        @Test
+        @DisplayName("should delete every document when the query has no condition")
+        void shouldDeleteEveryDocument() {
+            // Given
+            entityManager.insert(getEntity());
+            entityManager.insert(getEntity());
 
-    @Test
-    void shouldDeleteAndCountWithCondition() {
-        var first = getEntity();
-        first.add(Element.of("age", 10));
-        var second = getEntity();
-        second.add(Element.of("age", 20));
-        entityManager.insert(first);
-        entityManager.insert(second);
-        DeleteQuery deleteQuery = delete().from(COLLECTION_NAME).where("age").gt(15).build();
-        assertThat(entityManager.deleteAndCount(deleteQuery)).isEqualTo(1L);
-        assertThat(entityManager.count(COLLECTION_NAME)).isEqualTo(1L);
+            // When
+            entityManager.delete(delete().from(COLLECTION_NAME).build());
+
+            // Then
+            assertThat(entityManager.count(COLLECTION_NAME)).as("remaining documents").isZero();
+        }
+
+        @Test
+        @DisplayName("should delete only the documents matching the condition")
+        void shouldDeleteDocumentsMatchingCondition() {
+            // Given
+            var inserted = entityManager.insert(getEntity());
+            var id = inserted.find("_id").orElseThrow().get();
+            entityManager.insert(getEntity());
+
+            // When
+            entityManager.delete(delete().from(COLLECTION_NAME).where("_id").eq(id).build());
+
+            // Then
+            var query = select().from(COLLECTION_NAME).where("_id").eq(id).build();
+            assertSoftly(soft -> {
+                soft.assertThat(entityManager.select(query).findAny()).as("deleted document").isEmpty();
+                soft.assertThat(entityManager.count(COLLECTION_NAME)).as("remaining documents").isEqualTo(1L);
+            });
+        }
+
+        @Test
+        @DisplayName("should return the number of deleted documents when deleting every document")
+        void shouldReturnCountWhenDeletingEveryDocument() {
+            // Given
+            entityManager.insert(getEntity());
+            entityManager.insert(getEntity());
+
+            // When
+            long deleted = entityManager.deleteAndCount(delete().from(COLLECTION_NAME).build());
+
+            // Then
+            assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isEqualTo(2L);
+                soft.assertThat(entityManager.count(COLLECTION_NAME)).as("remaining documents").isZero();
+            });
+        }
+
+        @Test
+        @DisplayName("should return the exact count and keep nonmatching documents when a condition is given")
+        void shouldReturnCountAndKeepNonmatchingDocuments() {
+            // Given
+            var first = getEntity();
+            first.add(Element.of("age", 10));
+            var second = getEntity();
+            second.add(Element.of("age", 20));
+            var third = getEntity();
+            third.add(Element.of("age", 30));
+            entityManager.insert(first);
+            entityManager.insert(second);
+            entityManager.insert(third);
+
+            // When
+            long deleted = entityManager.deleteAndCount(delete().from(COLLECTION_NAME).where("age").gt(15).build());
+
+            // Then
+            var remaining = entityManager.select(select().from(COLLECTION_NAME).build()).toList();
+            assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isEqualTo(2L);
+                soft.assertThat(remaining).as("remaining documents").hasSize(1);
+                soft.assertThat(remaining.get(0).find("age").orElseThrow().get()).isEqualTo(10);
+            });
+        }
+
+        @Test
+        @DisplayName("should return one when a single document matches")
+        void shouldReturnOneWhenSingleDocumentMatches() {
+            // Given
+            var id = entityManager.insert(getEntity()).find("_id").orElseThrow().get();
+            entityManager.insert(getEntity());
+
+            // When
+            long deleted = entityManager.deleteAndCount(delete().from(COLLECTION_NAME).where("_id").eq(id).build());
+
+            // Then
+            assertThat(deleted).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("should return zero when no document matches")
+        void shouldReturnZeroWhenNoDocumentMatches() {
+            // Given
+            entityManager.insert(getEntity());
+
+            // When
+            long deleted = entityManager.deleteAndCount(delete().from(COLLECTION_NAME).where("age").gt(1000).build());
+
+            // Then
+            assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isZero();
+                soft.assertThat(entityManager.count(COLLECTION_NAME)).as("remaining documents").isEqualTo(1L);
+            });
+        }
+
+        @Test
+        @DisplayName("should return zero when the same deletion is repeated")
+        void shouldReturnZeroWhenDeletionIsRepeated() {
+            // Given
+            entityManager.insert(getEntity());
+            entityManager.insert(getEntity());
+            var query = delete().from(COLLECTION_NAME).build();
+            entityManager.deleteAndCount(query);
+
+            // When
+            long deleted = entityManager.deleteAndCount(query);
+
+            // Then
+            assertThat(deleted).isZero();
+        }
+
+        @Test
+        @DisplayName("should reject a null query")
+        void shouldRejectNullQuery() {
+            assertSoftly(soft -> {
+                soft.assertThatThrownBy(() -> entityManager.delete(null))
+                        .isInstanceOf(NullPointerException.class);
+                soft.assertThatThrownBy(() -> entityManager.deleteAndCount(null))
+                        .isInstanceOf(NullPointerException.class);
+            });
+        }
     }
 
     @Test
