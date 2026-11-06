@@ -154,6 +154,14 @@ jnosql-acmegraph/
 11. **Integration tests.** A Testcontainers holder like `DatabaseContainer` with a pinned image, guarded by `@EnabledIfSystemProperty(named = IntegrationTest.NAMED, matches = IntegrationTest.MATCHES)`.
 12. **TCK.** No TCK supplier is wired for `jnosql-neo4j` in this repository. State the TCK status explicitly for the new driver.
 
+### UUID and API Documentation
+
+- In `jnosql-neo4j` the entity `_id` is the native `elementId` string set by `DefaultNeo4JDatabaseManager` on insert and used by `edge`, `remove` and `traverse`. It is not an application UUID. Keep an application UUID in a separate property.
+- The driver passes entity values to Cypher parameters without a UUID converter, and `jnosql-neo4j` has no UUID test. The `neo4j-java-driver` 6.3.0 accepts a `UUID` parameter (`Values.value(UUID)` returns a `UUIDValue`), but storage depends on the server and Bolt version. The tests use the `neo4j:5.26.3` image. Verify with an integration test before documenting support, and convert with `UUIDValueWriter` if the target server does not store it.
+- Vertex and edge properties, query parameters and results must use one representation. Test a UUID property on a vertex and on an edge, and a filter on it.
+
+Rules and tests are in [UUID Compatibility and Conversion](common.md#uuid-compatibility-and-conversion). Any new public API must follow [`javadoc.md`](javadoc.md): document public interfaces, add a short example to important methods, and state null, empty-result and exception behavior.
+
 ## 8. Testing
 
 Follow [`TESTING-GUIDELINE.adoc`](../TESTING-GUIDELINE.adoc). `Neo4JDatabaseManagerTest` uses AssertJ `SoftAssertions` but is flat (no `@Nested` or `@DisplayName`) and names tests `shouldXxx`. New tests must follow the guideline.
