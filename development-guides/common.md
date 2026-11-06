@@ -136,7 +136,7 @@ Every new driver must decide, explicitly, how `java.util.UUID` is stored, querie
 | Type | Module | Behavior |
 |---|---|---|
 | `org.eclipse.jnosql.communication.reader.UUIDValueReader` | `jnosql-communication-core` (framework repo `../jnosql`) | Registered `ValueReader`. `read(UUID.class, value)` returns a `UUID` as is, parses a `CharSequence` with `UUID.fromString`, throws `CommunicationException` (cause preserved) for malformed text, and returns `null` for any other input type. |
-| `jnosql-database-commons/src/main/java/org/eclipse/jnosql/communication/driver/UUIDValueWriter` | `jnosql-database-commons` | `ValueWriter<UUID, String>`. Supports only `UUID.class`. Writes `uuid.toString()`, and `null` for `null`. |
+| `jnosql-database-commons/src/main/java/org/eclipse/jnosql/communication/driver/UUIDValueWriter.java` | `jnosql-database-commons` | `ValueWriter<UUID, String>`. Supports only `UUID.class`. Writes `uuid.toString()`, and `null` for `null`. |
 | `CompositeValueWriter` | `jnosql-database-commons` | Composes writers. See `MongoDBValueWriteDecorator`, `MilvusValueWriteDecorator`. |
 
 Because `UUIDValueWriter` and `UUIDValueReader` already form a symmetric `UUID -> String -> UUID` pair, a driver that stores UUIDs as text should reuse them. Do not write another UUID-to-string converter.
