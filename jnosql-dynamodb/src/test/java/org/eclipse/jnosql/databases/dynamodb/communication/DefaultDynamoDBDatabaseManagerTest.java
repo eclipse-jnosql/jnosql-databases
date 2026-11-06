@@ -16,6 +16,10 @@
 package org.eclipse.jnosql.databases.dynamodb.communication;
 
 
+import static org.eclipse.jnosql.databases.dynamodb.communication.CommunicationEntityGenerator.COLLECTION_NAME;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.DisplayName;
 import net.datafaker.Faker;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
@@ -442,6 +446,136 @@ class DefaultDynamoDBDatabaseManagerTest {
                         .as("the returned count number of items from a given DocumentQuery is incorrect")
                         .hasSize(1));
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("When executing deletion with a count")
+    class WhenTheDeleteAndCountOperation {
+
+        private DatabaseManager manager;
+
+        @BeforeEach
+        void openManager() {
+            manager = getDatabaseManagerCanCreateTables();
+        }
+
+        @AfterEach
+        void closeManager() {
+            manager.close();
+        }
+
+        private CommunicationEntity newEntity(int age) {
+            var entity = createRandomEntity(COLLECTION_NAME);
+            entity.add(Element.of("age", age));
+            return entity;
+        }
+
+        private long remaining() {
+            return manager.select(select().from(COLLECTION_NAME).build()).count();
+        }
+
+        @Test
+        @DisplayName("should return the number of deleted entities when deleting everything")
+        void shouldCountEveryDeletedEntity() {
+            // Given
+            manager.insert(newEntity(10));
+            manager.insert(newEntity(20));
+            manager.insert(newEntity(30));
+
+            // When
+            long deleted = manager.deleteAndCount(delete().from(COLLECTION_NAME).build());
+
+            // Then
+            assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isEqualTo(3L);
+                soft.assertThat(remaining()).as("remaining entities").isZero();
+            });
+        }
+
+        @Test
+        @DisplayName("should delete only matching entities and keep the others")
+        void shouldKeepNonmatchingEntities() {
+            // Given
+            manager.insert(newEntity(10));
+            manager.insert(newEntity(20));
+            manager.insert(newEntity(30));
+
+            // When
+            long deleted = manager.deleteAndCount(delete().from(COLLECTION_NAME).where("age").gt(15).build());
+
+            // Then
+            assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isEqualTo(2L);
+                soft.assertThat(remaining()).as("remaining entities").isEqualTo(1L);
+            });
+        }
+
+        @Test
+        @DisplayName("should return zero when no entity matches")
+        void shouldReturnZeroWhenNothingMatches() {
+            // Given
+            manager.insert(newEntity(10));
+
+            // When
+            long deleted = manager.deleteAndCount(delete().from(COLLECTION_NAME).where("age").gt(1000).build());
+
+            // Then
+            assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isZero();
+                soft.assertThat(remaining()).as("remaining entities").isEqualTo(1L);
+            });
+        }
+
+        @Test
+        @DisplayName("should return one when a single entity matches")
+        void shouldReturnOneWhenSingleEntityMatches() {
+            // Given
+            manager.insert(newEntity(10));
+            manager.insert(newEntity(20));
+
+            // When
+            long deleted = manager.deleteAndCount(delete().from(COLLECTION_NAME).where("age").eq(10).build());
+
+            // Then
+            assertThat(deleted).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("should keep deleting through delete(DeleteQuery)")
+        void shouldKeepDeleteBehavior() {
+            // Given
+            manager.insert(newEntity(10));
+            manager.insert(newEntity(20));
+
+            // When
+            manager.delete(delete().from(COLLECTION_NAME).where("age").eq(10).build());
+
+            // Then
+            assertThat(remaining()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("should return zero when the same deletion is repeated")
+        void shouldReturnZeroWhenRepeated() {
+            // Given
+            manager.insert(newEntity(10));
+            manager.insert(newEntity(20));
+            var query = delete().from(COLLECTION_NAME).where("age").lt(100).build();
+            manager.deleteAndCount(query);
+
+            // When
+            long deleted = manager.deleteAndCount(query);
+
+            // Then
+            assertThat(deleted).isZero();
+        }
+
+        @Test
+        @DisplayName("should reject a null query")
+        void shouldRejectNullQuery() {
+            assertThatThrownBy(() -> manager.deleteAndCount(null))
+                    .isInstanceOf(NullPointerException.class);
         }
     }
 }

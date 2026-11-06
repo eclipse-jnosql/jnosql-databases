@@ -21,6 +21,7 @@ import com.arangodb.ArangoDatabase;
 import com.arangodb.entity.DocumentCreateEntity;
 import com.arangodb.entity.DocumentUpdateEntity;
 import jakarta.json.JsonObject;
+import org.eclipse.jnosql.communication.CommunicationException;
 import org.eclipse.jnosql.communication.graph.CommunicationEdge;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
@@ -28,6 +29,7 @@ import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
@@ -115,24 +117,27 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
 
     @Override
     public void delete(DeleteQuery query) {
+        deleteAndCount(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) {
         requireNonNull(query, "query is required");
         try {
             checkCollection(query.name());
-            if (query.condition().isEmpty()) {
-                AQLQueryResult delete = QueryAQLConverter.delete(query);
-                db.query(delete.query(), Void.class);
-                return;
-            }
-
             AQLQueryResult delete = QueryAQLConverter.delete(query);
-            db.query(delete.query(), Void.class, delete.values(), null);
+            try (var cursor = db.query(delete.query(), Void.class, delete.values(), null)) {
+                return cursor.getStats().getWritesExecuted();
+            }
         } catch (com.arangodb.ArangoDBException exception) {
             if (ERROR_ARANGO_DATA_SOURCE_NOT_FOUND.equals(exception.getErrorNum())) {
                 LOGGER.log(Level.FINEST, exception, () -> "An error to run query, that is related to delete " +
                         "a document collection that does not exist");
-            } else {
-                throw exception;
+                return 0L;
             }
+            throw exception;
+        } catch (IOException exception) {
+            throw new CommunicationException("Failed to close the cursor of the delete query", exception);
         }
     }
 

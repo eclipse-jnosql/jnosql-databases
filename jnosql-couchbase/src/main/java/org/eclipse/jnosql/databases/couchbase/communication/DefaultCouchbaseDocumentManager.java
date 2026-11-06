@@ -150,23 +150,25 @@ class DefaultCouchbaseDocumentManager implements CouchbaseDocumentManager {
 
     @Override
     public void delete(DeleteQuery query) {
-        waitBucketBeReadyAndDo(() -> {
-            Objects.requireNonNull(query, "query is required");
+        deleteAndCount(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) {
+        Objects.requireNonNull(query, "query is required");
+        return waitBucketBeReadyAndGet(() -> {
             Collection collection = bucket.collection(query.name());
             SelectQuery delete = DeleteQueryWrapper.of(query);
             Stream<CommunicationEntity> entities = select(delete);
-            entities.flatMap(d -> d.find(EntityConverter.ID_FIELD).stream())
+            return entities.flatMap(d -> d.find(EntityConverter.ID_FIELD).stream())
                     .filter(Objects::nonNull)
                     .map(d -> d.get(String.class))
-                    .forEach(collection::remove);
+                    .mapToLong(id -> {
+                        collection.remove(id);
+                        return 1L;
+                    }).sum();
         });
     }
-
-    private void waitBucketBeReadyAndDo(Runnable runnable) {
-        bucket.waitUntilReady(bucket.environment().timeoutConfig().kvDurableTimeout());
-        runnable.run();
-    }
-
 
     private <T> T waitBucketBeReadyAndGet(Supplier<T> supplier) {
         bucket.waitUntilReady(bucket.environment().timeoutConfig().kvDurableTimeout());
