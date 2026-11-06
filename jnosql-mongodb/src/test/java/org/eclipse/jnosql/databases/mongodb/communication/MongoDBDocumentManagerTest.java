@@ -474,6 +474,28 @@ class MongoDBDocumentManagerTest {
     }
 
     @Test
+    void shouldDeleteAndCountAll() {
+        entityManager.insert(getEntity());
+        entityManager.insert(getEntity());
+        DeleteQuery deleteQuery = delete().from(COLLECTION_NAME).build();
+        assertThat(entityManager.deleteAndCount(deleteQuery)).isEqualTo(2L);
+        assertThat(entityManager.count(COLLECTION_NAME)).isZero();
+    }
+
+    @Test
+    void shouldDeleteAndCountWithCondition() {
+        var first = getEntity();
+        first.add(Element.of("age", 10));
+        var second = getEntity();
+        second.add(Element.of("age", 20));
+        entityManager.insert(first);
+        entityManager.insert(second);
+        DeleteQuery deleteQuery = delete().from(COLLECTION_NAME).where("age").gt(15).build();
+        assertThat(entityManager.deleteAndCount(deleteQuery)).isEqualTo(1L);
+        assertThat(entityManager.count(COLLECTION_NAME)).isEqualTo(1L);
+    }
+
+    @Test
     void shouldFindAllByFields() {
         entityManager.insert(getEntity());
         SelectQuery query = select("name").from(COLLECTION_NAME).build();
