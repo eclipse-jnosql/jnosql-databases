@@ -133,6 +133,14 @@ jnosql-acmets/
 6. **Configuration**: validate required settings eagerly. Never log tokens.
 7. Register the service file. No `mapping` package is needed unless you add a database-named template.
 
+### UUID and API Documentation
+
+- In `jnosql-influxdb` the identifier is the point time. `InfluxDBEntityConverter.toInstant` accepts `Instant`, `LocalDateTime`, `OffsetDateTime` and `ZonedDateTime`, and rejects everything else (including `UUID`) with `IllegalArgumentException`. A UUID cannot identify a point. Document it.
+- `addField` accepts strings, numbers, booleans and characters. A `UUID` attribute therefore fails with `IllegalArgumentException`. If you want to support it, convert explicitly (for example `UUIDValueWriter`), read it back through `UUIDValueReader`, and test the round trip. Otherwise state the limitation. Do not write a test for unsupported behavior other than the documented rejection.
+- Do not invent a series identity from a UUID. Series identity is measurement, tags and time.
+
+Rules and tests are in [UUID Compatibility and Conversion](common.md#uuid-compatibility-and-conversion). Any new public API must follow [`javadoc.md`](javadoc.md): document public interfaces, add a short example to important methods, and state null, empty-result and exception behavior.
+
 ## 8. Testing
 
 Follow [`TESTING-GUIDELINE.adoc`](../TESTING-GUIDELINE.adoc). The existing InfluxDB tests do not use `@Nested`, `@DisplayName` or soft assertions. New tests must.
