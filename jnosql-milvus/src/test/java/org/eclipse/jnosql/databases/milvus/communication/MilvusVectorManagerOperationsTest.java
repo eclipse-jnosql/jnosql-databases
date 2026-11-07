@@ -598,6 +598,85 @@ class MilvusVectorManagerOperationsTest {
         void shouldIgnoreMissing() {
             manager.delete(delete().from("missing" + UUID.randomUUID().toString().replace("-", "")).build());
         }
+
+        @Test
+        @DisplayName("Should return the number of deleted entities when there is no condition")
+        void shouldCountDeletedEntitiesWithoutCondition() {
+            newCollection();
+            seed();
+
+            long deleted = manager.deleteAndCount(delete().from(collection).build());
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isEqualTo(3L);
+                soft.assertThat(manager.count(collection)).as("remaining entities").isZero();
+            });
+        }
+
+        @Test
+        @DisplayName("Should return the exact count and keep nonmatching entities when a condition is given")
+        void shouldCountDeletedEntitiesWithCondition() {
+            newCollection();
+            seed();
+
+            long deleted = manager.deleteAndCount(delete().from(collection).where("year").gt(1960L).build());
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isEqualTo(2L);
+                soft.assertThat(titles(select().from(collection).build())).containsExactly("Foundation");
+            });
+        }
+
+        @Test
+        @DisplayName("Should return one when a single entity matches")
+        void shouldCountSingleDeletedEntity() {
+            newCollection();
+            seed();
+
+            long deleted = manager.deleteAndCount(delete().from(collection).where("_id").eq("a").build());
+
+            assertThat(deleted).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("Should return zero when no entity matches")
+        void shouldReturnZeroWhenNothingMatches() {
+            newCollection();
+            seed();
+
+            long deleted = manager.deleteAndCount(delete().from(collection).where("year").gt(3000L).build());
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isZero();
+                soft.assertThat(manager.count(collection)).as("remaining entities").isEqualTo(3L);
+            });
+        }
+
+        @Test
+        @DisplayName("Should return zero when the same deletion is repeated")
+        void shouldReturnZeroWhenRepeated() {
+            newCollection();
+            seed();
+            var query = delete().from(collection).where("year").gt(1960L).build();
+            manager.deleteAndCount(query);
+
+            assertThat(manager.deleteAndCount(query)).isZero();
+        }
+
+        @Test
+        @DisplayName("Should return zero when the collection does not exist")
+        void shouldReturnZeroWhenCollectionIsMissing() {
+            long deleted = manager.deleteAndCount(
+                    delete().from("missing" + UUID.randomUUID().toString().replace("-", "")).build());
+
+            assertThat(deleted).isZero();
+        }
+
+        @Test
+        @DisplayName("Should reject a null query")
+        void shouldRejectNullQuery() {
+            assertThatThrownBy(() -> manager.deleteAndCount(null)).isInstanceOf(NullPointerException.class);
+        }
     }
 
     @Nested

@@ -57,8 +57,8 @@ final class CouchDBHttpClient {
         return this.httpExecute.select(database, query);
     }
 
-    public void delete(DeleteQuery query) {
-        this.httpExecute.delete(database, query);
+    public long delete(DeleteQuery query) {
+        return this.httpExecute.delete(database, query);
     }
 
     public long count() {

@@ -144,14 +144,21 @@ class DefaultNeo4JDatabaseManager implements Neo4JDatabaseManager {
 
     @Override
     public void delete(DeleteQuery query) {
+        deleteAndCount(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) {
         Objects.requireNonNull(query, "query is required");
         Map<String, Object> parameters = new HashMap<>();
         String cypher = Neo4JQueryBuilder.INSTANCE.buildQuery(query, parameters);
 
         LOGGER.fine("Executing Delete Cypher Query: " + cypher);
         try (Transaction tx = session.beginTransaction()) {
-            tx.run(cypher, Values.parameters(flattenMap(parameters)));
+            long deleted = tx.run(cypher, Values.parameters(flattenMap(parameters)))
+                    .consume().counters().nodesDeleted();
             tx.commit();
+            return deleted;
         }
     }
 

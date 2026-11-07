@@ -14,6 +14,10 @@
  */
 package org.eclipse.jnosql.databases.elasticsearch.communication;
 
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.DisplayName;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import org.awaitility.Awaitility;
 import org.eclipse.jnosql.communication.TypeReference;
@@ -429,5 +433,135 @@ public class ElasticsearchDocumentManagerTest {
         return entity;
     }
 
+    @Nested
+    @DisplayName("When executing deletion with a count")
+    class WhenTheDeleteAndCountOperation {
 
+        private CommunicationEntity newEntity(int age) {
+            var entity = CommunicationEntity.of(DocumentEntityGerator.COLLECTION_NAME);
+            entity.add(Element.of("_id", java.util.UUID.randomUUID().toString()));
+            entity.add(Element.of("name", "Poliana"));
+            entity.add(Element.of("age", age));
+            return entity;
+        }
+
+        private void awaitStored(long expected) {
+            await().until(this::remaining, equalTo(expected));
+        }
+
+        private long remaining() {
+            return entityManager.select(select().from(DocumentEntityGerator.COLLECTION_NAME).build()).count();
+        }
+
+        @Test
+        @DisplayName("should return the number of deleted entities when deleting everything")
+        void shouldCountEveryDeletedEntity() {
+            // Given
+            entityManager.insert(newEntity(10));
+            entityManager.insert(newEntity(20));
+            entityManager.insert(newEntity(30));
+
+            awaitStored(3L);
+
+            // When
+            long deleted = entityManager.deleteAndCount(delete().from(DocumentEntityGerator.COLLECTION_NAME).build());
+
+            // Then
+            assertThat(deleted).as("deleted count").isEqualTo(3L);
+            await().until(this::remaining, equalTo(0L));
+        }
+
+        @Test
+        @DisplayName("should delete only matching entities and keep the others")
+        void shouldKeepNonmatchingEntities() {
+            // Given
+            entityManager.insert(newEntity(10));
+            entityManager.insert(newEntity(20));
+            entityManager.insert(newEntity(30));
+
+            awaitStored(3L);
+
+            // When
+            long deleted = entityManager.deleteAndCount(delete().from(DocumentEntityGerator.COLLECTION_NAME).where("age").gt(15).build());
+
+            // Then
+            assertThat(deleted).as("deleted count").isEqualTo(2L);
+            await().until(this::remaining, equalTo(1L));
+        }
+
+        @Test
+        @DisplayName("should return zero when no entity matches")
+        void shouldReturnZeroWhenNothingMatches() {
+            // Given
+            entityManager.insert(newEntity(10));
+
+            awaitStored(1L);
+
+            // When
+            long deleted = entityManager.deleteAndCount(delete().from(DocumentEntityGerator.COLLECTION_NAME).where("age").gt(1000).build());
+
+            // Then
+            assertSoftly(soft -> {
+                soft.assertThat(deleted).as("deleted count").isZero();
+                soft.assertThat(remaining()).as("remaining entities").isEqualTo(1L);
+            });
+        }
+
+        @Test
+        @DisplayName("should return one when a single entity matches")
+        void shouldReturnOneWhenSingleEntityMatches() {
+            // Given
+            entityManager.insert(newEntity(10));
+            entityManager.insert(newEntity(20));
+
+            awaitStored(2L);
+
+            // When
+            long deleted = entityManager.deleteAndCount(delete().from(DocumentEntityGerator.COLLECTION_NAME).where("age").eq(10).build());
+
+            // Then
+            assertThat(deleted).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("should keep deleting through delete(DeleteQuery)")
+        void shouldKeepDeleteBehavior() {
+            // Given
+            entityManager.insert(newEntity(10));
+            entityManager.insert(newEntity(20));
+
+            awaitStored(2L);
+
+            // When
+            entityManager.delete(delete().from(DocumentEntityGerator.COLLECTION_NAME).where("age").eq(10).build());
+
+            // Then
+            await().until(this::remaining, equalTo(1L));
+        }
+
+        @Test
+        @DisplayName("should return zero when the same deletion is repeated")
+        void shouldReturnZeroWhenRepeated() {
+            // Given
+            entityManager.insert(newEntity(10));
+            entityManager.insert(newEntity(20));
+            var query = delete().from(DocumentEntityGerator.COLLECTION_NAME).where("age").lt(100).build();
+            awaitStored(2L);
+            entityManager.deleteAndCount(query);
+            awaitStored(0L);
+
+            // When
+            long deleted = entityManager.deleteAndCount(query);
+
+            // Then
+            assertThat(deleted).isZero();
+        }
+
+        @Test
+        @DisplayName("should reject a null query")
+        void shouldRejectNullQuery() {
+            assertThatThrownBy(() -> entityManager.deleteAndCount(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+    }
 }

@@ -84,8 +84,13 @@ class DefaultCouchDBDocumentManager implements CouchDBDocumentManager {
 
     @Override
     public void delete(DeleteQuery query) {
+        deleteAndCount(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) {
         Objects.requireNonNull(query, "query is required");
-        connector.delete(query);
+        return connector.delete(query);
     }
 
     @Override

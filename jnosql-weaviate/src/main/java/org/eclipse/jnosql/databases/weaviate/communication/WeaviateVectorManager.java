@@ -136,22 +136,24 @@ final class WeaviateVectorManager implements VectorManager {
 
     @Override
     public void delete(DeleteQuery query) {
+        deleteAndCount(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) {
         Objects.requireNonNull(query, "query is required");
         String collection = WeaviateNames.collection(query.name());
         Optional<WeaviateCollectionSchema> schema = schema(collection);
         if (schema.isEmpty()) {
-            return;
+            return 0L;
         }
         CollectionHandle<Map<String, Object>> handle = client.collections.use(collection);
         Optional<Filter> filter = WeaviateFilterConverter.convert(query.condition(), schema.get());
-        if (filter.isPresent()) {
-            deleteMatching(handle, filter.get(), collection);
-        } else {
-            deleteAll(handle);
-        }
+        return filter.isPresent() ? deleteMatching(handle, filter.get(), collection) : deleteAll(handle);
     }
 
-    private void deleteMatching(CollectionHandle<Map<String, Object>> handle, Filter filter, String collection) {
+    private long deleteMatching(CollectionHandle<Map<String, Object>> handle, Filter filter, String collection) {
+        long deleted = 0;
         DeleteManyResponse response;
         do {
             response = handle.data.deleteMany(filter);
@@ -159,17 +161,22 @@ final class WeaviateVectorManager implements VectorManager {
                 throw new IllegalStateException("Weaviate failed to delete " + response.failed()
                         + " objects of the collection " + collection);
             }
+            deleted += response.successful();
         } while (response.matches() > 0);
+        return deleted;
     }
 
-    private void deleteAll(CollectionHandle<Map<String, Object>> handle) {
+    private long deleteAll(CollectionHandle<Map<String, Object>> handle) {
+        long deleted = 0;
         List<WeaviateObject<Map<String, Object>>> page;
         do {
             page = handle.query.fetchObjects(fetch -> fetch.limit(PAGE_SIZE).returnProperties(List.of())).objects();
             if (!page.isEmpty()) {
-                handle.data.deleteMany(page.stream().map(WeaviateObject::uuid).toArray(String[]::new));
+                deleted += handle.data.deleteMany(page.stream().map(WeaviateObject::uuid).toArray(String[]::new))
+                        .successful();
             }
         } while (page.size() == PAGE_SIZE);
+        return deleted;
     }
 
     @Override

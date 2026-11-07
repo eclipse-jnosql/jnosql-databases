@@ -124,15 +124,17 @@ class HttpExecute {
         return executeQuery(database, query).stream().map(this::toEntity);
     }
 
-    public void delete(String database, org.eclipse.jnosql.communication.semistructured.DeleteQuery query) {
+    public long delete(String database, org.eclipse.jnosql.communication.semistructured.DeleteQuery query) {
         CouchDBDocumentQuery documentQuery =
                 CouchDBDocumentQuery.of(new CouchdbDeleteQuery(query));
 
+        long deleted = 0;
         List<Map<String, Object>> entities = executeQuery(database, documentQuery);
         while (!entities.isEmpty()) {
-            entities.stream().map(DeleteElement::new).forEach(e -> delete(database, e));
+            deleted += entities.stream().map(DeleteElement::new).filter(e -> delete(database, e)).count();
             entities = executeQuery(database, documentQuery);
         }
+        return deleted;
     }
 
     public long count(String database) {
@@ -141,10 +143,16 @@ class HttpExecute {
         return Long.parseLong(json.get(CouchDBConstant.TOTAL_ROWS_RESPONSE).toString());
     }
 
-    private void delete(String database, DeleteElement id) {
+    private boolean delete(String database, DeleteElement id) {
         HttpDelete request = new HttpDelete(configuration.getUrl() + database + "/" + id.getId());
         request.addHeader(CouchDBConstant.REV_HEADER, id.getRev());
-        execute(request, null, HttpStatus.SC_OK, true);
+        configuration.strategy().apply(request);
+
+        try (CloseableHttpResponse response = client.execute(request)) {
+            return response.getCode() == HttpStatus.SC_OK || response.getCode() == HttpStatus.SC_ACCEPTED;
+        } catch (Exception ex) {
+            throw new CouchDBHttpClientException("An error accessing the database", ex);
+        }
     }
 
     @SuppressWarnings("unchecked")

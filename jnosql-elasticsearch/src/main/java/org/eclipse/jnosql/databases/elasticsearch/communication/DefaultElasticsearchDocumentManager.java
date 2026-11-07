@@ -50,6 +50,7 @@ import static java.util.Objects.requireNonNull;
  */
 class DefaultElasticsearchDocumentManager implements ElasticsearchDocumentManager {
 
+    private static final String DELETED = "deleted";
 
     private final ElasticsearchClient elasticsearchClient;
 
@@ -118,6 +119,11 @@ class DefaultElasticsearchDocumentManager implements ElasticsearchDocumentManage
 
     @Override
     public void delete(DeleteQuery query) throws NullPointerException {
+        deleteAndCount(query);
+    }
+
+    @Override
+    public long deleteAndCount(DeleteQuery query) throws NullPointerException {
         requireNonNull(query, "query is required");
 
         var select = new ElasticsearchDocumentQuery(query);
@@ -125,7 +131,7 @@ class DefaultElasticsearchDocumentManager implements ElasticsearchDocumentManage
         List<CommunicationEntity> entities = select(select).toList();
 
         if (entities.isEmpty()) {
-            return;
+            return 0L;
         }
 
         BulkRequest.Builder bulkRequest = new BulkRequest.Builder();
@@ -140,7 +146,9 @@ class DefaultElasticsearchDocumentManager implements ElasticsearchDocumentManage
                         )
                 );
         try {
-            elasticsearchClient.bulk(bulkRequest.build());
+            return elasticsearchClient.bulk(bulkRequest.build()).items().stream()
+                    .filter(item -> item.error() == null && DELETED.equals(item.result()))
+                    .count();
         } catch (IOException e) {
             throw new ElasticsearchException("An error to delete entities on elasticsearch", e);
         }
