@@ -29,7 +29,12 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 
 /**
- * The OrientDB implementation of {@link DatabaseManagerFactory}
+ * The OrientDB implementation of {@link DatabaseManagerFactory}. {@code factory.apply(database)} creates the
+ * OrientDB database when it does not exist, using the configured storage type ({@code PLOCAL} by default), and
+ * returns an {@link OrientDBDocumentManager} backed by a connection pool.
+ *
+ * <p>Closing the factory closes the underlying OrientDB context, so close it after all managers are no longer
+ * used.</p>
  */
 public class OrientDBDocumentManagerFactory implements DatabaseManagerFactory {
 
