@@ -21,7 +21,13 @@ import org.eclipse.jnosql.communication.semistructured.DeleteQuery;
 import java.util.stream.Stream;
 
 /**
- * A document manager interface for Oracle NoSQL database operations.
+ * The Oracle NoSQL implementation of {@link DatabaseManager}, bound to one Oracle NoSQL table. Besides the
+ * common document operations it runs Oracle NoSQL SQL.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Stream<CommunicationEntity> active = manager.sql("SELECT * FROM users u WHERE u.status = ?", "ACTIVE");
+ * }</pre>
  */
 public interface OracleNoSQLDocumentManager extends DatabaseManager {
 
