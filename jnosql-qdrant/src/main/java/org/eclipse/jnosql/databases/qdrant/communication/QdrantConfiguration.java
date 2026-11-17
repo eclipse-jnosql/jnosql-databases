@@ -30,6 +30,23 @@ import static java.util.Objects.requireNonNull;
 /**
  * The Qdrant implementation of {@link DatabaseConfiguration}. It creates a {@link QdrantVectorManagerFactory}
  * from {@link Settings}, a configuration map or an existing {@link QdrantClient}.
+ *
+ * <p>Connects over gRPC to {@link QdrantConfigurations#HOST} (default {@code localhost}) and
+ * {@link QdrantConfigurations#PORT} (default {@code 6334}); {@link QdrantConfigurations#TLS} defaults to
+ * {@code false}.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(QdrantConfigurations.HOST, "localhost")
+ *         .put(QdrantConfigurations.PORT, 6334)
+ *         .build();
+ * try (QdrantVectorManagerFactory factory = new QdrantConfiguration().apply(settings)) {
+ *     VectorManager manager = factory.apply("default");
+ * }
+ * }
+ *
+ * @see QdrantConfigurations
  */
 public class QdrantConfiguration implements DatabaseConfiguration {
 
@@ -67,6 +84,14 @@ public class QdrantConfiguration implements DatabaseConfiguration {
         return new QdrantVectorManagerFactory(client, QdrantCollectionSettings.EMPTY);
     }
 
+    /**
+     * Creates a {@link QdrantVectorManagerFactory} from the {@link QdrantConfigurations} found in the settings,
+     * opening a new {@link QdrantClient} that the factory owns.
+     *
+     * @param settings the settings
+     * @return a QdrantVectorManagerFactory instance
+     * @throws NullPointerException when the settings is null
+     */
     @Override
     public QdrantVectorManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");
