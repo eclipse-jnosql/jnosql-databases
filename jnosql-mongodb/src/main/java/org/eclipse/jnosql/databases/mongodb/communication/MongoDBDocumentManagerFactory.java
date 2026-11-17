@@ -21,7 +21,20 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 import java.util.Objects;
 
 /**
- * The mongodb implementation to {@link DatabaseManagerFactory}
+ * The MongoDB implementation of {@link DatabaseManagerFactory}. It wraps one {@link MongoClient}, which
+ * is shared by every manager it creates.
+ *
+ * <p>{@code factory.apply(database)} returns a {@link MongoDBDocumentManager} for that MongoDB database.
+ * Closing the factory closes the {@link MongoClient}, so close it after all managers are no longer used.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * try (MongoDBDocumentManagerFactory factory = new MongoDBDocumentConfiguration().get(mongoClient)) {
+ *     MongoDBDocumentManager manager = factory.apply("library");
+ * }
+ * }</pre>
+ *
+ * @see MongoDBDocumentConfiguration
  */
 public class MongoDBDocumentManagerFactory implements DatabaseManagerFactory {
 
