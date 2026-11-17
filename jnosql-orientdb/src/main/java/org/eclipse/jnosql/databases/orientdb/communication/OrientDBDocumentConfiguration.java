@@ -28,8 +28,23 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 /**
- * The orientDB implementation of {@link DatabaseConfiguration}  that returns
- * {@link OrientDBDocumentManagerFactory}.
+ * The OrientDB implementation of {@link DatabaseConfiguration}. It returns an
+ * {@link OrientDBDocumentManagerFactory} using the host, user, password and storage type from
+ * {@link OrientDBDocumentConfigurations}; a value in {@link Settings} takes precedence over the setters of this
+ * class.
+ *
+ * <p>The host must start with {@code embedded:} or {@code remote:}; any other value makes the factory creation
+ * throw {@link IllegalArgumentException}.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(OrientDBDocumentConfigurations.HOST, "remote:localhost")
+ *         .put(OrientDBDocumentConfigurations.USER, "root")
+ *         .put(OrientDBDocumentConfigurations.PASSWORD, "rootpwd")
+ *         .build();
+ * OrientDBDocumentManagerFactory factory = new OrientDBDocumentConfiguration().apply(settings);
+ * }
  *
  * @see OrientDBDocumentConfigurations
  */
