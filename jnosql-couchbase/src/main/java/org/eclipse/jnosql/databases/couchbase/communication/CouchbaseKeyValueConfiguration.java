@@ -21,7 +21,20 @@ import org.eclipse.jnosql.communication.keyvalue.KeyValueConfiguration;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The couchbase implementation to {@link KeyValueConfiguration} that returns {@link DefaultCouchbaseBucketManagerFactory}.
+ * The Couchbase implementation of {@link KeyValueConfiguration}. It connects to a cluster and returns a
+ * {@link CouchbaseBucketManagerFactory}, where each Couchbase bucket is a key-value bucket.
+ *
+ * <p>Configure it through {@link Settings} keys from {@link CouchbaseConfigurations}:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(CouchbaseConfigurations.HOST, "couchbase://localhost")
+ *         .put(CouchbaseConfigurations.USER, "admin")
+ *         .put(CouchbaseConfigurations.PASSWORD, "password")
+ *         .build();
+ * CouchbaseBucketManagerFactory factory = new CouchbaseKeyValueConfiguration().apply(settings);
+ * BucketManager bucket = factory.apply("my-bucket");
+ * }
+ *
  * @see CouchbaseConfigurations
  */
 public class CouchbaseKeyValueConfiguration extends CouchbaseConfiguration
