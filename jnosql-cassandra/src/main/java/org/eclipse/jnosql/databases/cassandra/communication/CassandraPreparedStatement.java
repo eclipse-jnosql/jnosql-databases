@@ -45,6 +45,8 @@ public class CassandraPreparedStatement {
 
     /**
      * Executes the prepared statement as a query and returns the results as a stream of CommunicationEntity.
+     * Values set with {@link #bind(Object...)} are used; without a bind call the statement runs unbound.
+     * All rows are read before the stream is returned.
      *
      * @return a stream of CommunicationEntity containing the results of the query
      */
@@ -55,7 +57,7 @@ public class CassandraPreparedStatement {
     }
 
     /**
-     * Binds values to the prepared statement.
+     * Binds values to the prepared statement, replacing values from a previous call.
      *
      * @param values the values to bind
      * @return this CassandraPreparedStatement instance
