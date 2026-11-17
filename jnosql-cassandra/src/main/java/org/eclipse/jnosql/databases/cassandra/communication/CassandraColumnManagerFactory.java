@@ -23,9 +23,19 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 import java.util.List;
 
 /**
- * The Cassandra implementation to {@link DatabaseManagerFactory}
- * <br/>
- * Closing a {@link CassandraColumnManagerFactory} has no effect.
+ * The Cassandra implementation of {@link DatabaseManagerFactory}. Create it with
+ * {@link CassandraConfiguration#apply(org.eclipse.jnosql.communication.Settings)}.
+ *
+ * <p>{@code factory.apply(keyspace)} opens a new Cassandra session for that keyspace and returns a
+ * {@link CassandraColumnManager}. Closing the manager closes its session, so close each manager you create.
+ * Closing a {@link CassandraColumnManagerFactory} has no effect.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * try (CassandraColumnManager manager = factory.apply("library")) {
+ *     manager.cql("SELECT * FROM books").forEach(System.out::println);
+ * }
+ * }
  */
 public class CassandraColumnManagerFactory implements DatabaseManagerFactory {
 

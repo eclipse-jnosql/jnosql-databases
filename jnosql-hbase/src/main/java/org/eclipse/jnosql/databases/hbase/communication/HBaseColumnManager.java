@@ -50,9 +50,31 @@ import static org.eclipse.jnosql.communication.Condition.IN;
 import static org.eclipse.jnosql.communication.Condition.OR;
 
 /**
- * The Hbase implementation to {@link DatabaseManager}.
- * It does not support TTL methods
- * {@link HBaseColumnManager#insert(org.eclipse.jnosql.communication.semistructured.CommunicationEntity, Duration)}
+ * The HBase implementation of {@link DatabaseManager}, bound to one HBase table.
+ *
+ * <p>The entity name is the column family, and its elements become columns of that family. The row key is
+ * the element named {@code _id}; saving an entity that has elements but no {@code _id} element throws
+ * {@link HBaseException}. Values are stored as text.</p>
+ *
+ * <p>Limitations:</p>
+ * <ul>
+ *   <li>TTL is not supported: {@link #insert(CommunicationEntity, Duration)} throws
+ *   {@link UnsupportedOperationException};</li>
+ *   <li>{@link #count(String)} throws {@link UnsupportedOperationException};</li>
+ *   <li>{@code select} and {@code delete} require a condition made of {@code EQUALS} or {@code IN}
+ *   on the row key, optionally combined with {@code OR}; other conditions throw
+ *   {@link UnsupportedOperationException}.</li>
+ * </ul>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * CommunicationEntity book = CommunicationEntity.of("books");
+ * book.add(Element.of("_id", "978-0134685991"));
+ * book.add(Element.of("title", "Effective Java"));
+ * manager.insert(book);
+ * }
+ *
+ * <p>Closing the manager closes the HBase connection and table.</p>
  */
 public class HBaseColumnManager implements DatabaseManager {
 

@@ -43,6 +43,24 @@ import static org.eclipse.jnosql.databases.iotdb.communication.IoTDBEntityConver
  * <p>The entity name becomes a table, {@code _id} becomes the TIME column, and all
  * remaining scalar values become FIELD columns. IoTDB creates and evolves table schemas
  * from native tablet writes when server-side automatic schema creation is enabled.</p>
+ *
+ * <p>The {@code _id} identifier must be an {@link java.time.Instant}, {@link java.time.LocalDateTime} (read as
+ * UTC), {@link java.time.OffsetDateTime} or {@link java.time.ZonedDateTime}; any other type, including
+ * {@link java.util.UUID}, is rejected with {@link IllegalArgumentException}. Table names must contain only
+ * letters, digits and underscores.</p>
+ *
+ * <p>Per-entity TTL and all update operations throw {@link UnsupportedOperationException}: IoTDB applies TTL per
+ * table or database, and Table Model updates reach only TAG and ATTRIBUTE columns, while entity values are
+ * written as FIELD columns. {@code delete(DeleteQuery)} is supported. Failed statements raise
+ * {@link IllegalStateException}.</p>
+ *
+ * {@snippet lang="java" :
+ * IoTDBTimeSeriesManager manager = factory.apply("sensors");
+ * CommunicationEntity entity = CommunicationEntity.of("temperature");
+ * entity.add(Element.of("_id", Instant.now()));
+ * entity.add(Element.of("celsius", 21.5));
+ * manager.insert(entity);
+ * }
  */
 public class IoTDBTimeSeriesManager implements DatabaseManager {
 
@@ -147,6 +165,10 @@ public class IoTDBTimeSeriesManager implements DatabaseManager {
         return Optional.of(ID_FIELD);
     }
 
+    /**
+     * Has no effect; the session pools belong to {@link IoTDBTimeSeriesManagerFactory}, which releases them
+     * when it is closed.
+     */
     @Override
     public void close() {
     }

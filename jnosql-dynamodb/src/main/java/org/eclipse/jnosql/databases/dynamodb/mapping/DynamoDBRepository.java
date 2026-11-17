@@ -18,10 +18,17 @@ package org.eclipse.jnosql.databases.dynamodb.mapping;
 import org.eclipse.jnosql.mapping.NoSQLRepository;
 
 /**
- * Defines the dynamo dbrepository contract.
+ * A {@link NoSQLRepository} for DynamoDB entities. Declare an interface that extends it to get the standard
+ * repository operations backed by DynamoDB.
  *
- * @param <T> the type
- * @param <K> the type
+ * {@snippet lang="java" :
+ * @Repository
+ * public interface PersonRepository extends DynamoDBRepository<Person, String> {
+ * }
+ * }
+ *
+ * @param <T> the entity type
+ * @param <K> the entity id type
  */
 public interface DynamoDBRepository<T, K> extends NoSQLRepository<T, K> {
 }

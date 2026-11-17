@@ -31,7 +31,23 @@ import java.util.stream.StreamSupport;
 import static java.util.stream.Collectors.toList;
 
 /**
- * The redis implementation to {@link BucketManager}
+ * The Redis implementation of {@link BucketManager}. Each bucket is a namespace: the entry for key {@code k} in
+ * bucket {@code users} is stored in Redis under {@code users:k}. Values are written as JSON and read back as
+ * {@link Value}.
+ *
+ * <p>Obtain an instance from {@link RedisBucketManagerFactory}, using {@code factory.apply(bucketName)}.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * BucketManager users = factory.apply("users");
+ * users.put("ada", "Ada Lovelace");
+ * Optional<Value> name = users.get("ada");
+ * users.delete("ada");
+ * }
+ *
+ * <p>Keys are converted with {@code toString()}, so a {@link java.util.UUID} key is stored as its canonical text
+ * form and must be queried with an equal {@code UUID} or its text. An empty key is rejected with
+ * {@link IrregularKeyValue}. {@link #close()} closes the Redis client shared with the factory.</p>
  */
 public class RedisBucketManager implements BucketManager {
 
@@ -64,6 +80,11 @@ public class RedisBucketManager implements BucketManager {
         put(entity.key(), entity.value());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The expiration is applied in whole seconds; the fractional part of {@code ttl} is discarded.</p>
+     */
     @Override
     public void put(KeyValueEntity entity, Duration ttl) throws NullPointerException, UnsupportedOperationException {
         put(entity);

@@ -42,9 +42,27 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 
 /**
- * The redis implementation of {@link KeyValueConfiguration} whose returns {@link ValkeyBucketManagerFactory}.
+ * The Valkey implementation of {@link KeyValueConfiguration}. It creates a {@link ValkeyBucketManagerFactory}
+ * from {@link Settings}.
+ *
+ * <p>The deployment mode is chosen from the settings keys. When any key starts with
+ * {@link ValkeySentinelConfigurations#SENTINEL} the factory connects through Sentinel; when any key starts
+ * with {@link ValkeyClusterConfigurations#CLUSTER} it connects to a cluster; otherwise it connects to a
+ * single node, using {@code localhost:6379} for the host and port that are not set.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(ValkeyConfigurations.HOST, "localhost")
+ *         .put(ValkeyConfigurations.PORT, 6379)
+ *         .build();
+ * ValkeyBucketManagerFactory factory = new ValkeyConfiguration().apply(settings);
+ * BucketManager bucket = factory.apply("users");
+ * }
  *
  * @see ValkeyConfigurations
+ * @see ValkeySentinelConfigurations
+ * @see ValkeyClusterConfigurations
  */
 public final class ValkeyConfiguration implements KeyValueConfiguration {
 
@@ -52,10 +70,20 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
     private static final String DEFAULT_HOST = "localhost";
 
     /**
-     * Creates a {@link ValkeyConfiguration} from map configuration
+     * Creates a {@link ValkeyBucketManagerFactory} from a map of configuration keys, such as the values of
+     * {@link ValkeyConfigurations}. It is equivalent to {@link #apply(Settings)} with the same entries.
      *
-     * @param configurations the map configuration
-     * @return the RedisConfiguration instance
+     * <p>Example:</p>
+     * {@snippet lang="java" :
+     * ValkeyBucketManagerFactory factory = new ValkeyConfiguration()
+     *         .getManagerFactory(Map.of("jnosql.valkey.host", "localhost"));
+     * }
+     *
+     * @param configurations the configuration keys and values
+     * @return a new factory; the caller must close it
+     * @throws NullPointerException if {@code configurations} is {@code null}
+     * @throws IllegalArgumentException if the Sentinel or Cluster mode is selected and the required master name
+     *                                  or hosts are missing
      */
     public ValkeyBucketManagerFactory getManagerFactory(Map<String, String> configurations) {
         Objects.requireNonNull(configurations, "configurations is required");
@@ -64,6 +92,13 @@ public final class ValkeyConfiguration implements KeyValueConfiguration {
         return apply(builder.build());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws NullPointerException if {@code settings} is {@code null}
+     * @throws IllegalArgumentException if the Sentinel or Cluster mode is selected and the required master name
+     *                                  or hosts are missing
+     */
     @Override
     public ValkeyBucketManagerFactory apply(Settings settings) {
         Objects.requireNonNull(settings, "settings is required");

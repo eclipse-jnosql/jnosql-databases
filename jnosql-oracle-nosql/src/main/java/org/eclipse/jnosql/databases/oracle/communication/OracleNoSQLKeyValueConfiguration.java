@@ -21,9 +21,19 @@ import org.eclipse.jnosql.communication.keyvalue.KeyValueConfiguration;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The Oracle implementation of {@link KeyValueConfiguration} that returns
- * {@link OracleNoSQLBucketManagerFactory}.
+ * The Oracle NoSQL implementation of {@link KeyValueConfiguration}. It builds the connection from
+ * {@link OracleNoSQLConfigurations} and returns a factory whose buckets are Oracle NoSQL tables.
  *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(OracleNoSQLConfigurations.HOST, "http://localhost:8080")
+ *         .put(OracleNoSQLConfigurations.DEPLOYMENT, "ON_PREMISES")
+ *         .build();
+ * BucketManagerFactory factory = new OracleNoSQLKeyValueConfiguration().apply(settings);
+ * }
+ *
+ * @see OracleNoSQLConfigurations
  */
 public final class OracleNoSQLKeyValueConfiguration implements KeyValueConfiguration {
     @Override

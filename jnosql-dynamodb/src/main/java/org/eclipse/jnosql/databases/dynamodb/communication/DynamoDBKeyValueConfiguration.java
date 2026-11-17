@@ -19,17 +19,35 @@ import org.eclipse.jnosql.communication.keyvalue.KeyValueConfiguration;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
- * Provides dynamo dbkey value configuration settings.
+ * The DynamoDB implementation of {@link KeyValueConfiguration}. It creates a {@link DynamoDBBucketManagerFactory}
+ * whose buckets are DynamoDB tables.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(DynamoDBConfigurations.ENDPOINT, "http://localhost:8000")
+ *         .put(DynamoDBConfigurations.REGION, "us-east-1")
+ *         .build();
+ * DynamoDBBucketManagerFactory factory = new DynamoDBKeyValueConfiguration().apply(settings);
+ * DynamoDBBucketManager users = factory.apply("users");
+ * }
+ *
+ * @see DynamoDBConfigurations
  */
 public class DynamoDBKeyValueConfiguration extends DynamoDBConfiguration
         implements KeyValueConfiguration {
 
             /**
-             * Creates a new dynamo dbkey value configuration instance.
+             * Creates a configuration with default settings.
              */
             public DynamoDBKeyValueConfiguration() {
             }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws NullPointerException if {@code settings} is {@code null}
+     */
     @Override
     public DynamoDBBucketManagerFactory apply(Settings settings) {
         DynamoDbClient dynamoDB = getDynamoDB(settings);

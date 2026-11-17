@@ -20,9 +20,15 @@ import java.util.Optional;
 import static java.util.Optional.ofNullable;
 
 /**
- * Provides orient dblive callback support.
+ * Groups the callbacks of an OrientDB live query. Any callback may be {@code null} to ignore that event.
  *
- * @param <T> the type
+ * {@snippet lang="java" :
+ * OrientDBLiveCallback<CommunicationEntity> callbacks = new OrientDBLiveCallback<>(
+ *         created -> System.out.println("created " + created), null, null);
+ * manager.live("LIVE SELECT FROM Person", callbacks);
+ * }
+ *
+ * @param <T> the record type
  */
 public class OrientDBLiveCallback<T> {
 
@@ -31,11 +37,11 @@ public class OrientDBLiveCallback<T> {
     private final OrientDBLiveDeleteCallback<T> deleteCallback;
 
 /**
- * Returns the orient dblive callback.
+ * Creates the callback group.
  *
- * @param createCallback the create callback
- * @param updateCallback the update callback
- * @param deleteCallback the delete callback
+ * @param createCallback called on creations, or {@code null}
+ * @param updateCallback called on updates, or {@code null}
+ * @param deleteCallback called on deletions, or {@code null}
  */
     public OrientDBLiveCallback(OrientDBLiveCreateCallback<T> createCallback,
                                 OrientDBLiveUpdateCallback<T> updateCallback,
@@ -46,27 +52,27 @@ public class OrientDBLiveCallback<T> {
     }
 
 /**
- * Returns the get create callback.
+ * Returns the create callback.
  *
- * @return the result
+ * @return the callback, or empty when none was set
  */
     public Optional<OrientDBLiveCreateCallback<T>> getCreateCallback() {
         return ofNullable(createCallback);
     }
 
 /**
- * Returns the get update callback.
+ * Returns the update callback.
  *
- * @return the result
+ * @return the callback, or empty when none was set
  */
     public Optional<OrientDBLiveUpdateCallback<T>> getUpdateCallback() {
         return ofNullable(updateCallback);
     }
 
 /**
- * Returns the get delete callback.
+ * Returns the delete callback.
  *
- * @return the result
+ * @return the callback, or empty when none was set
  */
     public Optional<OrientDBLiveDeleteCallback<T>> getDeleteCallback() {
         return ofNullable(deleteCallback);

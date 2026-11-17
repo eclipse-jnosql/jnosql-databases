@@ -22,13 +22,14 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Represents a dynamo dbquery.
+ * A DynamoDB scan request derived from a {@link SelectQuery}: the table, an optional projection and a filter
+ * with its placeholder maps.
  *
  * @param table the table name
- * @param projectionExpression the projection expression
- * @param filterExpression the filter expression
- * @param expressionAttributeNames the expression attribute names
- * @param expressionAttributeValues the expression attribute values
+ * @param projectionExpression the comma-separated projection aliases, or {@code null} to return every attribute
+ * @param filterExpression the filter expression, empty when the query has no condition
+ * @param expressionAttributeNames the attribute name aliases used by the expressions
+ * @param expressionAttributeValues the attribute values bound to the filter placeholders
  */
 public record DynamoDBQuery(String table,
                             String projectionExpression,
@@ -36,13 +37,13 @@ public record DynamoDBQuery(String table,
                             Map<String,String> expressionAttributeNames,
                             Map<String, AttributeValue> expressionAttributeValues) {
 
-/**
- * Returns the builder of.
- *
- * @param table the table
- * @param query the query
- * @return the result
- */
+    /**
+     * Creates a supplier that converts the select query into a {@link DynamoDBQuery} when invoked.
+     *
+     * @param table the table to scan
+     * @param query the select query whose condition and columns become the filter and the projection
+     * @return a {@link Supplier} of the converted query
+     */
     public static Supplier<DynamoDBQuery> builderOf(String table,
                                                     SelectQuery query) {
         return new DynamoDBQuerySelectBuilder(table, query);

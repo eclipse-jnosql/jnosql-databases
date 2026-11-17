@@ -28,6 +28,26 @@ import java.util.Objects;
  * A Cassandra-specific implementation of {@link DatabaseConfiguration}, which provides
  * {@link CassandraColumnManagerFactory} instances.
  *
+ * <p>The connection is configured through {@link Settings} keys from {@link CassandraConfigurations}.
+ * Only keys that start with {@code jnosql.} are read. Statements set with
+ * {@link CassandraConfigurations#QUERY} run once when the factory is created, which is a convenient
+ * place to create the keyspace.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(CassandraConfigurations.HOST.get() + ".1", "localhost")
+ *         .put(CassandraConfigurations.DATA_CENTER, "datacenter1")
+ *         .put(CassandraConfigurations.QUERY.get() + ".1",
+ *                 "CREATE KEYSPACE IF NOT EXISTS library WITH replication = "
+ *                 + "{'class': 'SimpleStrategy', 'replication_factor': 1}")
+ *         .build();
+ * try (CassandraColumnManagerFactory factory = new CassandraConfiguration().apply(settings);
+ *      CassandraColumnManager manager = factory.apply("library")) {
+ *     // use the manager
+ * }
+ * }
+ *
  * @see CassandraConfigurations
  */
 public final class CassandraConfiguration implements DatabaseConfiguration {

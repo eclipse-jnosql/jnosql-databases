@@ -33,18 +33,35 @@ import java.util.Optional;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The Infinispan implementation of {@link KeyValueConfiguration} that returns
- * {@link InfinispanBucketManagerFactory}.
- * @see InfinispanConfigurations
+ * The Infinispan implementation of {@link KeyValueConfiguration}. It creates an
+ * {@link InfinispanBucketManagerFactory} in one of three modes, chosen in this order:
+ * <ol>
+ *   <li>when {@link InfinispanConfigurations#HOST} is set, a Hot Rod client connects to those servers;</li>
+ *   <li>when {@link InfinispanConfigurations#CONFIG} is set, an embedded cache manager starts from that
+ *       configuration file;</li>
+ *   <li>otherwise, an embedded cache manager starts with default settings.</li>
+ * </ol>
  *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(InfinispanConfigurations.HOST, "localhost")
+ *         .build();
+ * InfinispanBucketManagerFactory factory = new InfinispanKeyValueConfiguration().apply(settings);
+ * InfinispanBucketManager bucket = factory.apply("users");
+ * }
+ *
+ * @see InfinispanConfigurations
  */
 public class InfinispanKeyValueConfiguration implements KeyValueConfiguration {
 
     /**
-     * Creates a {@link InfinispanBucketManagerFactory} from configuration map
-     * @param configurations the configuration map
-     * @return the InfinispanBucketManagerFactory instance
-     * @throws NullPointerException when configurations is null
+     * Creates an {@link InfinispanBucketManagerFactory} from a map of configuration keys, such as the values of
+     * {@link InfinispanConfigurations}. It is equivalent to {@link #apply(Settings)} with the same entries.
+     *
+     * @param configurations the configuration keys and values
+     * @return a new factory
+     * @throws NullPointerException if {@code configurations} is {@code null}
      */
     public InfinispanBucketManagerFactory get(Map<String, String> configurations) {
         requireNonNull(configurations, "configurations is required");
@@ -54,10 +71,12 @@ public class InfinispanKeyValueConfiguration implements KeyValueConfiguration {
     }
 
     /**
-     * Creates a {@link InfinispanBucketManagerFactory} from infinispan config
-     * @param config the {@link org.infinispan.configuration.cache.Configuration}
-     * @return the InfinispanBucketManagerFactory instance
-     * @throws NullPointerException when config is null
+     * Creates an {@link InfinispanBucketManagerFactory} backed by an embedded cache manager built from an
+     * Infinispan {@link GlobalConfiguration}.
+     *
+     * @param config the Infinispan global configuration
+     * @return a new factory
+     * @throws NullPointerException if {@code config} is {@code null}
      */
     public InfinispanBucketManagerFactory get(GlobalConfiguration config) throws NullPointerException {
         requireNonNull(config, "config is required");
@@ -66,6 +85,13 @@ public class InfinispanKeyValueConfiguration implements KeyValueConfiguration {
     }
 
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws NullPointerException if {@code settings} is {@code null}
+     * @throws RuntimeException     if the configuration file given by {@link InfinispanConfigurations#CONFIG}
+     *                              cannot be read
+     */
     @Override
     public InfinispanBucketManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");

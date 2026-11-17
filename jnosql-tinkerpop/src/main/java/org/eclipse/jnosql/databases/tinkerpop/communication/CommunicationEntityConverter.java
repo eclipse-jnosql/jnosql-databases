@@ -22,7 +22,8 @@ import java.util.function.Function;
 import static org.eclipse.jnosql.databases.tinkerpop.communication.TinkerpopGraphDatabaseManager.ID;
 
 /**
- * Defines the communication entity converter options.
+ * Converts a TinkerPop {@link Vertex} to a {@link CommunicationEntity}: the label becomes the entity name, each
+ * property becomes an element, and the vertex id is added as the {@code _id} element, unconverted.
  */
 public enum CommunicationEntityConverter implements Function<Vertex, CommunicationEntity> {
 /**
@@ -30,6 +31,12 @@ public enum CommunicationEntityConverter implements Function<Vertex, Communicati
  */
     INSTANCE;
 
+    /**
+     * Converts the vertex.
+     *
+     * @param vertex the vertex
+     * @return the entity named after the vertex label
+     */
     @Override
     public CommunicationEntity apply(Vertex vertex) {
         var entity = CommunicationEntity.of(vertex.label());

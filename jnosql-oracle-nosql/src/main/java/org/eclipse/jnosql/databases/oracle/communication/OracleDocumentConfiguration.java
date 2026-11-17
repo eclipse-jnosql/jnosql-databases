@@ -18,8 +18,19 @@ import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 
 /**
- * The Oracle implementation to {@link DatabaseConfiguration}
- * that returns  {@link OracleDocumentManagerFactory}
+ * The Oracle NoSQL implementation of {@link DatabaseConfiguration}. It builds the connection from
+ * {@link OracleNoSQLConfigurations} and returns an {@link OracleDocumentManagerFactory}.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(OracleNoSQLConfigurations.HOST, "http://localhost:8080")
+ *         .put(OracleNoSQLConfigurations.DEPLOYMENT, "ON_PREMISES")
+ *         .build();
+ * OracleDocumentManagerFactory factory = new OracleDocumentConfiguration().apply(settings);
+ * OracleNoSQLDocumentManager manager = factory.apply("users");
+ * }
+ *
  * @see OracleNoSQLConfigurations
  */
 public final class OracleDocumentConfiguration implements DatabaseConfiguration {

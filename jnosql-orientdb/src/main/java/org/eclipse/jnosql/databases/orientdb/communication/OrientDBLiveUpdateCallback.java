@@ -16,16 +16,22 @@
 package org.eclipse.jnosql.databases.orientdb.communication;
 
 /**
- * Defines the orient dblive update callback contract.
+ * Receives the updated record of an OrientDB live query. It is invoked each time a matching record is updated.
+ * Pass it to {@link OrientDBLiveCallback} to subscribe through
+ * {@link OrientDBDocumentManager#live(String, OrientDBLiveCallback, Object...)}.
  *
- * @param <T> the type
+ * {@snippet lang="java" :
+ * OrientDBLiveUpdateCallback<CommunicationEntity> callback = entity -> System.out.println(entity);
+ * }
+ *
+ * @param <T> the record type
  */
 @FunctionalInterface
 public interface OrientDBLiveUpdateCallback<T> {
 /**
- * Performs the accept operation.
+ * Handles the updated record.
  *
- * @param t the t
+ * @param t the updated record
  */
     void accept(T t);
 }

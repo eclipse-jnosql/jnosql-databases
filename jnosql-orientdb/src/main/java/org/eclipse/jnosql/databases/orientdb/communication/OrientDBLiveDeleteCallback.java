@@ -16,16 +16,22 @@
 package org.eclipse.jnosql.databases.orientdb.communication;
 
 /**
- * Defines the orient dblive delete callback contract.
+ * Receives the deleted record of an OrientDB live query. It is invoked each time a matching record is deleted.
+ * Pass it to {@link OrientDBLiveCallback} to subscribe through
+ * {@link OrientDBDocumentManager#live(String, OrientDBLiveCallback, Object...)}.
  *
- * @param <T> the type
+ * {@snippet lang="java" :
+ * OrientDBLiveDeleteCallback<CommunicationEntity> callback = entity -> System.out.println(entity);
+ * }
+ *
+ * @param <T> the record type
  */
 @FunctionalInterface
 public interface OrientDBLiveDeleteCallback<T> {
 /**
- * Performs the accept operation.
+ * Handles the deleted record.
  *
- * @param t the t
+ * @param t the deleted record
  */
     void accept(T t);
 }

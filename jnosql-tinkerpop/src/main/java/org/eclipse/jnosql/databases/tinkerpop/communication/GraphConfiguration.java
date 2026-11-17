@@ -22,16 +22,28 @@ import java.util.ServiceLoader;
 import java.util.function.Function;
 
 /**
- * The Configuration that creates an instance of {@link Graph} that given a {@link Settings} make an  {@link Graph} instance.
+ * The SPI that creates the Apache TinkerPop {@link Graph} for a given {@link Settings}. Implement it for each
+ * TinkerPop provider (for example Neo4j-Gremlin, JanusGraph, TinkerGraph) and register it in
+ * {@code META-INF/services/org.eclipse.jnosql.databases.tinkerpop.communication.GraphConfiguration}.
+ *
+ * <p>The provider is selected with the {@code jnosql.graph.tinkerpop.provider} setting, which holds the
+ * implementation class; when it is absent, the first implementation found by {@link ServiceLoader} is used.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * GraphConfiguration configuration = GraphConfiguration.getConfiguration();
+ * Graph graph = configuration.apply(Settings.builder().build());
+ * TinkerpopGraphDatabaseManager manager = TinkerpopGraphDatabaseManager.of(graph);
+ * }
  */
 public interface GraphConfiguration extends Function<Settings, Graph> {
 
-
     /**
-     * creates and returns a  {@link GraphConfiguration}  instance from {@link ServiceLoader}
+     * Returns the first {@link GraphConfiguration} registered in the {@link ServiceLoader}.
      *
      * @param <T> the configuration type
-     * @return {@link GraphConfiguration} instance
+     * @return the {@link GraphConfiguration} instance
+     * @throws CommunicationException when no implementation is registered
      */
     @SuppressWarnings("unchecked")
     static <T extends GraphConfiguration> T getConfiguration() {
@@ -42,12 +54,18 @@ public interface GraphConfiguration extends Function<Settings, Graph> {
     }
 
     /**
-     * creates and returns a  {@link GraphConfiguration} instance from {@link ServiceLoader}
-     * for a particular provider implementation.
+     * Returns the {@link GraphConfiguration} registered in the {@link ServiceLoader} that is an instance of
+     * the given type.
      *
-     * @param <T>     the configuration type
+     * <p>Example:</p>
+     * {@snippet lang="java" :
+     * MyGraphConfiguration configuration = GraphConfiguration.getConfiguration(MyGraphConfiguration.class);
+     * }
+     *
+     * @param <T>  the configuration type
      * @param type the particular provider
-     * @return {@link GraphConfiguration} instance
+     * @return the {@link GraphConfiguration} instance
+     * @throws CommunicationException when no registered implementation matches the type
      */
     @SuppressWarnings("unchecked")
     static <T extends GraphConfiguration> T getConfiguration(Class<T> type) {

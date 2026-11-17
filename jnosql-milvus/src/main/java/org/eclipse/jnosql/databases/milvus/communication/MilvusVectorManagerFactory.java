@@ -25,6 +25,13 @@ import java.util.Objects;
  * The Milvus {@link DatabaseManagerFactory}. It owns the {@link MilvusClientV2}
  * and closes it when the factory is closed.
  * The Milvus database of each {@link VectorManager} is created when it does not exist yet.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * try (MilvusVectorManagerFactory factory = new MilvusConfiguration().apply(settings)) {
+ *     VectorManager manager = factory.apply("default");
+ * }
+ * }
  */
 public class MilvusVectorManagerFactory implements DatabaseManagerFactory {
 
@@ -37,6 +44,13 @@ public class MilvusVectorManagerFactory implements DatabaseManagerFactory {
         this.collectionSettings = collectionSettings;
     }
 
+    /**
+     * Returns a manager bound to the Milvus database with the given name, creating the database when missing.
+     *
+     * @param database the Milvus database name
+     * @return a {@link VectorManager} for that database
+     * @throws NullPointerException when the database is null
+     */
     @Override
     public VectorManager apply(String database) {
         Objects.requireNonNull(database, "database is required");
@@ -60,6 +74,9 @@ public class MilvusVectorManagerFactory implements DatabaseManagerFactory {
         return collectionSettings;
     }
 
+    /**
+     * Closes the {@link MilvusClientV2}; managers created by this factory must not be used afterwards.
+     */
     @Override
     public void close() {
         client.close();

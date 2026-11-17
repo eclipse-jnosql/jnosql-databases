@@ -36,7 +36,20 @@ import java.util.stream.StreamSupport;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Provides riak bucket manager support.
+ * The Riak implementation of {@link BucketManager}. Each bucket is a Riak bucket with that name. Values are
+ * written by the Riak client and read back as JSON {@link Value}.
+ *
+ * <p>Obtain an instance from {@link RiakBucketManagerFactory}, using {@code factory.apply(bucketName)}.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * BucketManager users = factory.apply("users");
+ * users.put("ada", "Ada Lovelace");
+ * Optional<Value> name = users.get("ada");
+ * }
+ *
+ * <p>Riak failures are reported as {@link RiakCommunicationException}. {@link #close()} shuts down the Riak
+ * client.</p>
  */
 public class RiakBucketManager implements BucketManager {
 

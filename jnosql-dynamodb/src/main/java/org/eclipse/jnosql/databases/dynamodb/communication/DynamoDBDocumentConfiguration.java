@@ -19,16 +19,39 @@ import org.eclipse.jnosql.communication.Settings;
 import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 
 /**
- * Provides dynamo dbdocument configuration settings.
+ * The DynamoDB implementation of {@link DatabaseConfiguration} for the document model. It creates a
+ * {@link DynamoDBDatabaseManagerFactory} whose managers store each entity in a DynamoDB table named after it.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(DynamoDBConfigurations.ENDPOINT, "http://localhost:8000")
+ *         .put(DynamoDBConfigurations.REGION, "us-east-1")
+ *         .put(DynamoDBConfigurations.CREATE_TABLES, true)
+ *         .build();
+ * DynamoDBDatabaseManagerFactory factory = new DynamoDBDocumentConfiguration().apply(settings);
+ * DynamoDBDatabaseManager manager = factory.apply("my-database");
+ * }
+ *
+ * @see DynamoDBConfigurations
  */
 public class DynamoDBDocumentConfiguration extends DynamoDBConfiguration
         implements DatabaseConfiguration {
 
             /**
-             * Creates a new dynamo dbdocument configuration instance.
+             * Creates a configuration with default settings.
              */
             public DynamoDBDocumentConfiguration() {
             }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The settings are kept by the factory and read again when tables are resolved, so keys such as
+     * {@link DynamoDBConfigurations#CREATE_TABLES} apply to every manager it creates.</p>
+     *
+     * @throws NullPointerException if {@code settings} is {@code null}
+     */
     @Override
     public DynamoDBDatabaseManagerFactory apply(Settings settings) {
         var dynamoDB = getDynamoDB(settings);

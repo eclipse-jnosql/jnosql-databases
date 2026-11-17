@@ -26,13 +26,21 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * The riak implementation to {@link BucketManagerFactory} that returns {@link RiakBucketManager}
- * This implementation just has support to {@link RiakBucketManagerFactory#apply(String)}
- * So, these metdhos will returns {@link UnsupportedOperationException}
- * <p>{@link BucketManagerFactory#getList(String, Class)}
- * <p>{@link BucketManagerFactory#getSet(String, Class)}</p>
- * <p>{@link BucketManagerFactory#getQueue(String, Class)}</p>
- * <p>{@link BucketManagerFactory#getMap(String, Class, Class)}</p>
+ * The Riak implementation of {@link BucketManagerFactory}. Only {@code apply(bucketName)} is supported to
+ * obtain a {@link RiakBucketManager}; {@link BucketManagerFactory#getList(String, Class)},
+ * {@link BucketManagerFactory#getSet(String, Class)}, {@link BucketManagerFactory#getQueue(String, Class)} and
+ * {@link BucketManagerFactory#getMap(String, Class, Class)} throw {@link UnsupportedOperationException}.
+ *
+ * <p>The factory owns the Riak cluster connection: closing it shuts the cluster down.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * RiakBucketManagerFactory factory = new RiakKeyValueConfiguration().apply(Settings.settings());
+ * RiakBucketManager users = factory.apply("users");
+ * factory.close();
+ * }
+ *
+ * @see RiakKeyValueConfiguration
  */
 public class RiakBucketManagerFactory implements BucketManagerFactory {
 

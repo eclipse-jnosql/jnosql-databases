@@ -18,25 +18,51 @@ package org.eclipse.jnosql.databases.redis.communication;
 import org.eclipse.jnosql.communication.keyvalue.BucketManagerFactory;
 
 /**
- * The redis implementation to {@link BucketManagerFactory} where returns {@link RedisBucketManager}
+ * The Redis implementation of {@link BucketManagerFactory}. Besides {@link RedisBucketManager}, it exposes Redis
+ * data structures: lists, sets, queues and maps through the inherited methods, and {@link SortedSet} and
+ * {@link Counter} through the methods declared here.
+ *
+ * <p>The factory owns the Redis connection pool. Closing it with {@link #close()} releases the connections
+ * used by every manager and structure it created.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * RedisBucketManagerFactory factory = new RedisConfiguration().apply(Settings.settings());
+ * BucketManager users = factory.apply("users");
+ * Counter visits = factory.getCounter("visits");
+ * visits.increment();
+ * }
+ *
+ * @see RedisConfiguration
  */
 public interface RedisBucketManagerFactory extends BucketManagerFactory {
 
 
     /**
-     * Creates a {@link SortedSet} from key
+     * Returns the {@link SortedSet} stored at a Redis key. The sorted set is created in Redis on its first write.
      *
-     * @param key the key
-     * @return the SortedSet from key
-     * @throws NullPointerException when key is null
+     * <p>Example:</p>
+     * {@snippet lang="java" :
+     * SortedSet ranking = factory.getSortedSet("game:ranking");
+     * }
+     *
+     * @param key the Redis key of the sorted set
+     * @return a view of the sorted set stored at {@code key}
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     SortedSet getSortedSet(String key) throws NullPointerException;
     /**
-     * Creates {@link Counter}
+     * Returns the {@link Counter} stored at a Redis key.
      *
-     * @param key the key to counter
-     * @return a counter instance from key
-     * @throws NullPointerException when key is null
+     * <p>Example:</p>
+     * {@snippet lang="java" :
+     * Counter visits = factory.getCounter("visits");
+     * Number total = visits.increment();
+     * }
+     *
+     * @param key the Redis key of the counter
+     * @return a view of the counter stored at {@code key}
+     * @throws NullPointerException if {@code key} is {@code null}
      */
     Counter getCounter(String key) throws NullPointerException;
 

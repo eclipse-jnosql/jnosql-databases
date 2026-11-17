@@ -23,7 +23,14 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * A Couchbase specialization of BucketManagerFactory.
+ * A Couchbase specialization of {@link BucketManagerFactory}. In addition to the default scope and
+ * collection, it can target a specific collection of the bucket.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * BucketManager users = factory.getBucketManager("my-bucket", "users");
+ * users.put("ada", "Ada Lovelace");
+ * }
  */
 public interface CouchbaseBucketManagerFactory extends BucketManagerFactory {
 

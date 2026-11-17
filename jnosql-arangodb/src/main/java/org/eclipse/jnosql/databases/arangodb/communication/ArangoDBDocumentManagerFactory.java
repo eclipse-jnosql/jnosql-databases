@@ -20,7 +20,13 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 
 
 /**
- * Factory for ArangoDB document managers.
+ * Factory for ArangoDB document managers. Create it with
+ * {@link ArangoDBDocumentConfiguration#apply(org.eclipse.jnosql.communication.Settings)}.
+ *
+ * <p>{@code factory.apply(database)} opens a new ArangoDB connection and returns an
+ * {@link ArangoDBDocumentManager} for that database, creating the database when it does not exist and
+ * the account can create it. Closing the factory has no effect; close each manager to shut down its
+ * connection.</p>
  */
 public final class ArangoDBDocumentManagerFactory implements DatabaseManagerFactory {
 

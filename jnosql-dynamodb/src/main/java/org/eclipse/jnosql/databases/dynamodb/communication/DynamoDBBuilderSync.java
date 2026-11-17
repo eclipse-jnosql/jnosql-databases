@@ -25,7 +25,20 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 import java.net.URI;
 
 /**
- * Provides dynamo dbbuilder sync support.
+ * {@link DynamoDBBuilder} that builds a synchronous {@link DynamoDbClient}.
+ *
+ * <p>Options that are never set keep the AWS SDK defaults, such as its default region and credentials chain.</p>
+ *
+ * {@snippet lang="java" :
+ * DynamoDBBuilderSync builder = new DynamoDBBuilderSync();
+ * builder.endpoint("http://localhost:8000");
+ * builder.region("us-east-1");
+ * builder.awsAccessKey("key");
+ * builder.awsSecretAccess("secret");
+ * DynamoDbClient client = builder.build();
+ * }
+ *
+ * @see DynamoDBBuilder
  */
 public class DynamoDBBuilderSync implements DynamoDBBuilder {
 
@@ -53,11 +66,12 @@ public class DynamoDBBuilderSync implements DynamoDBBuilder {
 
     }
 
-/**
- * Returns the build.
- *
- * @return the result
- */
+    /**
+     * Builds the client. Static credentials are applied only when both the access key and the secret key are set
+     * and not empty.
+     *
+     * @return a new {@link DynamoDbClient}
+     */
     public DynamoDbClient build() {
 
         boolean accessKey = awsAccessKey != null && !awsAccessKey.isEmpty();
