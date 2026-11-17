@@ -20,6 +20,11 @@ import java.util.Objects;
 
 /**
  * Creates database-bound managers backed by IoTDB native session pools.
+ *
+ * <p>{@code factory.apply(database)} opens a session pool for that IoTDB database and returns an
+ * {@link IoTDBTimeSeriesManager}. The database name may contain only letters, digits and underscores, otherwise
+ * {@link IllegalArgumentException} is thrown. Closing the factory
+ * closes every pool it created, after which {@code apply} throws {@link IllegalStateException}.</p>
  */
 public class IoTDBTimeSeriesManagerFactory implements DatabaseManagerFactory {
 
