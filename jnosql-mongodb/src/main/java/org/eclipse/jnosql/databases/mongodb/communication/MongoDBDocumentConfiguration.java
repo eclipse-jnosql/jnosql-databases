@@ -32,7 +32,26 @@ import static java.util.Objects.requireNonNull;
 
 
 /**
- * The MongoDB implementation to {@link DatabaseConfiguration} that returns  {@link MongoDBDocumentManagerFactory}
+ * The MongoDB implementation of {@link DatabaseConfiguration}. It returns a {@link MongoDBDocumentManagerFactory}
+ * connected according to {@link MongoDBDocumentConfigurations}.
+ *
+ * <p>The connection is resolved in this order:</p>
+ * <ol>
+ *   <li>hosts, from keys with the {@link MongoDBDocumentConfigurations#HOST} prefix, such as
+ *   {@code jnosql.mongodb.host.1=localhost:27017}, with the optional user, password and authentication keys;</li>
+ *   <li>otherwise, the connection string in {@link MongoDBDocumentConfigurations#URL};</li>
+ *   <li>otherwise, a default {@link MongoClient} that connects to {@code localhost:27017}.</li>
+ * </ol>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(MongoDBDocumentConfigurations.URL, "mongodb://localhost:27017")
+ *         .build();
+ * try (MongoDBDocumentManagerFactory factory = new MongoDBDocumentConfiguration().apply(settings)) {
+ *     MongoDBDocumentManager manager = factory.apply("library");
+ * }
+ * }</pre>
  *
  * @see MongoDBDocumentConfigurations
  */
