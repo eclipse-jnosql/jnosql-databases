@@ -27,7 +27,13 @@ import static java.util.Objects.requireNonNull;
 
 
 /**
- * Provides dynamo dbconfiguration settings.
+ * Base class of the DynamoDB configurations: {@link DynamoDBDocumentConfiguration} for the document model and
+ * {@link DynamoDBKeyValueConfiguration} for the key-value model. Use one of them to create a manager factory.
+ *
+ * <p>The AWS client created by {@code apply(Settings)} is configured only from {@link DynamoDBConfigurations}
+ * entries. The builder-related methods of this class do not affect it.</p>
+ *
+ * @see DynamoDBConfigurations
  */
 public class DynamoDBConfiguration {
 
@@ -42,9 +48,11 @@ public class DynamoDBConfiguration {
 
 
 /**
- * Performs the sync builder operation.
+ * Replaces the builder held by this configuration. It is not used by {@code apply(Settings)}, which builds
+ * the client from {@link DynamoDBConfigurations}.
  *
- * @param builder the builder
+ * @param builder the DynamoDB client builder
+ * @throws NullPointerException if {@code builder} is {@code null}
  */
     public void syncBuilder(DynamoDbClientBuilder builder)  {
         requireNonNull(builder, "builder is required");
@@ -52,9 +60,10 @@ public class DynamoDBConfiguration {
     }
 
 /**
- * Performs the async builder operation.
+ * Replaces the asynchronous builder held by this configuration. It is not used by {@code apply(Settings)}.
  *
- * @param builderAsync the builder async
+ * @param builderAsync the asynchronous DynamoDB client builder
+ * @throws NullPointerException if {@code builderAsync} is {@code null}
  */
     public void asyncBuilder(DynamoDbAsyncClientBuilder builderAsync)  {
         requireNonNull(builderAsync, "asyncBuilder is required");
@@ -62,9 +71,12 @@ public class DynamoDBConfiguration {
     }
 
 /**
- * Sets the end point.
+ * Overrides the endpoint of the builders held by this configuration. It is not used by
+ * {@code apply(Settings)}; to change the endpoint of the created client, set
+ * {@link DynamoDBConfigurations#ENDPOINT}.
  *
- * @param endpoint the endpoint
+ * @param endpoint the endpoint URI, such as {@code http://localhost:8000}
+ * @throws IllegalArgumentException if {@code endpoint} is not a valid URI
  */
     public void setEndPoint(String endpoint) {
         builder.endpointOverride(URI.create(endpoint));
