@@ -39,6 +39,11 @@ import java.util.logging.Logger;
  * it is used as the index creation request body. Otherwise, the index is created
  * with Elasticsearch defaults.
  * </p>
+ * <pre>{@code
+ * try (ElasticsearchDocumentManagerFactory factory = new ElasticsearchDocumentConfiguration().apply(settings)) {
+ *     ElasticsearchDocumentManager manager = factory.apply("users");
+ * }
+ * }</pre>
  */
 public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFactory {
 
@@ -52,6 +57,14 @@ public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFacto
         this.elasticsearchClient = Objects.requireNonNull(elasticsearchClient, "elasticsearchClient is required");
     }
 
+    /**
+     * Returns a manager for the index with the given name, creating the index first when it does not exist.
+     *
+     * @param database the index name
+     * @return a manager bound to the index
+     * @throws NullPointerException when database is null
+     * @throws ElasticsearchException when the index check, mapping read or index creation fails
+     */
     @Override
     public ElasticsearchDocumentManager apply(String database) throws UnsupportedOperationException, NullPointerException {
         Objects.requireNonNull(database, "database is required");
@@ -141,6 +154,11 @@ public class ElasticsearchDocumentManagerFactory implements DatabaseManagerFacto
         }
     }
 
+    /**
+     * Closes the Elasticsearch transport; managers created by this factory must not be used afterwards.
+     *
+     * @throws ElasticsearchException when the transport cannot be closed
+     */
     @Override
     public void close() {
         try {
