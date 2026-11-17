@@ -15,16 +15,17 @@
 package org.eclipse.jnosql.databases.dynamodb.communication;
 
 /**
- * Provides configuration amazon entity support.
+ * Attribute names of the items written by the DynamoDB key-value driver: each entry is stored as an item with
+ * a {@value #KEY} attribute (the table's hash key) and a {@value #VALUE} attribute.
  */
 public final class ConfigurationAmazonEntity {
-/**
- * The key configuration key.
- */
+    /**
+     * The attribute that holds the entry key, a string, which is the table's hash key.
+     */
     public static final String KEY = "key";
-/**
- * The value configuration key.
- */
+    /**
+     * The attribute that holds the entry value.
+     */
     public static final String VALUE = "value";
 
     private ConfigurationAmazonEntity() {
