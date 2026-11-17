@@ -28,6 +28,21 @@ import static java.util.Objects.requireNonNull;
  * The Milvus implementation of {@link DatabaseConfiguration}. It creates a {@link MilvusVectorManagerFactory}
  * from {@link Settings}, a configuration map or an existing {@link MilvusClientV2}.
  *
+ * <p>The server is addressed by {@link MilvusConfigurations#URI} or, when absent, by
+ * {@link MilvusConfigurations#HOST} (default {@code localhost}), {@link MilvusConfigurations#PORT}
+ * (default {@code 19530}) and {@link MilvusConfigurations#TLS}.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(MilvusConfigurations.HOST, "localhost")
+ *         .put(MilvusConfigurations.PORT, 19530)
+ *         .build();
+ * try (MilvusVectorManagerFactory factory = new MilvusConfiguration().apply(settings)) {
+ *     VectorManager manager = factory.apply("default");
+ * }
+ * }</pre>
+ *
  * @see MilvusConfigurations
  */
 public class MilvusConfiguration implements DatabaseConfiguration {
@@ -60,6 +75,14 @@ public class MilvusConfiguration implements DatabaseConfiguration {
         return new MilvusVectorManagerFactory(client, MilvusCollectionSettings.DEFAULT);
     }
 
+    /**
+     * Creates a {@link MilvusVectorManagerFactory} from the {@link MilvusConfigurations} found in the settings,
+     * opening a new {@link MilvusClientV2} that the factory owns.
+     *
+     * @param settings the settings
+     * @return a MilvusVectorManagerFactory instance
+     * @throws NullPointerException when the settings is null
+     */
     @Override
     public MilvusVectorManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");
