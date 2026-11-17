@@ -29,11 +29,24 @@ import java.util.stream.Stream;
 
 /**
  * The Cassandra implementation of {@link DatabaseManager}, that supports all methods and also supports
- * CQL and ConsistencyLevel.
- * <p>{@link CassandraColumnManager#select(SelectQuery, ConsistencyLevel)}</p>
- * <p>{@link CassandraColumnManager#cql(String)}</p>
- * <p>{@link CassandraColumnManager#nativeQueryPrepare(String)}</p>
- * <p>{@link CassandraColumnManager#delete(DeleteQuery, ConsistencyLevel)}</p>
+ * CQL and ConsistencyLevel. The manager is bound to one keyspace, which is returned by {@link #name()}.
+ *
+ * <ul>
+ *   <li>{@link #select(SelectQuery, ConsistencyLevel)}, {@link #save(CommunicationEntity, ConsistencyLevel)},
+ *   {@link #delete(DeleteQuery, ConsistencyLevel)} and {@link #count(SelectQuery, ConsistencyLevel)}
+ *   run the common operations with a per-call consistency level;</li>
+ *   <li>{@link #cql(String)} and {@link #cql(String, Map)} run CQL text;</li>
+ *   <li>{@link #execute(SimpleStatement)} runs a native driver statement;</li>
+ *   <li>{@link #nativeQueryPrepare(String)} prepares a CQL statement for repeated execution.</li>
+ * </ul>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Stream<CommunicationEntity> books = manager.cql(
+ *         "SELECT * FROM books WHERE isbn = :isbn", Map.of("isbn", "978-0134685991"));
+ * }</pre>
+ *
+ * <p>Closing the manager closes its Cassandra session.</p>
  */
 public interface CassandraColumnManager extends DatabaseManager {
 
@@ -126,7 +139,7 @@ public interface CassandraColumnManager extends DatabaseManager {
      * Executes CQL using the provided named values.
      * <p>E.g.: SELECT * FROM users WHERE id = :i", Map&#60;String, Object&#62;of("i", 1)</p>
      *
-     * @param query  the Cassndra query language
+     * @param query  the CQL text with named parameters
      * @param values values required for the execution of {@code query}
      * @return the result of this query
      * @throws NullPointerException when either query or values are null
