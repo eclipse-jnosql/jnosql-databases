@@ -18,9 +18,22 @@ package org.eclipse.jnosql.databases.solr.mapping;
 import org.eclipse.jnosql.mapping.NoSQLRepository;
 
 /**
- * The couchbase {@link NoSQLRepository}
+ * A {@link NoSQLRepository} for Apache Solr entities. Besides the inherited operations, its methods can be
+ * annotated with {@link Solr} to run a Solr query.
+ *
+ * <pre>{@code
+ * @Repository
+ * public interface PersonRepository extends SolrRepository<Person, String> {
+ *
+ *     @Solr("name:@name AND _entity:person")
+ *     List<Person> findByName(@Param("name") String name);
+ * }
+ * }</pre>
+ *
  * @param <T> the entity type
  * @param <K> the entity id type
+ * @see Solr
+ * @see Param
  */
 public interface SolrRepository<T, K> extends NoSQLRepository<T, K> {
 }
