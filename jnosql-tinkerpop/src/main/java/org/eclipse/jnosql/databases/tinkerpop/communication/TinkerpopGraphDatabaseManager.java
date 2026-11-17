@@ -33,16 +33,25 @@ import java.util.function.Supplier;
  * In addition to the functionality inherited from {@link DatabaseManager}, implementations of this interface
  * also act as suppliers of the underlying {@link org.apache.tinkerpop.gremlin.structure.Graph} instance.
  * </p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * TinkerpopGraphDatabaseManager manager = TinkerpopGraphDatabaseManager.of(graph);
+ * Graph sameGraph = manager.get();
+ * }
  */
 public interface TinkerpopGraphDatabaseManager extends GraphDatabaseManager, Supplier<Graph> {
 
+    /**
+     * The name of the element that holds the vertex or edge identifier, the TinkerPop {@code T.id} accessor.
+     */
     String ID = T.id.getAccessor();
 
     /**
-     * Creates a new instance of DefaultGraphDatabaseManager with the specified TinkerPop Graph.
+     * Creates a {@link TinkerpopGraphDatabaseManager} that operates on the given TinkerPop graph.
      *
      * @param graph the TinkerPop Graph instance to be managed
-     * @return a new DefaultGraphDatabaseManager instance
+     * @return a new manager backed by {@code graph}
      * @throws NullPointerException if the graph parameter is null
      */
     static TinkerpopGraphDatabaseManager of(Graph graph) {
