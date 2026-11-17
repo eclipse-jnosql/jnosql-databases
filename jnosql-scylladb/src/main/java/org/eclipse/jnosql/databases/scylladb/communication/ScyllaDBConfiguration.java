@@ -28,6 +28,26 @@ import java.util.Objects;
  * A ScyllaDB-specific implementation of {@link DatabaseConfiguration}, which provides
  * {@link ScyllaDBColumnManagerFactory} instances.
  *
+ * <p>The connection is configured through {@link Settings} keys from {@link ScyllaDBConfigurations}.
+ * Only keys that start with {@code jnosql.} are read. Statements set with
+ * {@link ScyllaDBConfigurations#QUERY} run once when the factory is created, which is a convenient
+ * place to create the keyspace.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(ScyllaDBConfigurations.HOST.get() + ".1", "localhost")
+ *         .put(ScyllaDBConfigurations.DATA_CENTER, "datacenter1")
+ *         .put(ScyllaDBConfigurations.QUERY.get() + ".1",
+ *                 "CREATE KEYSPACE IF NOT EXISTS library WITH replication = "
+ *                 + "{'class': 'SimpleStrategy', 'replication_factor': 1}")
+ *         .build();
+ * try (ScyllaDBColumnManagerFactory factory = new ScyllaDBConfiguration().apply(settings);
+ *      ScyllaDBColumnManager manager = factory.apply("library")) {
+ *     // use the manager
+ * }
+ * }</pre>
+ *
  * @see ScyllaDBConfigurations
  */
 public final class ScyllaDBConfiguration implements DatabaseConfiguration {
