@@ -1,3 +1,4 @@
+
 /*
  *  Copyright (c) 2022 Contributors to the Eclipse Foundation
  *   All rights reserved. This program and the accompanying materials
@@ -14,7 +15,6 @@
  *   Alessandro Moscatelli
  */
 package org.eclipse.jnosql.databases.elasticsearch.communication;
-
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jsonb.JsonbJsonpMapper;
@@ -39,8 +39,23 @@ import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The implementation of {@link DatabaseConfiguration}
- * that returns {@link ElasticsearchDocumentManagerFactory}.
+ * The Elasticsearch implementation of {@link DatabaseConfiguration}. It returns an
+ * {@link ElasticsearchDocumentManagerFactory} connected to the hosts in the {@link Settings} keys with the
+ * {@link ElasticsearchConfigurations#HOST} prefix, plus the hosts added with {@link #add(HttpHost)}.
+ *
+ * <p>A host can be a URL such as {@code https://localhost:9200}, {@code host:port}, or just a host name; the
+ * port defaults to {@code 9200}. When {@link ElasticsearchConfigurations#USER} is set, a basic authentication
+ * header is sent with every request.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(ElasticsearchConfigurations.HOST.get() + ".1", "localhost:9200")
+ *         .build();
+ * try (ElasticsearchDocumentManagerFactory factory = new ElasticsearchDocumentConfiguration().apply(settings)) {
+ *     ElasticsearchDocumentManager manager = factory.apply("users");
+ * }
+ * }</pre>
  *
  * @see ElasticsearchConfigurations
  */
@@ -49,9 +64,11 @@ public class ElasticsearchDocumentConfiguration implements DatabaseConfiguration
     private static final int DEFAULT_PORT = 9200;
 
     private final List<HttpHost> httpHosts = new ArrayList<>();
-
     private final List<Header> headers = new ArrayList<>();
 
+/**
+ * Creates a configuration without extra hosts or headers.
+ */
     public ElasticsearchDocumentConfiguration() {
     }
 
@@ -82,6 +99,18 @@ public class ElasticsearchDocumentConfiguration implements DatabaseConfiguration
         return new ElasticsearchDocumentManagerFactory(elasticsearchClient);
     }
 
+/**
+ * Builds the native {@link ElasticsearchClient} from the settings, the hosts added with {@link #add(HttpHost)}
+ * and the headers added with {@link #add(Header)}. Use it when you need the native client without a
+ * {@link ElasticsearchDocumentManagerFactory}.
+ *
+ * <p>The hosts found in {@code settings} are appended to this configuration, so calling it again on the same
+ * instance repeats them.</p>
+ *
+ * @param settings the settings
+ * @return a new client; closing its transport releases the HTTP resources
+ * @throws NullPointerException when settings is null
+ */
     public ElasticsearchClient buildElasticsearchClient(Settings settings) {
         requireNonNull(settings, "settings is required");
 

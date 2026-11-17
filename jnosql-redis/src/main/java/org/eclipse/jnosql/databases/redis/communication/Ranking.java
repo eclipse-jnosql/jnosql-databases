@@ -15,7 +15,16 @@
 package org.eclipse.jnosql.databases.redis.communication;
 
 /**
- * An SortedSet element
+ * A member of a Redis sorted set together with its score. Sorted sets keep members ordered by score.
+ * Instances are immutable and compare equal when member and score are equal.
+ *
+ * <pre>{@code
+ * Ranking ranking = Ranking.of("ada", 10);
+ * String member = ranking.getMember(); // "ada"
+ * Number points = ranking.getPoints(); // 10
+ * }</pre>
+ *
+ * @see SortedSet
  */
 public interface Ranking {
 

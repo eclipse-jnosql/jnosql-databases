@@ -34,6 +34,23 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * The DynamoDB implementation of {@link BucketManager}. Each entry is an item of one DynamoDB table, with the
+ * key stored as text through {@code toString()} and the value stored as JSON.
+ *
+ * <p>Obtain an instance from {@link DynamoDBBucketManagerFactory}.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * DynamoDBBucketManager users = factory.apply("users");
+ * users.put("ada", "Ada Lovelace");
+ * Optional<Value> name = users.get("ada");
+ * }</pre>
+ *
+ * <p>Time-to-live is not supported: both {@code put} methods that take a {@link java.time.Duration} throw
+ * {@link UnsupportedOperationException}. A {@link java.util.UUID} key is stored as its canonical text form.
+ * {@link #close()} closes the AWS client, which the factory shares.</p>
+ */
 public class DynamoDBBucketManager implements BucketManager {
 
 
@@ -41,6 +58,13 @@ public class DynamoDBBucketManager implements BucketManager {
     private String tableName;
     private static final Function<AttributeValue, String> TO_JSON = AttributeValue::s;
 
+/**
+ * Creates a manager for an existing DynamoDB table. The table is not created; use
+ * {@link DynamoDBBucketManagerFactory} to create it when it is missing.
+ *
+ * @param client the AWS client
+ * @param tableName the table name, which is also the bucket name
+ */
     public DynamoDBBucketManager(DynamoDbClient client, String tableName) {
         this.client = client;
         this.tableName = tableName;

@@ -50,9 +50,24 @@ import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBUtils.ge
 import static org.eclipse.jnosql.databases.mongodb.communication.MongoDBUtils.updateDocument;
 
 /**
- * The mongodb implementation to {@link DatabaseManager} that does not support TTL methods
- * {@link MongoDBDocumentManager#insert(CommunicationEntity, Duration)}
- * Closing a {@link MongoDBDocumentManager} has no effect.
+ * The MongoDB implementation of {@link DatabaseManager}, bound to one MongoDB database. The entity name is the
+ * collection name and the {@code _id} element is the document identifier.
+ *
+ * <p>On {@code insert}, when the entity has no {@code _id}, MongoDB generates one and it is added to the
+ * returned entity. {@code update(entity)} requires an {@code _id} element and throws
+ * {@link UnsupportedOperationException} otherwise.</p>
+ *
+ * <p>Besides the common operations, it accepts native {@link Bson} filters and aggregation pipelines
+ * through {@link #select(String, Bson)}, {@link #count(String, Bson)}, {@link #delete(String, Bson)} and
+ * {@link #aggregate(String, List)}.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Stream<CommunicationEntity> adults = manager.select("people", Filters.gte("age", 18));
+ * }</pre>
+ *
+ * <p>TTL is not supported: {@link #insert(CommunicationEntity, Duration)} throws
+ * {@link UnsupportedOperationException}. Closing a {@link MongoDBDocumentManager} has no effect.</p>
  */
 public class MongoDBDocumentManager implements DatabaseManager {
 

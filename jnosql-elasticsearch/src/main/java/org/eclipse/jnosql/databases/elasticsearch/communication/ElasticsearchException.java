@@ -16,7 +16,8 @@ package org.eclipse.jnosql.databases.elasticsearch.communication;
 
 
 /**
- * Error on elasticsearch document implementation
+ * Thrown when an Elasticsearch operation fails, for example while inserting, deleting, querying, creating an
+ * index or closing the transport. The underlying client failure is available through {@link #getCause()}.
  */
 public class ElasticsearchException extends RuntimeException {
 

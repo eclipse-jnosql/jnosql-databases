@@ -33,8 +33,21 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The hazelcast implementation of {@link KeyValueConfiguration} that returns
- * {@link HazelcastBucketManagerFactory}.
+ * The Hazelcast implementation of {@link KeyValueConfiguration}. It creates a
+ * {@link HazelcastBucketManagerFactory} that joins, or starts, an embedded Hazelcast member.
+ *
+ * <p>The member is looked up by instance name ({@link HazelcastConfigurations#INSTANCE}) and reused when one
+ * already exists in the JVM. Each {@link HazelcastConfigurations#HOST} value is added as a TCP/IP join member.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(HazelcastConfigurations.INSTANCE, "my-instance")
+ *         .put(HazelcastConfigurations.PORT, 5701)
+ *         .build();
+ * HazelcastBucketManagerFactory factory = new HazelcastKeyValueConfiguration().apply(settings);
+ * HazelcastBucketManager bucket = factory.apply("users");
+ * }</pre>
  *
  * @see HazelcastConfigurations
  */
@@ -44,10 +57,12 @@ public class HazelcastKeyValueConfiguration implements KeyValueConfiguration {
 
 
     /**
-     * Creates a {@link HazelcastBucketManagerFactory} from configuration map
-     * @param configurations the configuration map
-     * @return the HazelCastBucketManagerFactory instance
-     * @throws NullPointerException when configurations is null
+     * Creates a {@link HazelcastBucketManagerFactory} from a map of configuration keys, such as the values of
+     * {@link HazelcastConfigurations}. It is equivalent to {@link #apply(Settings)} with the same entries.
+     *
+     * @param configurations the configuration keys and values
+     * @return a new factory
+     * @throws NullPointerException if {@code configurations} is {@code null}
      */
     public HazelcastBucketManagerFactory get(Map<String, String> configurations) throws NullPointerException {
         Objects.requireNonNull(configurations, "configurations is required");
@@ -57,10 +72,18 @@ public class HazelcastKeyValueConfiguration implements KeyValueConfiguration {
     }
 
     /**
-     * Creates a {@link HazelcastBucketManagerFactory} from hazelcast config
-     * @param config the {@link Config}
-     * @return the HazelCastBucketManagerFactory instance
-     * @throws NullPointerException when config is null
+     * Creates a {@link HazelcastBucketManagerFactory} from a Hazelcast {@link Config}, which gives full control
+     * over the member. An existing member with the same instance name is reused.
+     *
+     * <p>Example:</p>
+     * <pre>{@code
+     * Config config = new Config("my-instance");
+     * HazelcastBucketManagerFactory factory = new HazelcastKeyValueConfiguration().get(config);
+     * }</pre>
+     *
+     * @param config the Hazelcast configuration
+     * @return a new factory
+     * @throws NullPointerException if {@code config} is {@code null}
      */
     public HazelcastBucketManagerFactory get(Config config)throws NullPointerException {
         requireNonNull(config, "config is required");
@@ -69,6 +92,11 @@ public class HazelcastKeyValueConfiguration implements KeyValueConfiguration {
     }
 
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws NullPointerException if {@code settings} is {@code null}
+     */
     @Override
     public HazelcastBucketManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");

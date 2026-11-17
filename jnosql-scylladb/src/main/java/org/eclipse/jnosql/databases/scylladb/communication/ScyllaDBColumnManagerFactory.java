@@ -23,9 +23,19 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 import java.util.List;
 
 /**
- * The ScyllaDB implementation to {@link DatabaseManagerFactory}
- * <br/>
- * Closing a {@link ScyllaDBColumnManagerFactory} has no effect.
+ * The ScyllaDB implementation of {@link DatabaseManagerFactory}. Create it with
+ * {@link ScyllaDBConfiguration#apply(org.eclipse.jnosql.communication.Settings)}.
+ *
+ * <p>{@code factory.apply(keyspace)} opens a new ScyllaDB session for that keyspace and returns a
+ * {@link ScyllaDBColumnManager}. Closing the manager closes its session, so close each manager you create.
+ * Closing a {@link ScyllaDBColumnManagerFactory} has no effect.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * try (ScyllaDBColumnManager manager = factory.apply("library")) {
+ *     manager.cql("SELECT * FROM books").forEach(System.out::println);
+ * }
+ * }</pre>
  */
 public class ScyllaDBColumnManagerFactory implements DatabaseManagerFactory {
 

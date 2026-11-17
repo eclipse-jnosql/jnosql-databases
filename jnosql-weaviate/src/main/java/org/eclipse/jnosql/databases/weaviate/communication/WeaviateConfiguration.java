@@ -28,6 +28,22 @@ import static java.util.Objects.requireNonNull;
  * The Weaviate implementation of {@link DatabaseConfiguration}. It creates a {@link WeaviateVectorManagerFactory}
  * from {@link Settings}, a configuration map or an existing {@link WeaviateClient}.
  *
+ * <p>Connects to {@link WeaviateConfigurations#HOST} (default {@code localhost}) using
+ * {@link WeaviateConfigurations#HTTP_PORT} (default {@code 8080}) and
+ * {@link WeaviateConfigurations#GRPC_PORT} (default {@code 50051}); {@link WeaviateConfigurations#SECURE}
+ * selects HTTPS and defaults to {@code false}.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(WeaviateConfigurations.HOST, "localhost")
+ *         .put(WeaviateConfigurations.HTTP_PORT, 8080)
+ *         .build();
+ * try (WeaviateVectorManagerFactory factory = new WeaviateConfiguration().apply(settings)) {
+ *     VectorManager manager = factory.apply("default");
+ * }
+ * }</pre>
+ *
  * @see WeaviateConfigurations
  */
 public class WeaviateConfiguration implements DatabaseConfiguration {
@@ -60,6 +76,14 @@ public class WeaviateConfiguration implements DatabaseConfiguration {
         return new WeaviateVectorManagerFactory(client, WeaviateCollectionSettings.DEFAULT);
     }
 
+    /**
+     * Creates a {@link WeaviateVectorManagerFactory} from the {@link WeaviateConfigurations} found in the
+     * settings, opening a new {@link WeaviateClient} that the factory owns.
+     *
+     * @param settings the settings
+     * @return a WeaviateVectorManagerFactory instance
+     * @throws NullPointerException when the settings is null
+     */
     @Override
     public WeaviateVectorManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");

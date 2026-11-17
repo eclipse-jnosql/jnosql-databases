@@ -27,8 +27,22 @@ import static org.eclipse.jnosql.databases.solr.communication.SolrDocumentConfig
 
 
 /**
- * The Apache Solr implementation to {@link DatabaseConfiguration}
- * that returns  {@link SolrDocumentManagerFactory}
+ * The Apache Solr implementation of {@link DatabaseConfiguration}. It returns a
+ * {@link SolrDocumentManagerFactory} connected to the Solr URL in {@link SolrDocumentConfigurations#HOST}, or to
+ * {@code http://localhost:8983/solr/} when none is set.
+ *
+ * <p>Set {@link SolrDocumentConfigurations#AUTOMATIC_COMMIT} to {@code false} to stop each write operation from
+ * committing; it is {@code true} by default.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(SolrDocumentConfigurations.HOST, "http://localhost:8983/solr")
+ *         .build();
+ * SolrDocumentManagerFactory factory = new SolrDocumentConfiguration().apply(settings);
+ * SolrDocumentManager manager = factory.apply("books");
+ * }</pre>
+ *
  * @see SolrDocumentConfigurations
  */
 public class SolrDocumentConfiguration implements DatabaseConfiguration {

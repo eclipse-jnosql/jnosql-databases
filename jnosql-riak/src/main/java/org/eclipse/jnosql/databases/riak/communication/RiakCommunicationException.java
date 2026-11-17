@@ -18,7 +18,8 @@ package org.eclipse.jnosql.databases.riak.communication;
 import org.eclipse.jnosql.communication.CommunicationException;
 
 /**
- * The riak exception to Diana project
+ * Thrown by {@link RiakBucketManager} when a Riak request fails or when a key is empty. The original
+ * Riak client failure is available through {@link #getCause()}.
  */
 public class RiakCommunicationException extends CommunicationException {
 

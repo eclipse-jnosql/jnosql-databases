@@ -23,39 +23,51 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * The hazelcast implementation of {@link BucketManager}
+ * The Hazelcast implementation of {@link BucketManager}. Besides the key-value operations, it can query the
+ * values of the bucket with Hazelcast predicates.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * HazelcastBucketManager bucket = factory.apply("movies");
+ * Collection<Value> matches = bucket.sql("name = :name", Map.of("name", "Matrix"));
+ * }</pre>
+ *
+ * @see HazelcastBucketManagerFactory
  */
 public interface HazelcastBucketManager extends BucketManager {
 
 
     /**
-     * Executes hazelcast sql
+     * Returns the values of the bucket that match a Hazelcast SQL predicate expression, such as
+     * {@code "name = 'Matrix'"}. The expression is a predicate on the stored values, not a full {@code SELECT}.
      *
-     * @param query the sql
-     * @return the result sql
-     * @throws NullPointerException when there is null sql
+     * @param query the predicate expression
+     * @return the matching values, empty when none matches
+     * @throws NullPointerException if {@code query} is {@code null}
      */
     Collection<Value> sql(String query);
 
     /**
-     * Executes hazelcast sql with named sql.
-     * E.g.:  bucketManager.sql("name = :name", singletonMap("name", "Matrix"))
+     * Returns the values of the bucket that match a predicate expression with named parameters, such as
+     * {@code "name = :name"}. Parameter values are inserted as literals; a parameter used in the expression
+     * but absent from the map is rejected.
      *
-     * @param query  the sql
-     * @param params the params to bind
-     * @return the result sql
-     * @throws NullPointerException when there is null sql
+     * @param query  the predicate expression
+     * @param params the values to bind, by parameter name
+     * @return the matching values, empty when none matches
+     * @throws NullPointerException     if {@code query} is {@code null}
+     * @throws IllegalArgumentException if the expression uses a parameter that is not in {@code params}
      */
     Collection<Value> sql(String query, Map<String, Object> params);
 
     /**
-     * Executes hazelcast sql
+     * Returns the values of the bucket that match a Hazelcast {@link Predicate}.
      *
-     * @param predicate the hazelcast predicate
+     * @param predicate the predicate to apply to the entries
      * @param <K>       the key type
      * @param <V>       the value type
-     * @return the result sql
-     * @throws NullPointerException when there is null predicate
+     * @return the matching values, empty when none matches
+     * @throws NullPointerException if {@code predicate} is {@code null}
      */
     <K, V> Collection<Value> sql(Predicate<K, V> predicate);
 

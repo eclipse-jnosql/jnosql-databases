@@ -20,11 +20,24 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * To a dynamic query on SolrRepository interface.
+ * Declares the Solr query a {@link SolrRepository} method executes.
+ * Use {@code @name} placeholders in the query and bind them with {@link Param}.
+ *
+ * <pre>{@code
+ * @Solr("name:@name AND _entity:person")
+ * List<Person> findByName(@Param("name") String name);
+ * }</pre>
+ *
+ * @see SolrRepository
+ * @see Param
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Solr {
-
+/**
+ * Returns the Solr query.
+ *
+ * @return the query text
+ */
     String value();
 }

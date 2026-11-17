@@ -38,14 +38,35 @@ import static java.util.Objects.requireNonNull;
 import static java.util.Optional.ofNullable;
 
 /**
- * The memcached implementation of {@link KeyValueConfiguration} that returns
- * {@link MemcachedBucketManagerFactory}.
+ * The Memcached implementation of {@link KeyValueConfiguration}. It creates a bucket manager factory backed by a
+ * Memcached client.
+ *
+ * <p>A bucket is a key prefix: the entry for key {@code k} in bucket {@code users} is stored in Memcached under
+ * {@code users:k}. The factory supports only {@code apply(bucketName)}; {@code getList}, {@code getSet},
+ * {@code getQueue} and {@code getMap} throw {@link UnsupportedOperationException}.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(MemcachedConfigurations.HOST, "localhost:11211")
+ *         .build();
+ * BucketManagerFactory factory = new MemcachedKeyValueConfiguration().apply(settings);
+ * BucketManager users = factory.apply("users");
+ * users.put("ada", "Ada Lovelace", Duration.ofMinutes(10));
+ * }</pre>
  *
  * @see MemcachedConfigurations
  */
 public class MemcachedKeyValueConfiguration implements KeyValueConfiguration {
 
-
+    /**
+     * {@inheritDoc}
+     *
+     * <p>When no host is configured, the client is created without addresses.</p>
+     *
+     * @throws NullPointerException if {@code settings} is {@code null}
+     * @throws MemcachedException   if the Memcached client cannot be created
+     */
     @Override
     public MemcachedBucketManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");
@@ -110,10 +131,18 @@ public class MemcachedKeyValueConfiguration implements KeyValueConfiguration {
     }
 
     /**
-     * Creates a {@link MemcachedBucketManagerFactory} from a {@link MemcachedClient}
+     * Creates a bucket manager factory from an existing {@link MemcachedClient}. Use it to control the client
+     * setup yourself.
      *
-     * @param client the client
-     * @return a {@link MemcachedBucketManagerFactory} instance
+     * <p>Example:</p>
+     * <pre>{@code
+     * MemcachedClient client = new MemcachedClient(new InetSocketAddress("localhost", 11211));
+     * BucketManagerFactory factory = new MemcachedKeyValueConfiguration().get(client);
+     * }</pre>
+     *
+     * @param client the Memcached client
+     * @return a factory that uses {@code client}
+     * @throws NullPointerException if {@code client} is {@code null}
      */
     public MemcachedBucketManagerFactory get(MemcachedClient client) {
         Objects.requireNonNull(client, "client is required");

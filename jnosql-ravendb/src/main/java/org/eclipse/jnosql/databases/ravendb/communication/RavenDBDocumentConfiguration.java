@@ -25,13 +25,25 @@ import static java.util.Objects.requireNonNull;
 
 
 /**
- * The RavenDB implementation to both {@link DatabaseConfiguration}
- * that returns  {@link RavenDBDocumentManagerFactory}
+ * The RavenDB implementation of {@link DatabaseConfiguration}. It returns a
+ * {@link RavenDBDocumentManagerFactory} connected to the server URLs in the {@link Settings} keys that start
+ * with {@link #HOST}, for example {@code jnosql.ravendb.host.1=http://localhost:8080}.
  *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(RavenDBDocumentConfiguration.HOST + ".1", "http://localhost:8080")
+ *         .build();
+ * RavenDBDocumentManagerFactory factory = new RavenDBDocumentConfiguration().apply(settings);
+ * RavenDBDocumentManager manager = factory.apply("library");
+ * }</pre>
  */
 public class RavenDBDocumentConfiguration implements DatabaseConfiguration {
 
-
+/**
+ * The prefix of the server URL keys, {@code jnosql.ravendb.host}. Append a suffix to list several servers,
+ * such as {@code jnosql.ravendb.host.1}.
+ */
     public static final String HOST = "jnosql.ravendb.host";
 
     @Override

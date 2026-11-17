@@ -29,7 +29,19 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * The Infinispan implementation of {@link BucketManager}
+ * The Infinispan implementation of {@link BucketManager}, backed by one Infinispan cache. Values are stored as
+ * given, without JSON conversion, and read back as {@link Value}.
+ *
+ * <p>Obtain an instance from {@link InfinispanBucketManagerFactory}, using {@code factory.apply(bucketName)}.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * BucketManager users = factory.apply("users");
+ * users.put("ada", "Ada Lovelace", Duration.ofMinutes(10));
+ * Optional<Value> name = users.get("ada");
+ * }</pre>
+ *
+ * <p>{@link #close()} does nothing; the cache is owned by the factory's cache manager.</p>
  */
 public class InfinispanBucketManager implements BucketManager {
 

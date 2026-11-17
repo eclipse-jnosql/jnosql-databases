@@ -25,7 +25,22 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * The Infinispan implementation of {@link BucketManagerFactory}
+ * The Infinispan implementation of {@link BucketManagerFactory}. Each bucket is an Infinispan cache with that
+ * name.
+ *
+ * <p>Only {@link #getMap(String, Class, Class)} is supported among the collection factories: it returns the
+ * cache itself as a {@link Map}. {@link #getList(String, Class)}, {@link #getSet(String, Class)} and
+ * {@link #getQueue(String, Class)} always throw {@link UnsupportedOperationException}. {@link #close()} does
+ * not stop the underlying cache manager.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * InfinispanBucketManagerFactory factory = new InfinispanKeyValueConfiguration().apply(Settings.settings());
+ * InfinispanBucketManager users = factory.apply("users");
+ * Map<String, String> cache = factory.getMap("users", String.class, String.class);
+ * }</pre>
+ *
+ * @see InfinispanKeyValueConfiguration
  */
 public class InfinispanBucketManagerFactory implements BucketManagerFactory {
 

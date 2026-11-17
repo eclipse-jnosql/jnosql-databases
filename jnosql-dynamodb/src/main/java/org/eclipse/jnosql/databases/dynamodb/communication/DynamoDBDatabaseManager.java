@@ -22,24 +22,47 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import java.util.stream.Stream;
 
 /**
- * A document manager interface for DynamoDB database operations.
+ * The {@link DatabaseManager} of the DynamoDB document driver. Besides the inherited operations, it executes
+ * PartiQL statements and exposes the underlying AWS client.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * DynamoDBDatabaseManager manager = factory.apply("my-database");
+ * Stream<CommunicationEntity> active = manager.partiQL(
+ *         "SELECT * FROM users WHERE status = ?", "ACTIVE");
+ * }</pre>
+ *
+ * <p>Obtain an instance from {@link DynamoDBDatabaseManagerFactory}.</p>
  */
 public interface DynamoDBDatabaseManager extends DatabaseManager {
 
     /**
-     * DynamoDB supports a limited subset of <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html">PartiQL</a>.
-     * This method executes a PartiQL query with parameters and returns a stream of CommunicationEntity objects.
-     * <p>Example query: {@code SELECT * FROM users WHERE status = ?}</p>
+     * Executes a PartiQL statement and returns every matching item. DynamoDB supports a limited subset of
+     * <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html">PartiQL</a>.
      *
-     * @param query the PartiQL query
+     * <p>Positional parameters bind to the {@code ?} placeholders in order. Each item becomes a
+     * {@link CommunicationEntity} named after the item's entity attribute, so the statement must select it, as
+     * {@code SELECT *} does.</p>
+     *
+     * <p>Example:</p>
+     * <pre>{@code
+     * Stream<CommunicationEntity> active = manager.partiQL(
+     *         "SELECT * FROM users WHERE status = ?", "ACTIVE");
+     * }</pre>
+     *
+     * @param query the PartiQL statement
+     * @param params the values bound to the {@code ?} placeholders
      * @return a {@link Stream} of {@link CommunicationEntity} representing the query result
-     * @throws NullPointerException  when the query is null
+     * @throws NullPointerException when {@code query} is {@code null}
      */
     Stream<CommunicationEntity> partiQL(String query, Object... params);
 
 
     /**
-     * @return a {@link DynamoDbClient} instance for custom utilization
+     * Returns the AWS client used by this manager, for operations the driver does not expose. The client is
+     * shared with the factory and closed when the factory is closed.
+     *
+     * @return the {@link DynamoDbClient} instance
      */
     DynamoDbClient dynamoDbClient();
 

@@ -24,6 +24,13 @@ import java.util.Objects;
  * The Weaviate {@link DatabaseManagerFactory}. It owns the {@link WeaviateClient}
  * and closes it when the factory is closed.
  * Weaviate has no databases, so every {@link VectorManager} shares the collections of the Weaviate instance.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * try (WeaviateVectorManagerFactory factory = new WeaviateConfiguration().apply(settings)) {
+ *     VectorManager manager = factory.apply("default");
+ * }
+ * }</pre>
  */
 public class WeaviateVectorManagerFactory implements DatabaseManagerFactory {
 
@@ -36,6 +43,13 @@ public class WeaviateVectorManagerFactory implements DatabaseManagerFactory {
         this.collectionSettings = collectionSettings;
     }
 
+    /**
+     * Returns a manager labeled with the given name.
+     *
+     * @param database the manager name
+     * @return a {@link VectorManager}
+     * @throws NullPointerException when the database is null
+     */
     @Override
     public VectorManager apply(String database) {
         Objects.requireNonNull(database, "database is required");
@@ -50,6 +64,11 @@ public class WeaviateVectorManagerFactory implements DatabaseManagerFactory {
         return collectionSettings;
     }
 
+    /**
+     * Closes the {@link WeaviateClient}; managers created by this factory must not be used afterwards.
+     *
+     * @throws IllegalStateException when the client cannot be closed
+     */
     @Override
     public void close() {
         try {

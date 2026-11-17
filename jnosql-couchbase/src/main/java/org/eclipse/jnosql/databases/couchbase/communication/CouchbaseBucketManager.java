@@ -35,9 +35,20 @@ import static java.util.stream.StreamSupport.stream;
 import static org.eclipse.jnosql.communication.ValueUtil.convert;
 
 /**
- * The couchbase implementation to {@link BucketManager}
- * <br/>
- * Closing a {@link CouchbaseBucketManager} has no effect.
+ * The Couchbase implementation of {@link BucketManager}. Each key is stored as a document, in the
+ * collection selected by {@link CouchbaseConfigurations#COLLECTION} or the bucket default, and
+ * {@code key.toString()} is the document id.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * BucketManager bucket = factory.apply("my-bucket");
+ * bucket.put("ada", "Ada Lovelace");
+ * Optional<Value> name = bucket.get("ada");
+ * }</pre>
+ *
+ * <p>{@code get} returns {@link java.util.Optional#empty()} when the document does not exist, and
+ * {@code put} with a {@link java.time.Duration} sets the document expiry. Closing a
+ * {@link CouchbaseBucketManager} has no effect.</p>
  */
 public class CouchbaseBucketManager implements BucketManager {
 

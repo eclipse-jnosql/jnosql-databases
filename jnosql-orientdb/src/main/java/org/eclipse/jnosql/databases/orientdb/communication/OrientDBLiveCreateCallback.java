@@ -15,7 +15,23 @@
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
+/**
+ * Receives the created record of an OrientDB live query. It is invoked each time a matching record is created.
+ * Pass it to {@link OrientDBLiveCallback} to subscribe through
+ * {@link OrientDBDocumentManager#live(String, OrientDBLiveCallback, Object...)}.
+ *
+ * <pre>{@code
+ * OrientDBLiveCreateCallback<CommunicationEntity> callback = entity -> System.out.println(entity);
+ * }</pre>
+ *
+ * @param <T> the record type
+ */
 @FunctionalInterface
 public interface OrientDBLiveCreateCallback<T> {
+/**
+ * Handles the created record.
+ *
+ * @param t the created record
+ */
     void accept(T t);
 }

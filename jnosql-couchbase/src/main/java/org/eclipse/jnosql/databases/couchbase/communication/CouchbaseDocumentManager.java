@@ -22,7 +22,14 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 import java.util.stream.Stream;
 
 /**
- * The couchbase implementation of {@link DatabaseManager}
+ * The Couchbase implementation of {@link DatabaseManager}. Besides the common document operations, it
+ * executes N1QL queries and returns the rows as {@link CommunicationEntity} instances.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Stream<CommunicationEntity> rows = manager.n1qlQuery("SELECT * FROM `my-bucket` WHERE name = $name",
+ *         JsonObject.create().put("name", "Ada"));
+ * }</pre>
  */
 public interface CouchbaseDocumentManager extends DatabaseManager {
 

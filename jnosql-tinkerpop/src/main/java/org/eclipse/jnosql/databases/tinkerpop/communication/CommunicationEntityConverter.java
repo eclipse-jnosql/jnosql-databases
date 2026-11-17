@@ -20,9 +20,18 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import java.util.function.Function;
 
 public enum CommunicationEntityConverter implements Function<Vertex, CommunicationEntity>{
+/**
+ * Singleton instance.
+ */
     INSTANCE;
 
 
+    /**
+     * Converts the vertex.
+     *
+     * @param vertex the vertex
+     * @return the entity named after the vertex label
+     */
     @Override
     public CommunicationEntity apply(Vertex vertex) {
         var entity = CommunicationEntity.of(vertex.label());

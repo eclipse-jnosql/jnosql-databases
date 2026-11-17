@@ -21,9 +21,9 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 import java.util.Objects;
 
 /**
- * The couchdb implementation of {@link DatabaseManagerFactory} that returns {@link DefaultCouchDBDocumentManager}.
- * <br/>
- * Closing a {@link CouchDBDocumentManagerFactory} has no effect.
+ * The CouchDB implementation of {@link DatabaseManagerFactory}. {@code factory.apply(database)} creates the
+ * CouchDB database when it does not exist and returns a {@link CouchDBDocumentManager} for it. Closing a
+ * {@link CouchDBDocumentManagerFactory} has no effect.
  */
 public class CouchDBDocumentManagerFactory implements DatabaseManagerFactory {
 

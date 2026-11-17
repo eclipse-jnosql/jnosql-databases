@@ -44,8 +44,20 @@ import static net.ravendb.client.Constants.Documents.Metadata.COLLECTION;
 import static net.ravendb.client.Constants.Documents.Metadata.EXPIRES;
 
 /**
- * The RavenDB implementation to {@link DatabaseManager} that does not support TTL methods
- * {@link RavenDBDocumentManager#insert(CommunicationEntity, Duration)}
+ * The RavenDB implementation of {@link DatabaseManager}. Each entity name maps to a RavenDB collection, and
+ * the entity's {@code _id} element is the RavenDB document id; when it is absent, RavenDB generates one with the
+ * {@code <collection>/} prefix and it is added to the entity after the insert. Obtain an instance from
+ * {@link RavenDBDocumentManagerFactory}.
+ *
+ * <p>{@link #insert(CommunicationEntity, Duration)} stores the expiration in the {@code @expires} document
+ * metadata; documents are removed only when the RavenDB server has its expiration feature enabled.</p>
+ *
+ * <pre>{@code
+ * DatabaseManager manager = factory.apply("sensors");
+ * CommunicationEntity entity = CommunicationEntity.of("person");
+ * entity.add(Element.of("name", "Ada"));
+ * manager.insert(entity, Duration.ofHours(1));
+ * }</pre>
  */
 public class RavenDBDocumentManager implements DatabaseManager {
 
@@ -107,6 +119,14 @@ public class RavenDBDocumentManager implements DatabaseManager {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Updates the stored document with the entity's elements.
+     *
+     * @param entity the entity, which must contain the {@code _id} element
+     * @return the same entity
+     * @throws NullPointerException when entity is null
+     * @throws net.ravendb.client.exceptions.RavenException when the {@code _id} element is missing
+     */
     @Override
     public CommunicationEntity update(CommunicationEntity entity) {
         Objects.requireNonNull(entity, "entity is required");
@@ -163,6 +183,9 @@ public class RavenDBDocumentManager implements DatabaseManager {
         }
     }
 
+    /**
+     * Closes the RavenDB document store shared with the factory.
+     */
     @Override
     public void close() {
         store.close();

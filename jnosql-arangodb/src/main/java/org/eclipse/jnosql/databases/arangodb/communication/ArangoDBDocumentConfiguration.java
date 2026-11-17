@@ -21,12 +21,22 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The implementation of {@link DatabaseConfiguration}
- * that returns {@link ArangoDBDocumentManagerFactory}.
+ * The ArangoDB implementation of {@link DatabaseConfiguration}. It returns an
+ * {@link ArangoDBDocumentManagerFactory} configured from {@link ArangoDBConfigurations}.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(ArangoDBConfigurations.HOST, "localhost:8529")
+ *         .put(ArangoDBConfigurations.USER, "root")
+ *         .put(ArangoDBConfigurations.PASSWORD, "password")
+ *         .build();
+ * ArangoDBDocumentManagerFactory factory = new ArangoDBDocumentConfiguration().apply(settings);
+ * ArangoDBDocumentManager manager = factory.apply("library");
+ * }</pre>
  *
  * @see ArangoDBConfiguration
  * @see ArangoDBConfigurations
- *
  */
 public final class ArangoDBDocumentConfiguration extends ArangoDBConfiguration
         implements DatabaseConfiguration {

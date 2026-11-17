@@ -24,19 +24,29 @@ import java.util.Calendar;
 import java.util.Date;
 
 /**
- * The converter when the Cassandra type is timestamp.
- * This attribute converter has support to:
- * <p>{@link Number}</p>
- * <p>{@link java.time.LocalDate}</p>
- * <p>{@link LocalDateTime}</p>
- * <p>{@link ZonedDateTime}</p>
- * <p>{@link Date}</p>
- * <p>{@link Calendar}</p>
+ * Converts an entity attribute to a {@link Date} for a Cassandra {@code timestamp} column.
+ * The attribute can be a {@link Number} (epoch milliseconds), {@link java.time.LocalDate} (start of day),
+ * {@link LocalDateTime}, {@link ZonedDateTime}, {@link Date} or {@link Calendar}. Local dates and date-times are
+ * interpreted in the JVM default time zone. When reading, the attribute receives the epoch milliseconds as a
+ * {@code long}.
+ *
+ * <pre>{@code
+ * @Column
+ * @Convert(TimestampConverter.class)
+ * private Object createdAt;
+ * }</pre>
  */
 public class TimestampConverter implements AttributeConverter<Object, Date> {
 
     private static final ZoneId ZONE_ID = ZoneId.systemDefault();
 
+    /**
+     * Converts the attribute to a {@link Date}.
+     *
+     * @param attribute a supported date or time value, or {@code null}
+     * @return the {@link Date}, or {@code null} when {@code attribute} is {@code null}
+     * @throws IllegalArgumentException when the attribute type is not supported
+     */
     @Override
     public Date convertToDatabaseColumn(Object attribute) {
         if (attribute == null) {
@@ -64,6 +74,13 @@ public class TimestampConverter implements AttributeConverter<Object, Date> {
         throw new IllegalArgumentException("There is not support to: " + attribute.getClass());
     }
 
+    /**
+     * Converts the stored timestamp to epoch milliseconds.
+     *
+     * @param dbData the stored {@link Date}
+     * @return the epoch milliseconds as a {@link Long}
+     * @throws NullPointerException when {@code dbData} is {@code null}
+     */
     @Override
     public Object convertToEntityAttribute(Date dbData) {
         return dbData.getTime();

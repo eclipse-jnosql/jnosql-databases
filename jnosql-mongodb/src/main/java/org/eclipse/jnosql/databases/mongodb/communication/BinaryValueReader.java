@@ -18,15 +18,30 @@ import org.bson.types.Binary;
 import org.eclipse.jnosql.communication.ValueReader;
 
 /**
- * An implementation of {@link ValueReader} of {@link Binary}
+ * A {@link ValueReader} that reads a value as a MongoDB {@link Binary}. A {@code byte[]} is wrapped as is; any
+ * other value is converted with {@code toString()} and its default-charset bytes are used.
  */
 public class BinaryValueReader implements ValueReader {
 
+    /**
+     * Tells whether this reader handles the given type.
+     *
+     * @param type the requested type
+     * @return {@code true} only when {@code type} is {@link Binary}
+     */
     @Override
     public boolean test(Class<?> type) {
         return Binary.class.equals(type);
     }
 
+    /**
+     * Converts the value to a {@link Binary}.
+     *
+     * @param valueType the requested type, {@link Binary}
+     * @param value     a {@code byte[]} or any object with a text form
+     * @param <T>       the requested type
+     * @return the {@link Binary}, or {@code null} when {@code value} is {@code null}
+     */
     @Override
     public <T> T read(Class<T> valueType, Object value) {
 

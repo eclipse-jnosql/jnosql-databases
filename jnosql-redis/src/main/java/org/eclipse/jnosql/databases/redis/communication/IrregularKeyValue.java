@@ -16,7 +16,8 @@
 package org.eclipse.jnosql.databases.redis.communication;
 
 /**
- * An exception when has irregular key value problem
+ * Thrown by {@link RedisBucketManager} operations when a key is empty. Because it is unchecked, callers
+ * need to catch it only when keys come from untrusted input.
  */
 public class IrregularKeyValue extends RuntimeException {
 
