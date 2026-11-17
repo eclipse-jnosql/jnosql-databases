@@ -22,9 +22,10 @@ import java.util.Objects;
 
 
 /**
- * The Oracle implementation to {@link DatabaseManagerFactory}
- * <br/>
- * Closing a {@link OracleDocumentManagerFactory} has no effect.
+ * The Oracle NoSQL implementation of {@link DatabaseManagerFactory}. {@code factory.apply(table)} creates the
+ * Oracle NoSQL table when it does not exist, using the table limits from {@link OracleNoSQLConfigurations},
+ * and returns an {@link OracleNoSQLDocumentManager} for it. The name passed to {@code apply} is the table name.
+ * Closing an {@link OracleDocumentManagerFactory} has no effect.
  */
 public final class OracleDocumentManagerFactory implements DatabaseManagerFactory {
 
