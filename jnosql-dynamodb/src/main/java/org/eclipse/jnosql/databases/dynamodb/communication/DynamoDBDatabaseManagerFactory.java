@@ -21,11 +21,31 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.Optional;
 
+/**
+ * The DynamoDB implementation of {@link DatabaseManagerFactory}. It creates {@link DynamoDBDatabaseManager}
+ * instances that share one AWS client; closing the factory closes that client.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * try (DynamoDBDatabaseManagerFactory factory = new DynamoDBDocumentConfiguration().apply(settings)) {
+ *     DynamoDBDatabaseManager manager = factory.apply("my-database");
+ * }
+ * }</pre>
+ *
+ * @see DynamoDBDocumentConfiguration
+ */
 public class DynamoDBDatabaseManagerFactory implements DatabaseManagerFactory {
 
     private final DynamoDbClient dynamoDB;
     private final Settings settings;
 
+/**
+ * Creates a factory from an existing AWS client. Use it to control the client setup yourself; the
+ * factory takes ownership of the client and closes it on {@link #close()}.
+ *
+ * @param dynamoDB the AWS client
+ * @param settings the settings read by the managers, such as {@link DynamoDBConfigurations#CREATE_TABLES}
+ */
     public DynamoDBDatabaseManagerFactory(DynamoDbClient dynamoDB, Settings settings) {
         this.dynamoDB = dynamoDB;
         this.settings = settings;
