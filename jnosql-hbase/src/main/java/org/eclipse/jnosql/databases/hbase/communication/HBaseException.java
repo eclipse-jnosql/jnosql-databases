@@ -18,7 +18,9 @@ package org.eclipse.jnosql.databases.hbase.communication;
 import org.eclipse.jnosql.communication.CommunicationException;
 
 /**
- * The Hbase exception to diana implementation
+ * Thrown by the HBase driver when creating a manager, saving, finding or deleting fails, or when an entity has no
+ * {@code _id} element to use as the row key. The HBase client failure, when any, is available through
+ * {@link #getCause()}.
  */
 public class HBaseException extends CommunicationException {
 
