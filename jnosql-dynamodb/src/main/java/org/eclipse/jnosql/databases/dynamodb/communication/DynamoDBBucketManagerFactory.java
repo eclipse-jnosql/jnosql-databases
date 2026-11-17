@@ -23,7 +23,20 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * Provides the dynamo dbbucket manager factory implementation.
+ * The DynamoDB implementation of {@link BucketManagerFactory}. Each bucket is a DynamoDB table with a string
+ * {@code key} and a string {@code value} attribute that holds the value as JSON.
+ *
+ * <p>Only {@code apply(bucketName)} and {@link #getBucketManager(String, Long, Long)} are supported to obtain a
+ * manager. {@code getList}, {@code getSet}, {@code getQueue} and {@code getMap} throw
+ * {@link UnsupportedOperationException}. Closing the factory closes the DynamoDB client.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * DynamoDBBucketManagerFactory factory = new DynamoDBKeyValueConfiguration().apply(settings);
+ * DynamoDBBucketManager users = factory.getBucketManager("users", 10L, 5L);
+ * }
+ *
+ * @see DynamoDBKeyValueConfiguration
  */
 public class DynamoDBBucketManagerFactory implements BucketManagerFactory {
 
@@ -33,6 +46,13 @@ public class DynamoDBBucketManagerFactory implements BucketManagerFactory {
         this.client = client;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The table is created with 5 read and 5 write capacity units when it does not exist.</p>
+     *
+     * @see #getBucketManager(String, Long, Long)
+     */
     @Override
     public DynamoDBBucketManager apply(String bucketName) {
 
@@ -40,12 +60,15 @@ public class DynamoDBBucketManagerFactory implements BucketManagerFactory {
     }
 
 /**
- * Returns the get bucket manager.
+ * Returns the manager of a table, creating the table first when it does not exist.
  *
- * @param bucketName the bucket name
- * @param readCapacityUnits the read capacity units
- * @param writeCapacityUnit the write capacity unit
- * @return the result
+ * @param bucketName the table name
+ * @param readCapacityUnits the read capacity units of a new table; the default of 5 is used when {@code null}
+ *                          or not positive
+ * @param writeCapacityUnit the write capacity units of a new table; the default of 5 is used when {@code null}
+ *                          or not positive
+ * @return the manager of the table
+ * @throws RuntimeException if DynamoDB rejects the table listing
  */
     public DynamoDBBucketManager getBucketManager(String bucketName, Long readCapacityUnits, Long writeCapacityUnit) {
 
