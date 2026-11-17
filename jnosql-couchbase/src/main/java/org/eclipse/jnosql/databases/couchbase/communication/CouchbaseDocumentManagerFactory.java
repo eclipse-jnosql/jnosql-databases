@@ -21,7 +21,11 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 import java.util.Objects;
 
 /**
- * Provides the couchbase document manager factory implementation.
+ * The Couchbase implementation of {@link DatabaseManagerFactory}. It owns the cluster connection,
+ * so close it when the application no longer needs it; closing the factory closes the cluster.
+ *
+ * <p>Create it with {@link CouchbaseDocumentConfiguration#apply(org.eclipse.jnosql.communication.Settings)}.
+ * {@code factory.apply(bucketName)} returns a {@link CouchbaseDocumentManager} for that bucket.</p>
  */
 public class CouchbaseDocumentManagerFactory implements DatabaseManagerFactory {
 
