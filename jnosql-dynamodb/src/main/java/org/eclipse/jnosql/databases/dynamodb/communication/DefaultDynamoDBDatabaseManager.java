@@ -64,7 +64,12 @@ import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBConver
 import static org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBConverter.toItemUpdate;
 
 /**
- * Provides default dynamo dbdatabase manager support.
+ * Default {@link DynamoDBDatabaseManager}. Applications normally obtain it from
+ * {@link DynamoDBDatabaseManagerFactory} rather than building it directly.
+ *
+ * <p>Tables are created on first use. {@code insert} with a TTL stores the expiry instant, truncated to
+ * seconds, in the attribute the table's TTL setting names, so TTL must be enabled on the table beforehand.
+ * {@code close()} closes the {@link DynamoDbClient}.</p>
  */
 public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
 
@@ -78,13 +83,13 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
 
     private final ConcurrentHashMap<String, DescribeTableResponse> tables = new ConcurrentHashMap<>();
 
-/**
- * Returns the default dynamo dbdatabase manager.
- *
- * @param database the database
- * @param dynamoDbClient the dynamo db client
- * @param settings the settings
- */
+    /**
+     * Creates a manager over an existing client.
+     *
+     * @param database the name returned by {@link #name()}
+     * @param dynamoDbClient the AWS client to use; closed by {@link #close()}
+     * @param settings the settings that supply the table and TTL options
+     */
     public DefaultDynamoDBDatabaseManager(String database, DynamoDbClient dynamoDbClient, Settings settings) {
         this.settings = settings;
         this.database = database;
