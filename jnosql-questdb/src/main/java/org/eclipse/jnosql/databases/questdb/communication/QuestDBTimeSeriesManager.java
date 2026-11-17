@@ -47,6 +47,23 @@ import java.util.stream.StreamSupport;
  * <p>The entity name becomes a table, {@code _id} becomes QuestDB's designated
  * timestamp, and scalar columns become QuestDB columns. Table and column
  * creation are delegated to QuestDB's server-side automatic schema policy.</p>
+ *
+ * <p>The {@code _id} identifier must be a temporal value such as {@link java.time.Instant},
+ * {@link java.time.LocalDateTime} (read as UTC), {@link java.time.OffsetDateTime} or
+ * {@link java.time.ZonedDateTime}; a missing or non-temporal identifier is rejected with
+ * {@link IllegalArgumentException}. An entity needs at least one column besides {@code _id}.</p>
+ *
+ * <p>Per-entity TTL and row-level {@code delete(DeleteQuery)} throw {@link UnsupportedOperationException}:
+ * QuestDB applies retention per partition. Updates are supported. Timeouts and failed statements raise
+ * {@link IllegalStateException}.</p>
+ *
+ * <pre>{@code
+ * QuestDBTimeSeriesManager manager = factory.apply("sensors");
+ * CommunicationEntity entity = CommunicationEntity.of("temperature");
+ * entity.add(Element.of("_id", Instant.now()));
+ * entity.add(Element.of("celsius", 21.5));
+ * manager.insert(entity);
+ * }</pre>
  */
 public class QuestDBTimeSeriesManager implements DatabaseManager {
 
@@ -144,6 +161,9 @@ public class QuestDBTimeSeriesManager implements DatabaseManager {
         return count(SelectQuery.select().from(documentCollection).build());
     }
 
+    /**
+     * Has no effect; the connection belongs to {@link QuestDBTimeSeriesManagerFactory}, which closes it.
+     */
     @Override
     public void close() {
     }
