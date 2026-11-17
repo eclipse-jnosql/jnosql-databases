@@ -22,27 +22,48 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The solr implementation to {@link DatabaseManager} that does not support TTL methods
- * {@link DefaultSolrDocumentManager#insert(CommunicationEntity, Duration)}
+ * The Apache Solr implementation of {@link DatabaseManager}, bound to one Solr collection or core. It adds
+ * native Solr queries to the common document operations.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * List<CommunicationEntity> result = manager.solr("title:java AND year:@year", Map.of("year", 2023));
+ * }
+ *
+ * <p>TTL is not supported: {@code insert(CommunicationEntity, Duration)} throws
+ * {@link UnsupportedOperationException}.</p>
  */
 public interface SolrDocumentManager extends DatabaseManager {
 
     /**
-     * Executes a Solr native query
+     * Executes a Solr native query. The text is sent as the Solr {@code q} parameter.
+     *
+     * <p>Example:</p>
+     * {@snippet lang="java" :
+     * List<CommunicationEntity> result = manager.solr("title:java");
+     * }
      *
      * @param query the query
-     * @return the result
+     * @return the matching documents
      * @throws NullPointerException when query is null
+     * @throws SolrException        when Solr fails to execute the query
      */
     List<CommunicationEntity> solr(String query);
 
     /**
-     * Executes a Solr native query with params.
+     * Executes a Solr native query with parameters. Each {@code @name} in the query is replaced by the
+     * escaped value of the entry with that name in {@code params}.
+     *
+     * <p>Example:</p>
+     * {@snippet lang="java" :
+     * List<CommunicationEntity> result = manager.solr("title:@title", Map.of("title", "java"));
+     * }
      *
      * @param query  the query
-     * @param params the params
-     * @return the result
-     * @throws NullPointerException when there is null parameter
+     * @param params the values by parameter name, without the {@code @} prefix
+     * @return the matching documents
+     * @throws NullPointerException when query, params, or any parameter name or value is null
+     * @throws SolrException        when Solr fails to execute the query
      */
     List<CommunicationEntity> solr(String query, Map<String, ?> params);
 }
