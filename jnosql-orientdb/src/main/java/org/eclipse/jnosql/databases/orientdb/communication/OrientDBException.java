@@ -16,7 +16,8 @@ package org.eclipse.jnosql.databases.orientdb.communication;
 
 
 /**
- * The OrientDB exception
+ * Unchecked exception for OrientDB driver failures. It always carries the original OrientDB error as its
+ * {@link #getCause() cause}.
  */
 public class OrientDBException extends RuntimeException {
     OrientDBException(String var1, Throwable var2) {
