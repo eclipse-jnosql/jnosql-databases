@@ -22,28 +22,47 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import java.util.stream.Stream;
 
 /**
- * A document manager interface for DynamoDB database operations.
+ * The {@link DatabaseManager} of the DynamoDB document driver. Besides the inherited operations, it executes
+ * PartiQL statements and exposes the underlying AWS client.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * DynamoDBDatabaseManager manager = factory.apply("my-database");
+ * Stream<CommunicationEntity> active = manager.partiQL(
+ *         "SELECT * FROM users WHERE status = ?", "users", "ACTIVE");
+ * }
+ *
+ * <p>Obtain an instance from {@link DynamoDBDatabaseManagerFactory}.</p>
  */
 public interface DynamoDBDatabaseManager extends DatabaseManager {
 
     /**
-     * DynamoDB supports a limited subset of <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html">PartiQL</a>.
-     * This method executes a PartiQL query with parameters and returns a stream of CommunicationEntity objects.
-     * <p>Example query: {@code SELECT * FROM users WHERE status = ?}</p>
+     * Executes a PartiQL statement and returns every matching item. DynamoDB supports a limited subset of
+     * <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ql-reference.html">PartiQL</a>.
      *
-     * @param query the PartiQL query
-     * @param entityName the entity name
-     * @param params the query parameters
+     * <p>The result is read completely, following DynamoDB pagination, before the stream is returned; the
+     * stream is empty when nothing matches. Positional parameters bind to the {@code ?} placeholders in order.</p>
+     *
+     * <p>Example:</p>
+     * {@snippet lang="java" :
+     * Stream<CommunicationEntity> active = manager.partiQL(
+     *         "SELECT * FROM users WHERE status = ?", "users", "ACTIVE");
+     * }
+     *
+     * @param query the PartiQL statement
+     * @param entityName the name given to every returned {@link CommunicationEntity}, usually the table name
+     * @param params the values bound to the {@code ?} placeholders
      * @return a {@link Stream} of {@link CommunicationEntity} representing the query result
-     * @throws NullPointerException  when the query is null
+     * @throws NullPointerException if {@code query} is {@code null}
      */
     Stream<CommunicationEntity> partiQL(String query, String entityName, Object... params);
 
 
     /**
-     * Returns the DynamoDB client.
+     * Returns the AWS client used by this manager, for operations the driver does not expose. The client is
+     * shared with the factory and closed when the factory is closed.
      *
-     * @return a {@link DynamoDbClient} instance for custom utilization
+     * @return the {@link DynamoDbClient} instance
      */
     DynamoDbClient dynamoDbClient();
 
