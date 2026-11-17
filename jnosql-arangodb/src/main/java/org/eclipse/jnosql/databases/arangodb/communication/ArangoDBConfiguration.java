@@ -42,10 +42,10 @@ public abstract class ArangoDBConfiguration {
     }
 
     /**
-     * Adds a host in the arangodb builder
+     * Adds an ArangoDB host. Hosts set in the {@link Settings} given to {@code apply} are added to these.
      *
-     * @param host the host
-     * @param port the port
+     * @param host the host name
+     * @param port the port, usually {@code 8529}
      * @throws NullPointerException when host is null
      */
     public void addHost(String host, int port) throws NullPointerException {
@@ -65,45 +65,45 @@ public abstract class ArangoDBConfiguration {
     }
 
     /**
-     * set the setTimeout
+     * Sets the request timeout. A {@link ArangoDBConfigurations#TIMEOUT} setting overrides it.
      *
-     * @param timeout the setTimeout
+     * @param timeout the timeout in milliseconds
      */
     public void setTimeout(int timeout) {
         builder.timeout(timeout);
     }
 
     /**
-     * set the setUser
+     * Sets the user name. A user in the settings overrides it.
      *
-     * @param user the setUser
+     * @param user the user name
      */
     public void setUser(String user) {
         builder.user(user);
     }
 
     /**
-     * set the setPassword
+     * Sets the password. A password in the settings overrides it.
      *
-     * @param password the setPassword
+     * @param password the password
      */
     public void setPassword(String password) {
         builder.password(password);
     }
 
     /**
-     * set if going to use ssl
+     * Enables or disables TLS for the connection.
      *
-     * @param value the ssl
+     * @param value {@code true} to use TLS
      */
     public void setUseSSL(boolean value) {
         builder.useSsl(value);
     }
 
     /**
-     * Set the ArangoDB serde
+     * Sets the serializer the ArangoDB driver uses to convert documents to and from the wire format.
      *
-     * @param serde the serde
+     * @param serde the {@link ArangoSerde} to use
      */
     public void setSerde(ArangoSerde serde) {
         builder.serde(serde);
