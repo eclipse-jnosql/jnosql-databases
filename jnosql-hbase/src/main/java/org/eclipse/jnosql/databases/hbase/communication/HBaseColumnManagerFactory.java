@@ -32,9 +32,22 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * The HBase implementation of {@link DatabaseManagerFactory} that returns {@link HBaseColumnManager}.
- * <br/>
- * Closing an {@link HBaseColumnManagerFactory} has no effect.
+ * The HBase implementation of {@link DatabaseManagerFactory}. Each call to {@code factory.apply(table)} opens a
+ * connection and returns an {@link HBaseColumnManager} for the HBase table with that name.
+ *
+ * <p>If the table does not exist, it is created with the configured column families; if it exists, missing
+ * families are added. Closing the factory has no effect, so close each manager you create.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(HbaseConfigurations.FAMILY.get() + ".1", "books")
+ *         .build();
+ * try (HBaseColumnManagerFactory factory = new HBaseColumnConfiguration().apply(settings);
+ *      HBaseColumnManager manager = factory.apply("library")) {
+ *     // use the manager
+ * }
+ * }</pre>
  */
 public class HBaseColumnManagerFactory implements DatabaseManagerFactory {
 
