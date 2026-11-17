@@ -20,6 +20,19 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Connects Eclipse JNoSQL to Apache IoTDB's native Table Model API.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(IoTDBTimeSeriesConfigurations.HOST, "localhost")
+ *         .put(IoTDBTimeSeriesConfigurations.PORT, 6667)
+ *         .build();
+ * try (IoTDBTimeSeriesManagerFactory factory = new IoTDBTimeSeriesConfiguration().apply(settings)) {
+ *     IoTDBTimeSeriesManager manager = factory.apply("sensors");
+ * }
+ * }
+ *
+ * @see IoTDBTimeSeriesConfigurations
  */
 public class IoTDBTimeSeriesConfiguration implements DatabaseConfiguration {
 
@@ -30,9 +43,21 @@ public class IoTDBTimeSeriesConfiguration implements DatabaseConfiguration {
     static final int DEFAULT_POOL_SIZE = 5;
     static final long DEFAULT_QUERY_TIMEOUT = 60_000L;
 
+    /**
+     * Creates a configuration.
+     */
     public IoTDBTimeSeriesConfiguration() {
     }
 
+    /**
+     * Creates a factory from a map of {@link IoTDBTimeSeriesConfigurations} property names to values.
+     *
+     * @param configurations the properties
+     * @return a factory configured with the properties
+     * @throws NullPointerException     when configurations is null
+     * @throws IllegalArgumentException when a numeric property is not greater than zero
+     * @throws NumberFormatException    when a numeric property is not a number
+     */
     public IoTDBTimeSeriesManagerFactory get(Map<String, String> configurations) {
         requireNonNull(configurations, "configurations is required");
         SettingsBuilder builder = Settings.builder();
@@ -40,6 +65,17 @@ public class IoTDBTimeSeriesConfiguration implements DatabaseConfiguration {
         return apply(builder.build());
     }
 
+    /**
+     * Creates a factory from the {@link IoTDBTimeSeriesConfigurations} found in the settings. Missing
+     * properties use their documented defaults; no connection is opened until
+     * {@code factory.apply(database)} is called.
+     *
+     * @param settings the settings
+     * @return a factory configured with the settings
+     * @throws NullPointerException     when settings is null
+     * @throws IllegalArgumentException when a numeric property is not greater than zero
+     * @throws NumberFormatException    when a numeric property is not a number
+     */
     @Override
     public IoTDBTimeSeriesManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");
