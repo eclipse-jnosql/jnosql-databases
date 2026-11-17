@@ -28,8 +28,24 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Configuration to HBase that returns {@link HBaseColumnManagerFactory}
- * hbase.family.n: as prefix to add family, eg: hbase,family.1=column-family
+ * The HBase implementation of {@link DatabaseConfiguration}. It returns an {@link HBaseColumnManagerFactory}
+ * that connects with the Hadoop/HBase {@link Configuration} given to the constructor, or the one from
+ * {@link HBaseConfiguration#create()} when none is given.
+ *
+ * <p>Column families are read from {@link Settings} keys with the {@link HbaseConfigurations#FAMILY} prefix,
+ * for example {@code jnosql.hbase.family.1=books}. Only the families found in the {@code Settings} passed to
+ * {@link #apply(Settings)} are used when creating tables; families from {@link #add(String)} and the
+ * constructor are not applied there.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(HbaseConfigurations.FAMILY.get() + ".1", "books")
+ *         .build();
+ * HBaseColumnManagerFactory factory = new HBaseColumnConfiguration().apply(settings);
+ * }
+ *
+ * @see HbaseConfigurations
  */
 public class HBaseColumnConfiguration implements DatabaseConfiguration {
 
