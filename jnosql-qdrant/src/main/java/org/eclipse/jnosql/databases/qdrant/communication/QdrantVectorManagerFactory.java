@@ -23,6 +23,15 @@ import java.util.Objects;
 /**
  * The Qdrant {@link DatabaseManagerFactory}. It owns the {@link QdrantClient}
  * and closes it when the factory is closed.
+ * Qdrant has no databases, so the name passed to {@code factory.apply(name)} only labels the manager and every
+ * manager shares the collections of the Qdrant instance.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * try (QdrantVectorManagerFactory factory = new QdrantConfiguration().apply(settings)) {
+ *     VectorManager manager = factory.apply("default");
+ * }
+ * }</pre>
  */
 public class QdrantVectorManagerFactory implements DatabaseManagerFactory {
 
@@ -35,6 +44,13 @@ public class QdrantVectorManagerFactory implements DatabaseManagerFactory {
         this.collectionSettings = collectionSettings;
     }
 
+    /**
+     * Returns a manager labeled with the given name.
+     *
+     * @param database the manager name
+     * @return a {@link VectorManager}
+     * @throws NullPointerException when the database is null
+     */
     @Override
     public VectorManager apply(String database) {
         Objects.requireNonNull(database, "database is required");
@@ -49,6 +65,9 @@ public class QdrantVectorManagerFactory implements DatabaseManagerFactory {
         return collectionSettings;
     }
 
+    /**
+     * Closes the {@link QdrantClient}; managers created by this factory must not be used afterwards.
+     */
     @Override
     public void close() {
         client.close();
