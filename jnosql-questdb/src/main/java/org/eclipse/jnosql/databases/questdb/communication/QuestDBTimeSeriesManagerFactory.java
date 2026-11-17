@@ -20,6 +20,9 @@ import java.util.Objects;
  *
  * <p>QuestDB has one logical database per server. The database name remains the
  * JNoSQL manager name while entity names map to QuestDB tables.</p>
+ *
+ * <p>The connection is opened on the first {@code apply(database)} call and shared by all managers. Closing
+ * the factory closes it, after which {@code apply} throws {@link IllegalStateException}.</p>
  */
 public class QuestDBTimeSeriesManagerFactory implements DatabaseManagerFactory {
 
