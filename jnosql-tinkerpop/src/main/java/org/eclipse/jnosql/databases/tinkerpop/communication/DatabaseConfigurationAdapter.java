@@ -24,15 +24,30 @@ import org.eclipse.jnosql.mapping.reflection.Reflections;
 import java.util.logging.Logger;
 
 /**
- * Adapter class that integrates both DatabaseConfiguration and GraphConfiguration.
- * This class is responsible for creating a DatabaseManagerFactory based on the provided settings.
- * It utilizes the GraphConfiguration SPI to create a Graph instance and then wraps it in a DatabaseManagerFactory.
+ * The {@link DatabaseConfiguration} for TinkerPop graph databases. It creates the {@link Graph} through the
+ * {@link GraphConfiguration} SPI and wraps it in a {@link DatabaseManagerFactory}.
+ *
+ * <p>The {@link GraphConfiguration} is the class set in {@link #TINKERPOP_PROVIDER}; if the setting is absent,
+ * the first one registered in {@link java.util.ServiceLoader} is used. The factory ignores the name passed to
+ * {@code apply(String)}, because a TinkerPop {@link Graph} has no database concept, and closing it has no
+ * effect.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(DatabaseConfigurationAdapter.TINKERPOP_PROVIDER, MyGraphConfiguration.class)
+ *         .build();
+ * DatabaseManagerFactory factory = new DatabaseConfigurationAdapter().apply(settings);
+ * DatabaseManager manager = factory.apply("any-name");
+ * }
  */
 public class DatabaseConfigurationAdapter implements DatabaseConfiguration {
 
     private static final Logger LOGGER = Logger.getLogger(DatabaseConfigurationAdapter.class.getName());
+
 /**
- * The tinkerpop provider configuration key.
+ * The setting key, {@code jnosql.graph.tinkerpop.provider}, that holds the {@link GraphConfiguration}
+ * implementation class to use.
  */
     public static final String TINKERPOP_PROVIDER = "jnosql.graph.tinkerpop.provider";
 
