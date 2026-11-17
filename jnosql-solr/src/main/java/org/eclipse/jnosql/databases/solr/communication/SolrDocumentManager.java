@@ -30,7 +30,7 @@ import java.util.Map;
  * List<CommunicationEntity> result = manager.solr("title:java AND year:@year", Map.of("year", 2023));
  * }
  *
- * <p>TTL is not supported: {@code insert(CommunicationEntity, Duration)} throws
+ * <p>TTL is not supported: {@link #insert(CommunicationEntity, Duration)} throws
  * {@link UnsupportedOperationException}.</p>
  */
 public interface SolrDocumentManager extends DatabaseManager {
