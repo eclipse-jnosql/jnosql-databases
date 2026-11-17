@@ -21,11 +21,18 @@ import java.lang.annotation.Target;
 
 
 /**
- * Defines a param to a Solr query.
+ * Binds a method parameter to the {@code @name} placeholder of the query in {@link Solr}. The value is
+ * escaped before it is substituted.
+ *
+ * @see Solr
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface Param {
-
+/**
+ * Returns the placeholder name, without the leading {@code @}.
+ *
+ * @return the placeholder name
+ */
     String value();
 }
