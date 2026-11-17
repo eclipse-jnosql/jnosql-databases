@@ -22,9 +22,9 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * The RavenDB implementation to {@link DatabaseManagerFactory}
- * <br/>
- * Closing a {@link RavenDBDocumentManagerFactory} has no effect.
+ * The RavenDB implementation of {@link DatabaseManagerFactory}. {@code factory.apply(database)} creates a
+ * document store for that RavenDB database and returns a {@link RavenDBDocumentManager}. Closing a
+ * {@link RavenDBDocumentManagerFactory} has no effect.
  */
 public class RavenDBDocumentManagerFactory implements DatabaseManagerFactory {
 
