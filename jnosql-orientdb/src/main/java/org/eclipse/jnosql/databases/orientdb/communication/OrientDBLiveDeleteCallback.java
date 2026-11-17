@@ -15,7 +15,23 @@
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
+/**
+ * Receives the deleted record of an OrientDB live query. It is invoked each time a matching record is deleted.
+ * Pass it to {@link OrientDBLiveCallback} to subscribe through
+ * {@link OrientDBDocumentManager#live(String, OrientDBLiveCallback, Object...)}.
+ *
+ * <pre>{@code
+ * OrientDBLiveDeleteCallback<CommunicationEntity> callback = entity -> System.out.println(entity);
+ * }</pre>
+ *
+ * @param <T> the record type
+ */
 @FunctionalInterface
 public interface OrientDBLiveDeleteCallback<T> {
+/**
+ * Handles the deleted record.
+ *
+ * @param t the deleted record
+ */
     void accept(T t);
 }
