@@ -34,8 +34,23 @@ import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigur
 import static org.eclipse.jnosql.databases.couchdb.communication.CouchDBConfigurations.TOKEN;
 
 /**
- * The CouchDB implementation of {@link DatabaseConfiguration}  that returns
- * {@link CouchDBDocumentManagerFactory}.
+ * The CouchDB implementation of {@link DatabaseConfiguration}. It returns a
+ * {@link CouchDBDocumentManagerFactory} configured from {@link CouchDBConfigurations}; the common
+ * {@link Configurations#HOST}, {@link Configurations#USER} and {@link Configurations#PASSWORD} keys are
+ * also accepted.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(CouchDBConfigurations.HOST, "localhost")
+ *         .put(CouchDBConfigurations.PORT, 5984)
+ *         .put(CouchDBConfigurations.USER, "admin")
+ *         .put(CouchDBConfigurations.PASSWORD, "password")
+ *         .build();
+ * CouchDBDocumentManagerFactory factory = new CouchDBDocumentConfiguration().apply(settings);
+ * CouchDBDocumentManager manager = factory.apply("library");
+ * }
+ *
  * @see CouchDBConfigurations
  */
 public class CouchDBDocumentConfiguration implements DatabaseConfiguration {
