@@ -154,7 +154,8 @@ public enum WeaviateDistance {
     }
 
     /**
-     * Parses a distance by its name or its Weaviate name ({@code L2_SQUARED}), ignoring the case.
+     * Parses a distance by its name or its Weaviate name ({@code L2_SQUARED}), ignoring the case and
+     * surrounding whitespace; hyphens are read as underscores.
      *
      * @param value the distance name
      * @return the distance
