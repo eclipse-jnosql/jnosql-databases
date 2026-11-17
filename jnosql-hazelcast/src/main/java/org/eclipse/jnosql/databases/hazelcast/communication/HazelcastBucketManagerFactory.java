@@ -24,7 +24,17 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * The hazelcast implementation of {@link BucketManagerFactory}
+ * The Hazelcast implementation of {@link BucketManagerFactory}. Each bucket is a Hazelcast distributed map,
+ * list, set or queue with that name.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * HazelcastBucketManagerFactory factory = new HazelcastKeyValueConfiguration().apply(Settings.settings());
+ * HazelcastBucketManager users = factory.apply("users");
+ * Map<String, String> map = factory.getMap("cache");
+ * }</pre>
+ *
+ * @see HazelcastKeyValueConfiguration
  */
 public interface HazelcastBucketManagerFactory extends BucketManagerFactory {
 
