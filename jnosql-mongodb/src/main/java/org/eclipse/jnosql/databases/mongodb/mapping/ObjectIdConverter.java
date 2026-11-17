@@ -21,11 +21,30 @@ import org.bson.types.ObjectId;
 import java.util.Objects;
 
 /**
- * An implementation of AttributeConverter where it converts the {@link ObjectId}
- * from/to {@link String}
+ * Converts between a {@link String} entity attribute and a MongoDB {@link ObjectId}, so an id can be kept as a
+ * string in the entity while MongoDB stores a native {@code ObjectId}. It does not handle {@link java.util.UUID}.
+ *
+ * {@snippet lang="java" :
+ * @Entity
+ * public class Music {
+ *     @Id
+ *     @Convert(ObjectIdConverter.class)
+ *     private String id;
+ * }
+ * }
+ *
+ * <p>A {@code null} value converts to {@code null} in both directions. Converting to the database requires a
+ * 24-character hexadecimal string, otherwise {@link IllegalArgumentException} is thrown.</p>
  */
 public class ObjectIdConverter implements AttributeConverter<String, ObjectId> {
 
+    /**
+     * Converts the hexadecimal string to an {@link ObjectId}.
+     *
+     * @param attribute the 24-character hexadecimal string, or {@code null}
+     * @return the {@link ObjectId}, or {@code null} when {@code attribute} is {@code null}
+     * @throws IllegalArgumentException when {@code attribute} is not a valid ObjectId
+     */
     @Override
     public ObjectId convertToDatabaseColumn(String attribute) {
         if(Objects.nonNull(attribute)) {
@@ -34,6 +53,12 @@ public class ObjectIdConverter implements AttributeConverter<String, ObjectId> {
         return null;
     }
 
+    /**
+     * Converts the {@link ObjectId} to its hexadecimal string.
+     *
+     * @param dbData the {@link ObjectId}, or {@code null}
+     * @return the hexadecimal string, or {@code null} when {@code dbData} is {@code null}
+     */
     @Override
     public String convertToEntityAttribute(ObjectId dbData) {
         if(Objects.nonNull(dbData)) {
