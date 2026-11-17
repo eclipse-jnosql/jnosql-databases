@@ -20,9 +20,9 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseManagerFactory;
 
 import java.util.Objects;
 /**
- * The solr implementation to {@link DatabaseManagerFactory}
- * <br/>
- * Closing a {@link SolrDocumentManagerFactory} has no effect.
+ * The Apache Solr implementation of {@link DatabaseManagerFactory}. {@code factory.apply(database)} returns a
+ * {@link SolrDocumentManager} for the Solr collection or core with that name, sharing the HTTP client of the
+ * factory. Closing a {@link SolrDocumentManagerFactory} has no effect.
  */
 public class SolrDocumentManagerFactory implements DatabaseManagerFactory {
 
