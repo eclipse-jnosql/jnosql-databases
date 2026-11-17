@@ -29,8 +29,21 @@ import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The riak implementation to {@link KeyValueConfiguration} that returns {@link RiakBucketManagerFactory}.
- * riak.host-: The prefix to host. eg: riak.server.host.1= host1
+ * The Riak implementation of {@link KeyValueConfiguration}. It creates a {@link RiakBucketManagerFactory} that
+ * connects to the nodes found in the settings.
+ *
+ * <p>Every entry whose key starts with {@code jnosql.riak.host} or {@link Configurations#HOST} is a node given as
+ * {@code host} or {@code host:port}; for example {@code jnosql.riak.host.1=host1:8087}. When no node is
+ * configured, the factory connects to {@code 127.0.0.1} on the default Riak port.</p>
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put("jnosql.riak.host.1", "localhost:8087")
+ *         .build();
+ * RiakBucketManagerFactory factory = new RiakKeyValueConfiguration().apply(settings);
+ * RiakBucketManager users = factory.apply("users");
+ * }</pre>
  */
 public class RiakKeyValueConfiguration implements KeyValueConfiguration {
 
@@ -44,10 +57,13 @@ public class RiakKeyValueConfiguration implements KeyValueConfiguration {
 
 
     /**
-     * Adds new Riak node
+     * Adds a Riak node to this configuration instance.
+     *
+     * <p>The nodes added here are not read by {@link #apply(Settings)}, which builds the cluster only from the
+     * settings.</p>
      *
      * @param node the node
-     * @throws NullPointerException when node is null
+     * @throws NullPointerException if {@code node} is {@code null}
      */
     public void add(RiakNode node) throws NullPointerException {
         requireNonNull(node, "Node is required");
@@ -55,10 +71,13 @@ public class RiakKeyValueConfiguration implements KeyValueConfiguration {
     }
 
     /**
-     * Adds a new address on riak
+     * Adds a Riak node by address to this configuration instance, using the default Riak port.
      *
-     * @param address the address to be added
-     * @throws NullPointerException when address is null
+     * <p>The nodes added here are not read by {@link #apply(Settings)}, which builds the cluster only from the
+     * settings.</p>
+     *
+     * @param address the node host name or IP address
+     * @throws NullPointerException if {@code address} is {@code null}
      */
     public void add(String address) throws NullPointerException {
         requireNonNull(address, "Address is required");
@@ -66,6 +85,12 @@ public class RiakKeyValueConfiguration implements KeyValueConfiguration {
     }
 
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws NullPointerException  if {@code settings} is {@code null}
+     * @throws NumberFormatException if a node port is not a number
+     */
     @Override
     public RiakBucketManagerFactory apply(Settings settings) {
         requireNonNull(settings, "settings is required");
