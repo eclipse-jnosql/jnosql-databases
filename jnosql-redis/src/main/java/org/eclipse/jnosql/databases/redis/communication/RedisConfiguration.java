@@ -41,9 +41,27 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 
 /**
- * The redis implementation of {@link KeyValueConfiguration} whose returns {@link RedisBucketManagerFactory}.
+ * The Redis implementation of {@link KeyValueConfiguration}. It creates a {@link RedisBucketManagerFactory}
+ * from {@link Settings}.
+ *
+ * <p>The deployment mode is chosen from the settings keys. When any key starts with
+ * {@link RedisSentinelConfigurations#SENTINEL} the factory connects through Redis Sentinel; when any key starts
+ * with {@link RedisClusterConfigurations#CLUSTER} it connects to a Redis Cluster; otherwise it connects to a
+ * single node, using {@code localhost:6379} for the host and port that are not set.</p>
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(RedisConfigurations.HOST, "localhost")
+ *         .put(RedisConfigurations.PORT, 6379)
+ *         .build();
+ * RedisBucketManagerFactory factory = new RedisConfiguration().apply(settings);
+ * BucketManager bucket = factory.apply("users");
+ * }
  *
  * @see RedisConfigurations
+ * @see RedisSentinelConfigurations
+ * @see RedisClusterConfigurations
  */
 public final class RedisConfiguration implements KeyValueConfiguration {
 
@@ -51,10 +69,20 @@ public final class RedisConfiguration implements KeyValueConfiguration {
     private static final String DEFAULT_HOST = "localhost";
 
     /**
-     * Creates a {@link RedisConfiguration} from map configuration
+     * Creates a {@link RedisBucketManagerFactory} from a map of configuration keys, such as the values of
+     * {@link RedisConfigurations}. It is equivalent to {@link #apply(Settings)} with the same entries.
      *
-     * @param configurations the map configuration
-     * @return the RedisConfiguration instance
+     * <p>Example:</p>
+     * {@snippet lang="java" :
+     * RedisBucketManagerFactory factory = new RedisConfiguration()
+     *         .getManagerFactory(Map.of("jnosql.redis.host", "localhost"));
+     * }
+     *
+     * @param configurations the configuration keys and values
+     * @return a new factory; the caller must close it
+     * @throws NullPointerException if {@code configurations} is {@code null}
+     * @throws IllegalArgumentException if the Sentinel or Cluster mode is selected and the required master name
+     *                                  or hosts are missing
      */
     public RedisBucketManagerFactory getManagerFactory(Map<String, String> configurations) {
         Objects.requireNonNull(configurations, "configurations is required");
@@ -63,6 +91,13 @@ public final class RedisConfiguration implements KeyValueConfiguration {
         return apply(builder.build());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws NullPointerException if {@code settings} is {@code null}
+     * @throws IllegalArgumentException if the Sentinel or Cluster mode is selected and the required master name
+     *                                  or hosts are missing
+     */
     @Override
     public RedisBucketManagerFactory apply(Settings settings) {
         Objects.requireNonNull(settings, "settings is required");
