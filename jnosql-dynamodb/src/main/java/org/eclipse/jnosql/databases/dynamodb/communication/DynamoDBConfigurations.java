@@ -17,44 +17,62 @@ package org.eclipse.jnosql.databases.dynamodb.communication;
 import java.util.function.Supplier;
 
 /**
- * Defines the dynamo dbconfigurations options.
+ * Configuration keys read by the DynamoDB drivers. Each constant is a {@link Supplier} of its property name,
+ * so it can be used directly as a key of {@link org.eclipse.jnosql.communication.Settings}.
+ *
+ * <p>Example:</p>
+ * {@snippet lang="java" :
+ * Settings settings = Settings.builder()
+ *         .put(DynamoDBConfigurations.REGION, "us-east-1")
+ *         .put(DynamoDBConfigurations.CREATE_TABLES, true)
+ *         .build();
+ * }
+ *
+ * @see DynamoDBDocumentConfiguration
+ * @see DynamoDBKeyValueConfiguration
  */
 public enum  DynamoDBConfigurations implements Supplier<String> {
 
 /**
- * Performs the endpoint operation.
+ * The endpoint that overrides the default AWS endpoint, such as {@code http://localhost:8000} for a local
+ * DynamoDB.
  */
     ENDPOINT("jnosql.dynamodb.endpoint"),
 /**
- * Performs the region operation.
+ * The AWS region, such as {@code us-east-1}.
  */
     REGION("jnosql.dynamodb.region"),
 /**
- * Performs the profile operation.
+ * The name of the AWS credentials profile used to authenticate.
  */
     PROFILE("jnosql.dynamodb.profile"),
 /**
- * Performs the aws accesskey operation.
+ * The AWS access key. Static credentials are used only when both this key and {@link #AWS_SECRET_ACCESS}
+ * are defined, and they take precedence over {@link #PROFILE}.
  */
     AWS_ACCESSKEY("jnosql.dynamodb.awsaccesskey"),
 /**
- * Performs the aws secret access operation.
+ * The AWS secret access key, used together with {@link #AWS_ACCESSKEY}.
  */
     AWS_SECRET_ACCESS("jnosql.dynamodb.secretaccess"),
 /**
- * Performs the create tables operation.
+ * Whether the document driver creates a table that does not exist yet. Defaults to {@code false}, so a missing
+ * table fails the operation.
  */
     CREATE_TABLES("jnosql.dynamodb.create.tables"),
 /**
- * Performs the entity partition key operation.
+ * The name of the partition key attribute of an entity table. The property name is a template: replace
+ * {@code %s} with the table name, as in {@code jnosql.dynamodb.users.pk}. Defaults to {@code _id}.
  */
     ENTITY_PARTITION_KEY("jnosql.dynamodb.%s.pk"),
 /**
- * Performs the entity read capacity units operation.
+ * The provisioned read capacity units of a table created by the driver. The property name is a template:
+ * replace {@code %s} with the table name.
  */
     ENTITY_READ_CAPACITY_UNITS("jnosql.dynamodb.%s.read.capacity.units"),
 /**
- * Performs the entity write capacity units operation.
+ * The provisioned write capacity units of a table created by the driver. The property name is a template:
+ * replace {@code %s} with the table name.
  */
     ENTITY_WRITE_CAPACITY_UNITS("jnosql.dynamodb.%s.write.capacity.units"),
     ;
@@ -65,6 +83,13 @@ public enum  DynamoDBConfigurations implements Supplier<String> {
         this.configuration = configuration;
     }
 
+    /**
+     * Returns the property name of this configuration. For {@link #ENTITY_PARTITION_KEY},
+     * {@link #ENTITY_READ_CAPACITY_UNITS} and {@link #ENTITY_WRITE_CAPACITY_UNITS}, the name contains a
+     * {@code %s} placeholder for the table name.
+     *
+     * @return the property name
+     */
     @Override
     public String get() {
         return configuration;
