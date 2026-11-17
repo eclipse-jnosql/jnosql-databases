@@ -21,8 +21,20 @@ import org.eclipse.jnosql.communication.semistructured.DatabaseConfiguration;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The couchbase implementation of {@link DatabaseConfiguration}  that returns
- * {@link CouchbaseDocumentManagerFactory}.
+ * The Couchbase implementation of {@link DatabaseConfiguration}. It connects to a cluster and returns a
+ * {@link CouchbaseDocumentManagerFactory}, where each Couchbase bucket is a database.
+ *
+ * <p>Example:</p>
+ * <pre>{@code
+ * Settings settings = Settings.builder()
+ *         .put(CouchbaseConfigurations.HOST, "couchbase://localhost")
+ *         .put(CouchbaseConfigurations.USER, "admin")
+ *         .put(CouchbaseConfigurations.PASSWORD, "password")
+ *         .build();
+ * CouchbaseDocumentManagerFactory factory = new CouchbaseDocumentConfiguration().apply(settings);
+ * CouchbaseDocumentManager manager = factory.apply("my-bucket");
+ * }</pre>
+ *
  * @see CouchbaseConfigurations
  */
 public class CouchbaseDocumentConfiguration extends CouchbaseConfiguration
