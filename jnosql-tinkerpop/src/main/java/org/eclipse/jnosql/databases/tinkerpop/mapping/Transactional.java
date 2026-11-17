@@ -25,8 +25,22 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * The Transactional annotation provides the application the ability to declaratively
- * control transaction boundaries on CDI managed beans. {@link org.apache.tinkerpop.gremlin.structure.Transaction}
+ * Runs a CDI bean method, or every method of a bean, inside a TinkerPop
+ * {@link org.apache.tinkerpop.gremlin.structure.Transaction}. The transaction is opened if needed, committed when
+ * the method returns, and rolled back before the exception is rethrown when it fails.
+ *
+ * {@snippet lang="java" :
+ * @ApplicationScoped
+ * public class PersonService {
+ *     @Inject
+ *     private TinkerpopTemplate template;
+ *
+ *     @Transactional
+ *     public void register(Person person) {
+ *         template.insert(person);
+ *     }
+ * }
+ * }
  */
 @InterceptorBinding
 @Target({METHOD, TYPE})
