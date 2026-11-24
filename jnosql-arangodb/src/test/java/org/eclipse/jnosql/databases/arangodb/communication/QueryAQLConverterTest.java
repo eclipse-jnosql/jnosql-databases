@@ -20,6 +20,8 @@ import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import org.eclipse.jnosql.communication.semistructured.UpdateQuery;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -161,7 +163,7 @@ public class QueryAQLConverterTest {
         assertThat(values.get("city")).isEqualTo("Assis");
         assertThat(values.get("name")).isEqualTo("Otavio");
         assertThat(values.get("name_1")).isEqualTo("Lucas");
-        assertThat(aql).isEqualTo("FOR c IN collection FILTER  NOT ( c.city == @city) AND  c.name == @name OR  NOT ( c.name == @name_1) RETURN c");
+        assertThat(aql).isEqualTo("FOR c IN collection FILTER ( NOT ( c.city == @city) AND  c.name == @name) OR  NOT ( c.name == @name_1) RETURN c");
 
     }
 
@@ -241,5 +243,91 @@ public class QueryAQLConverterTest {
                 .hasMessageContaining("Invalid AQL identifier");
     }
 
+
+
+    @Nested
+    @DisplayName("Nested boolean groups")
+    class NestedBooleanGroups {
+
+        private CriteriaCondition eq(String name, Object value) {
+            return CriteriaCondition.eq(Element.of(name, value));
+        }
+
+        private AQLQueryResult run(CriteriaCondition condition) {
+            SelectQuery query = mock(SelectQuery.class);
+            when(query.name()).thenReturn("collection");
+            when(query.condition()).thenReturn(Optional.of(condition));
+            when(query.sorts()).thenReturn(List.of());
+            return QueryAQLConverter.select(query);
+        }
+
+        private String filter(CriteriaCondition condition) {
+            return run(condition).query();
+        }
+
+        @Test
+        @DisplayName("should keep an OR group inside an AND")
+        void shouldKeepOrGroupInsideAnd() {
+            CriteriaCondition condition = CriteriaCondition.and(
+                    CriteriaCondition.or(eq("a", 1), eq("b", 2)), eq("c", 3));
+
+            assertThat(filter(condition)).isEqualTo(
+                    "FOR c IN collection FILTER ( c.a == @a OR  c.b == @b) AND  c.c == @c RETURN c");
+        }
+
+        @Test
+        @DisplayName("should keep an AND group inside an OR")
+        void shouldKeepAndGroupInsideOr() {
+            CriteriaCondition condition = CriteriaCondition.or(
+                    CriteriaCondition.and(eq("a", 1), eq("b", 2)),
+                    CriteriaCondition.and(eq("c", 3), eq("d", 4)));
+
+            assertThat(filter(condition)).isEqualTo(
+                    "FOR c IN collection FILTER ( c.a == @a AND  c.b == @b) OR ( c.c == @c AND  c.d == @d) RETURN c");
+        }
+
+        @Test
+        @DisplayName("should negate the whole BETWEEN predicate")
+        void shouldNegateWholeBetween() {
+            CriteriaCondition condition = CriteriaCondition.between(Element.of("age", List.of(10, 20))).negate();
+
+            assertThat(filter(condition)).isEqualTo(
+                    "FOR c IN collection FILTER  NOT ( c.age >= @age AND  c.age <= @age_1) RETURN c");
+        }
+
+        @Test
+        @DisplayName("should group BETWEEN inside an OR")
+        void shouldGroupBetweenInsideOr() {
+            CriteriaCondition condition = CriteriaCondition.or(
+                    CriteriaCondition.between(Element.of("age", List.of(10, 20))), eq("active", true));
+
+            assertThat(filter(condition)).isEqualTo(
+                    "FOR c IN collection FILTER ( c.age >= @age AND  c.age <= @age_1) OR  c.active == @active RETURN c");
+        }
+
+        @Test
+        @DisplayName("should bind distinct parameters for repeated fields")
+        void shouldBindDistinctParametersForRepeatedFields() {
+            CriteriaCondition condition = CriteriaCondition.or(eq("age", 10), eq("age", 20), eq("age", 30));
+
+            AQLQueryResult result = run(condition);
+
+            assertSoftly(softly -> {
+                softly.assertThat(result.values()).containsOnlyKeys("age", "age_1", "age_2");
+                softly.assertThat(result.values().values()).containsExactlyInAnyOrder(10, 20, 30);
+                softly.assertThat(result.query()).contains("@age", "@age_1", "@age_2");
+            });
+        }
+
+        @Test
+        @DisplayName("should translate redundantly nested AND like a flat AND")
+        void shouldTranslateRedundantNestingLikeFlat() {
+            CriteriaCondition nested = CriteriaCondition.and(
+                    CriteriaCondition.and(eq("a", 1), eq("b", 2)), eq("c", 3));
+
+            assertThat(filter(nested)).isEqualTo(
+                    "FOR c IN collection FILTER ( c.a == @a AND  c.b == @b) AND  c.c == @c RETURN c");
+        }
+    }
 
 }
