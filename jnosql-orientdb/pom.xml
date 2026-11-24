@@ -28,7 +28,7 @@
     <description>The Eclipse JNoSQL layer implementation to OrientDB</description>
 
     <properties>
-        <jackson.version>2.22.0</jackson.version>
+        <jackson.version>2.22.3</jackson.version>
     </properties>
 
     <dependencies>
