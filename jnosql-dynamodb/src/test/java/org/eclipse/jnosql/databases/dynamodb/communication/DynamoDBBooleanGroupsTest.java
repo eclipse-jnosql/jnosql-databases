@@ -30,9 +30,10 @@ class DynamoDBBooleanGroupsTest {
 
     private static DynamoDBQuery build(CriteriaCondition condition) {
         SelectQuery query = mock(SelectQuery.class);
+        when(query.name()).thenReturn("people");
         when(query.condition()).thenReturn(Optional.of(condition));
         when(query.columns()).thenReturn(List.of());
-        return DynamoDBQuery.builderOf("people", query).get();
+        return DynamoDBQuery.builderOf("people", "entity", query).get();
     }
 
     @Nested
@@ -45,7 +46,7 @@ class DynamoDBBooleanGroupsTest {
             DynamoDBQuery generated = build(
                     CriteriaCondition.and(CriteriaCondition.or(eq("a", 1), eq("b", 2)), eq("c", 3)));
 
-            assertThat(generated.filterExpression()).isEqualTo("(#n0 = :v0 OR #n1 = :v1) AND #n2 = :v2");
+            assertThat(generated.filterExpression()).isEqualTo("#n0 = :v0 AND ((#n1 = :v1 OR #n2 = :v2) AND #n3 = :v3)");
         }
 
         @Test
@@ -56,7 +57,7 @@ class DynamoDBBooleanGroupsTest {
                     CriteriaCondition.and(eq("c", 3), eq("d", 4))));
 
             assertThat(generated.filterExpression())
-                    .isEqualTo("(#n0 = :v0 AND #n1 = :v1) OR (#n2 = :v2 AND #n3 = :v3)");
+                    .isEqualTo("#n0 = :v0 AND ((#n1 = :v1 AND #n2 = :v2) OR (#n3 = :v3 AND #n4 = :v4))");
         }
 
         @Test
@@ -64,7 +65,7 @@ class DynamoDBBooleanGroupsTest {
         void shouldNegateWholeCompound() {
             DynamoDBQuery generated = build(CriteriaCondition.or(eq("a", 1), eq("b", 2)).negate());
 
-            assertThat(generated.filterExpression()).isEqualTo(" NOT (#n0 = :v0 OR #n1 = :v1)");
+            assertThat(generated.filterExpression()).isEqualTo("#n0 = :v0 AND  NOT (#n1 = :v1 OR #n2 = :v2)");
         }
 
         @Test
@@ -73,7 +74,7 @@ class DynamoDBBooleanGroupsTest {
             DynamoDBQuery generated = build(
                     CriteriaCondition.and(CriteriaCondition.and(eq("a", 1), eq("b", 2)), eq("c", 3)));
 
-            assertThat(generated.filterExpression()).isEqualTo("(#n0 = :v0 AND #n1 = :v1) AND #n2 = :v2");
+            assertThat(generated.filterExpression()).isEqualTo("#n0 = :v0 AND ((#n1 = :v1 AND #n2 = :v2) AND #n3 = :v3)");
         }
     }
 
@@ -88,11 +89,11 @@ class DynamoDBBooleanGroupsTest {
 
             assertSoftly(softly -> {
                 softly.assertThat(generated.filterExpression())
-                        .isEqualTo("#n0 = :v0 OR #n1 = :v1 OR #n2 = :v2");
-                softly.assertThat(generated.expressionAttributeNames()).hasSize(3);
-                softly.assertThat(generated.expressionAttributeValues().get(":v0").n()).isEqualTo("10");
-                softly.assertThat(generated.expressionAttributeValues().get(":v1").n()).isEqualTo("20");
-                softly.assertThat(generated.expressionAttributeValues().get(":v2").n()).isEqualTo("30");
+                        .isEqualTo("#n0 = :v0 AND (#n1 = :v1 OR #n2 = :v2 OR #n3 = :v3)");
+                softly.assertThat(generated.expressionAttributeNames()).hasSize(4);
+                softly.assertThat(generated.expressionAttributeValues().get(":v1").n()).isEqualTo("10");
+                softly.assertThat(generated.expressionAttributeValues().get(":v2").n()).isEqualTo("20");
+                softly.assertThat(generated.expressionAttributeValues().get(":v3").n()).isEqualTo("30");
             });
         }
 
@@ -104,8 +105,8 @@ class DynamoDBBooleanGroupsTest {
 
             assertSoftly(softly -> {
                 softly.assertThat(generated.filterExpression())
-                        .isEqualTo("#n0 BETWEEN :v0 AND :v1 OR #n1 = :v2");
-                softly.assertThat(generated.expressionAttributeValues()).hasSize(3);
+                        .isEqualTo("#n0 = :v0 AND (#n1 BETWEEN :v1 AND :v2 OR #n2 = :v3)");
+                softly.assertThat(generated.expressionAttributeValues()).hasSize(4);
             });
         }
     }
