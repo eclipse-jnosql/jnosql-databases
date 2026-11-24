@@ -164,7 +164,7 @@ final class QueryAQLConverter {
 
         Optional.ofNullable(documentCondition).ifPresent(condition -> {
             aql.append(FILTER);
-            definesCondition(condition, aql, params, entity, 0);
+            definesCondition(condition, aql, params, entity);
         });
         if (!sorts.isEmpty()) {
             sort(sorts, aql, entity);
@@ -197,10 +197,9 @@ final class QueryAQLConverter {
     private static void definesCondition(CriteriaCondition condition,
                                          StringBuilder aql,
                                          Map<String, Object> params,
-                                         char entity, int counter) {
+                                         char entity) {
 
         Element document = condition.element();
-        int localCounter = counter;
         switch (condition.condition()) {
             case IN:
                 appendCondition(aql, params, entity, document, IN);
@@ -233,30 +232,15 @@ final class QueryAQLConverter {
                 appendCondition(aql, params, entity, Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), LIKE);
                 return;
             case AND:
-
-                for (CriteriaCondition dc : document.get(new TypeReference<List<CriteriaCondition>>() {
-                })) {
-
-                    if (isFirstCondition(aql, localCounter)) {
-                        aql.append(AND);
-                    }
-                    definesCondition(dc, aql, params, entity, ++localCounter);
-                }
+                appendGroup(condition, aql, params, entity, AND);
                 return;
             case OR:
-
-                for (CriteriaCondition dc : document.get(new TypeReference<List<CriteriaCondition>>() {
-                })) {
-                    if (isFirstCondition(aql, localCounter)) {
-                        aql.append(OR);
-                    }
-                    definesCondition(dc, aql, params, entity, ++localCounter);
-                }
+                appendGroup(condition, aql, params, entity, OR);
                 return;
             case NOT:
                 CriteriaCondition documentCondition = document.get(CriteriaCondition.class);
                 aql.append(NOT).append(START_EXPRESSION);
-                definesCondition(documentCondition, aql, params, entity, ++localCounter);
+                definesCondition(documentCondition, aql, params, entity);
                 aql.append(END_EXPRESSION);
                 return;
             case BETWEEN:
@@ -270,8 +254,29 @@ final class QueryAQLConverter {
         }
     }
 
-    private static boolean isFirstCondition(StringBuilder aql, int count) {
-        return count > 0 && !FILTER.equals(aql.substring(aql.length() - 8));
+    private static void appendGroup(CriteriaCondition condition, StringBuilder aql, Map<String, Object> params,
+                                    char entity, String operator) {
+        String separator = "";
+        for (CriteriaCondition child : condition.element().get(new TypeReference<List<CriteriaCondition>>() {
+        })) {
+            aql.append(separator);
+            boolean grouped = isCompound(child);
+            if (grouped) {
+                aql.append(START_EXPRESSION);
+            }
+            definesCondition(child, aql, params, entity);
+            if (grouped) {
+                aql.append(END_EXPRESSION);
+            }
+            separator = operator;
+        }
+    }
+
+    private static boolean isCompound(CriteriaCondition condition) {
+        return switch (condition.condition()) {
+            case AND, OR, BETWEEN -> true;
+            default -> false;
+        };
     }
 
     private static void appendCondition(StringBuilder aql, Map<String, Object> params,
@@ -292,7 +297,7 @@ final class QueryAQLConverter {
         String paramName = parameter;
         int counter = 1;
         while (params.containsKey(paramName)) {
-            paramName = parameter + '_' + counter;
+            paramName = parameter + '_' + counter++;
         }
 
         return paramName;
