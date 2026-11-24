@@ -59,6 +59,14 @@ final class QueryOSQLConverter {
     }
 
     static Query select(SelectQuery documentQuery) {
+        return select(documentQuery, true);
+    }
+
+    /**
+     * @param allowIdLookup when false a standalone id predicate stays in the SQL, which is required
+     *                      by consumers that only execute the statement, such as live queries
+     */
+    static Query select(SelectQuery documentQuery, boolean allowIdLookup) {
         StringBuilder query = new StringBuilder();
         List<Object> params = new java.util.ArrayList<>();
         List<ORecordId> ids = new ArrayList<>();
@@ -66,7 +74,7 @@ final class QueryOSQLConverter {
         query.append(identifier(documentQuery.name()));
 
         Optional<CriteriaCondition> condition = documentQuery.condition();
-        if (condition.isPresent() && isIdLookup(condition.get())) {
+        if (allowIdLookup && condition.isPresent() && isIdLookup(condition.get())) {
             ids.add(new ORecordId(condition.get().element().get(String.class)));
         } else if (condition.isPresent()) {
             query.append(WHERE);
