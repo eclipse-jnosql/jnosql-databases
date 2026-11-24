@@ -73,7 +73,7 @@ final class QueryOSQLFactory {
     }
 
     static QueryResult toLive(SelectQuery documentQuery, OrientDBLiveCallback callbacks) {
-        QueryOSQLConverter.Query query = QueryOSQLConverter.select(documentQuery);
+        QueryOSQLConverter.Query query = QueryOSQLConverter.select(documentQuery, false);
         return new QueryResult(query.query(), query.params(), Collections.emptyList());
     }
 
