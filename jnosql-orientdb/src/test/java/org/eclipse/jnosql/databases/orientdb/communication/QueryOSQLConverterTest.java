@@ -426,6 +426,23 @@ public class QueryOSQLConverterTest {
             assertThat(result.ids()).hasSize(1);
             assertThat(result.params()).isEmpty();
         }
+
+        @Test
+        @DisplayName("should keep a standalone id predicate in the SQL for live queries")
+        void shouldKeepIdPredicateInSqlForLiveQueries() {
+            var query = org.mockito.Mockito.mock(org.eclipse.jnosql.communication.semistructured.SelectQuery.class);
+            org.mockito.Mockito.when(query.name()).thenReturn("collection");
+            org.mockito.Mockito.when(query.condition()).thenReturn(java.util.Optional.of(eq("_id", "#12:0")));
+            org.mockito.Mockito.when(query.sorts()).thenReturn(List.of());
+
+            var result = QueryOSQLFactory.toLive(query, null);
+
+            assertSoftly(softly -> {
+                softly.assertThat(result.getQuery()).isEqualTo("SELECT FROM collection WHERE @rid = ?");
+                softly.assertThat(result.getParams()).hasSize(1);
+                softly.assertThat(result.getIds()).isEmpty();
+            });
+        }
     }
 
 }
