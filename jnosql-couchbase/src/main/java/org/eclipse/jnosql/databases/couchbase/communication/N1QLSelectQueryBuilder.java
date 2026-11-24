@@ -45,8 +45,11 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
 
         query.condition().ifPresent(c -> {
             if (!shouldCount && isIdLookup(c)) {
-                ids.addAll(idsOf(c));
-                return;
+                List<String> lookupIds = idsOf(c);
+                if (!lookupIds.isEmpty()) {
+                    ids.addAll(lookupIds);
+                    return;
+                }
             }
             n1ql.append(" WHERE ");
             condition(c, n1ql, params);
