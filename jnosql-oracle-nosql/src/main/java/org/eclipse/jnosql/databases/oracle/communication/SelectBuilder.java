@@ -46,7 +46,7 @@ final class SelectBuilder extends AbstractQueryBuilder {
         FieldValue entity = entityCondition(query, documentQuery.name());
         this.documentQuery.condition().ifPresent(c -> {
             query.append(" AND ");
-            condition(c, query, params, ids, false, hasOnlyIdConditions(c));
+            condition(c, query, params, ids, false, isIdLookup(c));
         });
 
 
