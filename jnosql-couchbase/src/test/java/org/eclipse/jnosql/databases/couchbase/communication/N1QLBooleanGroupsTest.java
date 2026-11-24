@@ -40,8 +40,8 @@ class N1QLBooleanGroupsTest {
     private static N1QLQuery update(CriteriaCondition condition) {
         UpdateQuery query = mock(UpdateQuery.class);
         when(query.name()).thenReturn("person");
-        when(query.sets()).thenReturn(List.of(Element.of("status", "x")));
-        when(query.where()).thenReturn(Optional.of(condition));
+        when(query.set()).thenReturn(List.of(Element.of("status", "x")));
+        when(query.condition()).thenReturn(Optional.of(condition));
         return new N1QLUpdateQueryBuilder(query, "bucket", "scope").get();
     }
 
