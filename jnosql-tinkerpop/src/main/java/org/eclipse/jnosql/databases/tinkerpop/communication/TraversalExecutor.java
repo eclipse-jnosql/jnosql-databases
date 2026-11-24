@@ -16,6 +16,7 @@ package org.eclipse.jnosql.databases.tinkerpop.communication;
 
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.TextP;
+import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -81,19 +82,24 @@ final class TraversalExecutor {
                 return __.not(getPredicate(notCondition));
             }
             case AND -> {
-                return condition.element().value().get(new TypeReference<List<CriteriaCondition>>() {
-                        }).stream().map(TraversalExecutor::getPredicate)
-                        .reduce(GraphTraversal::and)
-                        .orElseThrow(() -> new UnsupportedOperationException("There is an inconsistency at the AND operator"));
+                return __.and(childPredicates(condition, "AND"));
             }
             case OR -> {
-                return condition.element().value().get(new TypeReference<List<CriteriaCondition>>() {
-                        }).stream().map(TraversalExecutor::getPredicate)
-                        .reduce(GraphTraversal::or)
-                        .orElseThrow(() -> new UnsupportedOperationException("There is an inconsistency at the OR operator"));
+                return __.or(childPredicates(condition, "OR"));
             }
             default ->
                     throw new UnsupportedOperationException("There is not support to the type " + operator + " in graph");
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Traversal<?, ?>[] childPredicates(CriteriaCondition condition, String operator) {
+        Traversal<?, ?>[] children = condition.element().value().get(new TypeReference<List<CriteriaCondition>>() {
+                }).stream().map(TraversalExecutor::getPredicate)
+                .toArray(Traversal[]::new);
+        if (children.length == 0) {
+            throw new UnsupportedOperationException("There is an inconsistency at the " + operator + " operator");
+        }
+        return children;
     }
 }
