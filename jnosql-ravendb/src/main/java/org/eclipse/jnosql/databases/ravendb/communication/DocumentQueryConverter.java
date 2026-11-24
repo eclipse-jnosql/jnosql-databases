@@ -19,6 +19,7 @@ import jakarta.data.Sort;
 import net.ravendb.client.documents.queries.Query;
 import net.ravendb.client.documents.session.IDocumentQuery;
 import net.ravendb.client.documents.session.IDocumentSession;
+import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
@@ -41,13 +42,13 @@ class DocumentQueryConverter {
 
         List<String> ids = new ArrayList<>();
         IDocumentQuery<HashMap> ravenQuery = session.query(HashMap.class, Query.collection(query.name()));
-        query.condition().ifPresent(c -> feedQuery(ravenQuery, c, ids));
-
-        if (!ids.isEmpty() && query.condition().isPresent()) {
+        Optional<CriteriaCondition> condition = query.condition();
+        if (condition.isPresent() && isIdLookup(condition.get())) {
+            idsOf(condition.get().element(), ids);
             return new QueryResult(ids, null);
-        } else {
-            return appendRavenQuery(query, ids, ravenQuery);
         }
+        condition.ifPresent(c -> feedQuery(ravenQuery, c));
+        return appendRavenQuery(query, ids, ravenQuery);
 
     }
 
@@ -71,20 +72,49 @@ class DocumentQueryConverter {
         return new QueryResult(ids, ravenQuery);
     }
 
-    private static void feedQuery(IDocumentQuery<HashMap> ravenQuery, CriteriaCondition condition, List<String> ids) {
+    private static boolean isIdLookup(CriteriaCondition condition) {
+        return (condition.condition() == Condition.EQUALS || condition.condition() == Condition.IN)
+                && EntityConverter.ID_FIELD.equals(condition.element().name());
+    }
+
+    private static void idsOf(Element element, List<String> ids) {
+        Object value = element.get();
+        if (value instanceof Iterable<?> iterable) {
+            iterable.forEach(i -> ids.add(i.toString()));
+        } else {
+            ids.add(value.toString());
+        }
+    }
+
+    private static void feedGroup(IDocumentQuery<HashMap> ravenQuery, CriteriaCondition condition,
+                                  boolean and) {
+        boolean first = true;
+        for (CriteriaCondition child : condition.element().value()
+                .get(new TypeReference<List<CriteriaCondition>>() {
+                })) {
+            if (!first) {
+                if (and) {
+                    ravenQuery.andAlso();
+                } else {
+                    ravenQuery.orElse();
+                }
+            }
+            first = false;
+            boolean grouped = child.condition() == Condition.AND || child.condition() == Condition.OR;
+            if (grouped) {
+                ravenQuery.openSubclause();
+            }
+            feedQuery(ravenQuery, child);
+            if (grouped) {
+                ravenQuery.closeSubclause();
+            }
+        }
+    }
+
+    private static void feedQuery(IDocumentQuery<HashMap> ravenQuery, CriteriaCondition condition) {
         Element document = condition.element();
         Object value = document.get();
-        String name = document.name();
-
-        if (EntityConverter.ID_FIELD.equals(name)) {
-            if (value instanceof Iterable) {
-                final Iterable iterable = Iterable.class.cast(value);
-                iterable.forEach(i -> ids.add(i.toString()));
-            } else {
-                ids.add(value.toString());
-            }
-            return;
-        }
+        String name = EntityConverter.ID_FIELD.equals(document.name()) ? "id()" : document.name();
 
         switch (condition.condition()) {
             case EQUALS:
@@ -106,22 +136,24 @@ class DocumentQueryConverter {
                 ravenQuery.whereIn(name, ValueUtil.convertToList(document.value()));
                 return;
             case NOT:
+                CriteriaCondition negated = document.get(CriteriaCondition.class);
+                boolean grouped = negated.condition() == Condition.AND || negated.condition() == Condition.OR;
                 ravenQuery.negateNext();
-                feedQuery(ravenQuery, document.get(CriteriaCondition.class), ids);
+                if (grouped) {
+                    ravenQuery.openSubclause();
+                }
+                feedQuery(ravenQuery, negated);
+                if (grouped) {
+                    ravenQuery.closeSubclause();
+                }
                 return;
             case LIKE:
                 throw new UnsupportedOperationException("Raven does not support LIKE Operator");
             case AND:
-                condition.element().value()
-                        .get(new TypeReference<List<CriteriaCondition>>() {
-                        })
-                        .forEach(c -> feedQuery(ravenQuery.andAlso(), c, ids));
+                feedGroup(ravenQuery, condition, true);
                 return;
             case OR:
-                condition.element().value()
-                        .get(new TypeReference<List<CriteriaCondition>>() {
-                        })
-                        .forEach(c -> feedQuery(ravenQuery.orElse(), c, ids));
+                feedGroup(ravenQuery, condition, false);
                 return;
             default:
                 throw new UnsupportedOperationException("The condition " + condition.condition()
