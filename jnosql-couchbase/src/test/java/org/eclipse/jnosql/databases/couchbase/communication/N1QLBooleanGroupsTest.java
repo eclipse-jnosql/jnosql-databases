@@ -130,6 +130,18 @@ class N1QLBooleanGroupsTest {
         }
 
         @Test
+        @DisplayName("should keep an empty id IN restricted instead of selecting everything")
+        void shouldKeepEmptyIdInRestricted() {
+            N1QLQuery generated = select(CriteriaCondition.in(Element.of(EntityConverter.ID_FIELD, List.of())), false);
+
+            assertSoftly(softly -> {
+                softly.assertThat(generated.ids()).isEmpty();
+                softly.assertThat(generated.hasOnlyIds()).isFalse();
+                softly.assertThat(normalized(generated.query())).contains("WHERE `_id` IN $p0");
+            });
+        }
+
+        @Test
         @DisplayName("should translate an id predicate natively when counting")
         void shouldTranslateIdNativelyWhenCounting() {
             N1QLQuery generated = select(eq(EntityConverter.ID_FIELD, "1"), true);
