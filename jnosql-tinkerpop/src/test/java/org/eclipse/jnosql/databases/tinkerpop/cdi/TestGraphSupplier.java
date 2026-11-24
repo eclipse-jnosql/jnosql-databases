@@ -62,6 +62,7 @@ public enum TestGraphSupplier implements Supplier<Graph> {
                     "likes:[Human]->[Creature]",
                     "friend:[Person]->[Person]"
             ));
+            configuration.addProperty("gremlin.arangodb.conf.graph.orphanCollections", List.of("Secret"));
             configuration.addProperty("gremlin.arangodb.conf.driver.hosts", container.getHost() + ":" + container.getFirstMappedPort());
             return GraphFactory.open(configuration);
         }

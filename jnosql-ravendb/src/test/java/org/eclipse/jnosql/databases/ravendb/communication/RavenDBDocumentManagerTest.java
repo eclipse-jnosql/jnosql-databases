@@ -143,7 +143,7 @@ public class RavenDBDocumentManagerTest {
     }
 
     @Test
-    public void shouldFindDocument2() {
+    public void shouldFindDocument2() throws InterruptedException {
         CommunicationEntity entity = manager.insert(getEntity());
         Optional<Element> id = entity.find("_id");
 
@@ -152,13 +152,14 @@ public class RavenDBDocumentManagerTest {
                 .and("city").eq("Salvador").and("_id").eq(id.get().get())
                 .build();
 
+        Thread.sleep(TIME_LIMIT);
         List<CommunicationEntity> entities = manager.select(query).collect(Collectors.toList());
         assertThat(entities.isEmpty()).isFalse();
         assertThat(entities).contains(entity);
     }
 
     @Test
-    public void shouldFindDocument3() {
+    public void shouldFindDocument3() throws InterruptedException {
         var entity = manager.insert(getEntity());
         Optional<Element> id = entity.find("_id");
         var query = select().from(COLLECTION_NAME)
@@ -167,6 +168,7 @@ public class RavenDBDocumentManagerTest {
                 .and(id.get().name()).eq(id.get().get())
                 .build();
 
+        Thread.sleep(TIME_LIMIT);
         List<CommunicationEntity> entities = manager.select(query)
                 .collect(Collectors.toList());
         assertThat(entities.isEmpty()).isFalse();

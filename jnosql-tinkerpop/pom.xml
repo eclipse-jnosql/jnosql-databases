@@ -31,7 +31,7 @@
         <neo4j.connector.version>0.9-3.4.0</neo4j.connector.version>
         <antlr4.version>4.13.2</antlr4.version>
         <!-- it's required by the 'org.neo4j' libraries  -->
-        <argLine> --add-opens java.base/java.lang=ALL-UNNAMED --add-exports java.base/sun.nio.ch=ALL-UNNAMED </argLine>
+        <neo4j.argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-exports java.base/sun.nio.ch=ALL-UNNAMED</neo4j.argLine>
 
     </properties>
 
@@ -102,6 +102,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <argLine>@{argLine} ${neo4j.argLine}</argLine>
                     <excludes>
                         <!--
                           Allow discovery of static inner test classes by overriding excludes rules.

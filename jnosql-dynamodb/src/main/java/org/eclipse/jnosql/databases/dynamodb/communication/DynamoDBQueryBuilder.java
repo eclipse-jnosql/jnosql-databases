@@ -15,13 +15,13 @@
 
 package org.eclipse.jnosql.databases.dynamodb.communication;
 
+import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +71,9 @@ abstract class DynamoDBQueryBuilder implements Supplier<DynamoDBQuery> {
                 }), " OR ", filterExpression, expressionAttributeNames, expressionAttributeValues);
                 break;
             case NOT:
-                filterExpression.append(" NOT ");
+                filterExpression.append(" NOT (");
                 condition(element.get(CriteriaCondition.class), filterExpression, expressionAttributeNames, expressionAttributeValues);
+                filterExpression.append(')');
                 break;
             default:
                 throw new IllegalArgumentException("Unknown condition " + condition.condition());
@@ -106,31 +107,20 @@ abstract class DynamoDBQueryBuilder implements Supplier<DynamoDBQuery> {
                                  Map<String, String> expressionAttributeNames,
                                  Map<String, AttributeValue> expressionAttributeValues) {
 
-        boolean isFirstCondition = true;
+        String separator = "";
         for (CriteriaCondition criteriaCondition : conditions) {
-            StringBuilder tempFilterExpression = new StringBuilder();
-            HashMap<String, String> tempExpressionAttributeNames = new HashMap<>(expressionAttributeNames);
-            HashMap<String, AttributeValue> tempExpressionAttributeValues = new HashMap<>(expressionAttributeValues);
-            condition(criteriaCondition,
-                    tempFilterExpression,
-                    tempExpressionAttributeNames,
-                    tempExpressionAttributeValues);
-            if (isFirstCondition && !tempFilterExpression.isEmpty()) {
-                filterExpression.append(tempFilterExpression);
-                expressionAttributeNames.putAll(tempExpressionAttributeNames);
-                expressionAttributeValues.putAll(tempExpressionAttributeValues);
-            } else if (!tempFilterExpression.isEmpty()) {
-                if (!filterExpression.substring(filterExpression.length() - condition.length()).equals(condition)) {
-                    filterExpression.append(condition);
-                }
-                filterExpression.append(tempFilterExpression);
-                expressionAttributeNames.putAll(tempExpressionAttributeNames);
-                expressionAttributeValues.putAll(tempExpressionAttributeValues);
+            filterExpression.append(separator);
+            boolean grouped = criteriaCondition.condition() == Condition.AND
+                    || criteriaCondition.condition() == Condition.OR;
+            if (grouped) {
+                filterExpression.append('(');
             }
-            isFirstCondition = false;
+            condition(criteriaCondition, filterExpression, expressionAttributeNames, expressionAttributeValues);
+            if (grouped) {
+                filterExpression.append(')');
+            }
+            separator = condition;
         }
-
-
     }
 
     private void predicateBetween(Element element,

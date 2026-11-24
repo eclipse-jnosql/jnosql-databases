@@ -40,14 +40,14 @@ final class DocumentQueryConverter {
     static String convert(SelectQuery query) {
         String rootCondition = entityCondition(query.name());
         return rootCondition + query.condition()
-                .map(DocumentQueryConverter::convert)
+                .map(DocumentQueryConverter::group)
                 .map(s -> " AND " + s).orElse("");
     }
 
     static String convert(DeleteQuery query) {
         String rootCondition = entityCondition(query.name());
         return rootCondition + query.condition()
-                .map(DocumentQueryConverter::convert)
+                .map(DocumentQueryConverter::group)
                 .map(s -> " AND " + s).orElse("");
     }
 
@@ -66,15 +66,25 @@ final class DocumentQueryConverter {
                         .map(DocumentQueryConverter::escape).collect(Collectors.joining(" OR "));
                 yield field(document.name()) + ":(" + inConditions + ')';
             }
-            case NOT -> " NOT " + convert(document.get(CriteriaCondition.class));
-            case AND -> getDocumentConditions(condition).stream()
-                    .map(DocumentQueryConverter::convert)
-                    .collect(Collectors.joining(" AND "));
-            case OR -> getDocumentConditions(condition).stream()
-                    .map(DocumentQueryConverter::convert)
-                    .collect(Collectors.joining(" OR "));
+            case NOT -> "(*:* AND NOT (" + convert(document.get(CriteriaCondition.class)) + "))";
+            case AND -> join(condition, " AND ");
+            case OR -> join(condition, " OR ");
             default -> throw new UnsupportedOperationException("The condition " + condition.condition()
                     + " is not supported from mongoDB diana driver");
+        };
+    }
+
+    private static String join(CriteriaCondition condition, String operator) {
+        return getDocumentConditions(condition).stream()
+                .map(DocumentQueryConverter::group)
+                .collect(Collectors.joining(operator));
+    }
+
+    private static String group(CriteriaCondition condition) {
+        String converted = convert(condition);
+        return switch (condition.condition()) {
+            case AND, OR -> '(' + converted + ')';
+            default -> converted;
         };
     }
 

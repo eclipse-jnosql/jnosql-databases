@@ -16,6 +16,7 @@ package org.eclipse.jnosql.databases.couchbase.communication;
 
 import com.couchbase.client.java.json.JsonObject;
 import jakarta.data.Direction;
+import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.driver.StringMatch;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
@@ -43,8 +44,15 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
                 .append(quoteIdentifier(query.name()));
 
         query.condition().ifPresent(c -> {
+            if (!shouldCount && isIdLookup(c)) {
+                List<String> lookupIds = idsOf(c);
+                if (!lookupIds.isEmpty()) {
+                    ids.addAll(lookupIds);
+                    return;
+                }
+            }
             n1ql.append(" WHERE ");
-            condition(c, n1ql, params, ids, shouldCount);
+            condition(c, n1ql, params);
         });
 
         if (shouldCount) {
@@ -81,23 +89,28 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
         return documents;
     }
 
-    private void condition(CriteriaCondition condition, StringBuilder n1ql, JsonObject params, List<String> ids, boolean shouldCount) {
+    private static boolean isIdLookup(CriteriaCondition condition) {
+        return (condition.condition() == Condition.EQUALS || condition.condition() == Condition.IN)
+                && EntityConverter.ID_FIELD.equals(condition.element().name());
+    }
+
+    private static List<String> idsOf(CriteriaCondition condition) {
+        Element document = condition.element();
+        if (condition.condition() == Condition.IN) {
+            return document.get(new TypeReference<List<String>>() {
+            });
+        }
+        return List.of(document.get(String.class));
+    }
+
+    private void condition(CriteriaCondition condition, StringBuilder n1ql, JsonObject params) {
         Element document = condition.element();
         switch (condition.condition()) {
             case EQUALS:
-                if (document.name().equals(EntityConverter.ID_FIELD) && !shouldCount) {
-                    ids.add(document.get(String.class));
-                } else {
-                    predicate(n1ql, " = ", document, params);
-                }
+                predicate(n1ql, " = ", document, params);
                 return;
             case IN:
-                if (document.name().equals(EntityConverter.ID_FIELD) && !shouldCount) {
-                    ids.addAll(document.get(new TypeReference<List<String>>() {
-                    }));
-                } else {
-                    predicate(n1ql, " IN ", document, params);
-                }
+                predicate(n1ql, " IN ", document, params);
                 return;
             case LESSER_THAN:
                 predicate(n1ql, " < ", document, params);
@@ -124,16 +137,17 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
                 predicate(n1ql, " LIKE ", Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), params);
                 return;
             case NOT:
-                n1ql.append(" NOT ");
-                condition(document.get(CriteriaCondition.class), n1ql, params, ids, shouldCount);
+                n1ql.append(" NOT (");
+                condition(document.get(CriteriaCondition.class), n1ql, params);
+                n1ql.append(")");
                 return;
             case OR:
                 appendCondition(n1ql, params, document.get(new TypeReference<>() {
-                }), " OR ", ids, shouldCount);
+                }), " OR ");
                 return;
             case AND:
                 appendCondition(n1ql, params, document.get(new TypeReference<>() {
-                }), " AND ", ids, shouldCount);
+                }), " AND ");
                 return;
             case BETWEEN:
                 predicateBetween(n1ql, params, document);
@@ -157,18 +171,19 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
     }
 
     private void appendCondition(StringBuilder n1ql, JsonObject params,
-                                 List<CriteriaCondition> conditions,
-                                 String condition, List<String> ids, boolean shouldCount) {
-        int index = 0;
-        for (CriteriaCondition documentCondition : conditions) {
-            StringBuilder query = new StringBuilder();
-            condition(documentCondition, query, params, ids, shouldCount);
-            if (index == 0) {
-                n1ql.append(" ").append(query);
-            } else if (!query.isEmpty()) {
-                n1ql.append(condition).append(query);
+                                 List<CriteriaCondition> conditions, String operator) {
+        String separator = " ";
+        for (CriteriaCondition child : conditions) {
+            n1ql.append(separator);
+            boolean grouped = child.condition() == Condition.AND || child.condition() == Condition.OR;
+            if (grouped) {
+                n1ql.append("(");
             }
-            index++;
+            condition(child, n1ql, params);
+            if (grouped) {
+                n1ql.append(")");
+            }
+            separator = operator;
         }
     }
 
