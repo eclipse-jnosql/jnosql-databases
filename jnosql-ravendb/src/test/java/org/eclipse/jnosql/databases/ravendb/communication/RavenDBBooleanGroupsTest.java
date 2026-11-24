@@ -37,7 +37,7 @@ class RavenDBBooleanGroupsTest {
     private static final List<String> GENERATED = new ArrayList<>();
 
     @BeforeAll
-    static void setUp() {
+    static void setUp() throws InterruptedException {
         manager = DocumentConfigurationUtils.INSTANCE.get().apply("database");
         manager.delete(delete().from(COLLECTION).build());
         for (int number = 1; number <= 8; number++) {
@@ -49,6 +49,7 @@ class RavenDBBooleanGroupsTest {
                     Element.of("c", (bits & 1) != 0))));
             GENERATED.add(entity.find("_id").orElseThrow().get(String.class));
         }
+        Thread.sleep(1000L);
     }
 
     @AfterAll
