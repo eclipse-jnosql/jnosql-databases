@@ -15,6 +15,7 @@
 package org.eclipse.jnosql.databases.couchbase.communication;
 
 import com.couchbase.client.java.json.JsonObject;
+import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.driver.StringMatch;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
@@ -106,8 +107,9 @@ record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) 
                 predicate(alias, n1ql, " LIKE ", Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), params);
                 return;
             case NOT:
-                n1ql.append(" NOT ");
+                n1ql.append(" NOT (");
                 condition(document.get(CriteriaCondition.class), alias, n1ql, params);
+                n1ql.append(")");
                 return;
             case OR:
                 appendCondition(alias, n1ql, params, document.get(new TypeReference<>() {
@@ -140,17 +142,19 @@ record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) 
 
     private void appendCondition(String alias, StringBuilder n1ql, JsonObject params,
                                  List<CriteriaCondition> conditions,
-                                 String condition) {
-        int index = 0;
-        for (CriteriaCondition documentCondition : conditions) {
-            StringBuilder query = new StringBuilder();
-            condition(documentCondition, alias, query, params);
-            if (index == 0) {
-                n1ql.append(" ").append(query);
-            } else if (!query.isEmpty()) {
-                n1ql.append(condition).append(query);
+                                 String operator) {
+        String separator = " ";
+        for (CriteriaCondition child : conditions) {
+            n1ql.append(separator);
+            boolean grouped = child.condition() == Condition.AND || child.condition() == Condition.OR;
+            if (grouped) {
+                n1ql.append("(");
             }
-            index++;
+            condition(child, alias, n1ql, params);
+            if (grouped) {
+                n1ql.append(")");
+            }
+            separator = operator;
         }
     }
 
