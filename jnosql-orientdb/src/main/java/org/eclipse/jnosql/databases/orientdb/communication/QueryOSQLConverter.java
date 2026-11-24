@@ -23,12 +23,14 @@ import jakarta.data.Sort;
 import org.eclipse.jnosql.communication.TypeReference;
 import org.eclipse.jnosql.communication.ValueUtil;
 import org.eclipse.jnosql.communication.driver.StringMatch;
+import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static org.eclipse.jnosql.databases.orientdb.communication.OrientDBConverter.ID_FIELD;
@@ -57,15 +59,26 @@ final class QueryOSQLConverter {
     }
 
     static Query select(SelectQuery documentQuery) {
+        return select(documentQuery, true);
+    }
+
+    /**
+     * @param allowIdLookup when false a standalone id predicate stays in the SQL, which is required
+     *                      by consumers that only execute the statement, such as live queries
+     */
+    static Query select(SelectQuery documentQuery, boolean allowIdLookup) {
         StringBuilder query = new StringBuilder();
         List<Object> params = new java.util.ArrayList<>();
         List<ORecordId> ids = new ArrayList<>();
         query.append("SELECT FROM ");
         query.append(identifier(documentQuery.name()));
 
-        if (documentQuery.condition().isPresent()) {
+        Optional<CriteriaCondition> condition = documentQuery.condition();
+        if (allowIdLookup && condition.isPresent() && isIdLookup(condition.get())) {
+            ids.add(new ORecordId(condition.get().element().get(String.class)));
+        } else if (condition.isPresent()) {
             query.append(WHERE);
-            definesCondition(documentQuery.condition().get(), query, params, 0, ids, false);
+            definesCondition(condition.get(), query, params);
         }
 
         if (!documentQuery.sorts().isEmpty()) {
@@ -84,69 +97,55 @@ final class QueryOSQLConverter {
         query.append(identifier(documentQuery.name()));
         if (documentQuery.condition().isPresent()) {
             query.append(WHERE);
-            definesCondition(documentQuery.condition().get(), query, params, 0, ids, true);
+            definesCondition(documentQuery.condition().get(), query, params);
         }
         return new Query(query.toString(), params, ids);
     }
 
-    private static void definesCondition(CriteriaCondition condition, StringBuilder query, List<Object> params,
-                                         int counter, List<ORecordId> ids, boolean countQuery) {
+    private static void definesCondition(CriteriaCondition condition, StringBuilder query, List<Object> params) {
 
         Element document = condition.element();
         switch (condition.condition()) {
             case IN:
-                appendCondition(query, params, document, IN, ids, countQuery);
+                appendCondition(query, params, document, IN);
                 return;
             case EQUALS:
-                appendCondition(query, params, document, EQUALS, ids, countQuery);
+                appendCondition(query, params, document, EQUALS);
                 return;
             case GREATER_EQUALS_THAN:
-                appendCondition(query, params, document, GREATER_EQUALS_THAN, ids, countQuery);
+                appendCondition(query, params, document, GREATER_EQUALS_THAN);
                 return;
             case GREATER_THAN:
-                appendCondition(query, params, document, GREATER_THAN, ids, countQuery);
+                appendCondition(query, params, document, GREATER_THAN);
                 return;
             case LESSER_THAN:
-                appendCondition(query, params, document, LESSER_THAN, ids, countQuery);
+                appendCondition(query, params, document, LESSER_THAN);
                 return;
             case LESSER_EQUALS_THAN:
-                appendCondition(query, params, document, LESSER_EQUALS_THAN, ids, countQuery);
+                appendCondition(query, params, document, LESSER_EQUALS_THAN);
                 return;
             case LIKE:
-                appendCondition(query, params, document, LIKE, ids, countQuery);
+                appendCondition(query, params, document, LIKE);
                 return;
             case STARTS_WITH:
-                appendCondition(query, params, Element.of(document.name(), StringMatch.STARTS_WITH.format(document.get(String.class))), LIKE, ids, countQuery);
+                appendCondition(query, params, Element.of(document.name(), StringMatch.STARTS_WITH.format(document.get(String.class))), LIKE);
                 return;
             case CONTAINS:
-                appendCondition(query, params, Element.of(document.name(), StringMatch.CONTAINS.format(document.get(String.class))), LIKE, ids, countQuery);
+                appendCondition(query, params, Element.of(document.name(), StringMatch.CONTAINS.format(document.get(String.class))), LIKE);
                 return;
             case ENDS_WITH:
-                appendCondition(query, params, Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), LIKE, ids, countQuery);
+                appendCondition(query, params, Element.of(document.name(), StringMatch.ENDS_WITH.format(document.get(String.class))), LIKE);
                 return;
             case AND:
-                for (CriteriaCondition dc : document.get(new TypeReference<List<CriteriaCondition>>() {
-                })) {
-
-                    if (isFirstCondition(query, counter)) {
-                        query.append(AND);
-                    }
-                    definesCondition(dc, query, params, ++counter, ids, countQuery);
-                }
+                appendGroup(condition, query, params, AND);
                 return;
             case OR:
-                for (CriteriaCondition dc : document.get(new TypeReference<List<CriteriaCondition>>() {
-                })) {
-                    if (isFirstCondition(query, counter)) {
-                        query.append(OR);
-                    }
-                    definesCondition(dc, query, params, ++counter, ids, countQuery);
-                }
+                appendGroup(condition, query, params, OR);
                 return;
             case NOT:
                 CriteriaCondition documentCondition = document.get(CriteriaCondition.class);
                 query.append("NOT (");
-                definesCondition(documentCondition, query, params, ++counter, ids, countQuery);
+                definesCondition(documentCondition, query, params);
                 query.append(")");
                 return;
             default:
@@ -154,28 +153,26 @@ final class QueryOSQLConverter {
         }
     }
 
-    private static boolean isFirstCondition(StringBuilder query, int counter) {
-        return counter > 0 && !WHERE.equals(query.substring(query.length() - 7));
+    private static void appendGroup(CriteriaCondition condition, StringBuilder query, List<Object> params,
+                                    String operator) {
+        String separator = "";
+        for (CriteriaCondition child : condition.element().get(new TypeReference<List<CriteriaCondition>>() {
+        })) {
+            query.append(separator);
+            boolean grouped = child.condition() == Condition.AND || child.condition() == Condition.OR;
+            if (grouped) {
+                query.append("(");
+            }
+            definesCondition(child, query, params);
+            if (grouped) {
+                query.append(")");
+            }
+            separator = operator;
+        }
     }
 
-    private static void appendCondition(StringBuilder query, List<Object> params,
-                                        Element document, String condition, List<ORecordId> ids, boolean countQuery) {
-
-        if(!countQuery) {
-            if (RID_FIELD.equals(document.name())
-                    ||
-                    ID_FIELD.equals(document.name())) {
-                String id = document.get(String.class);
-                ids.add(new ORecordId(id));
-                return;
-            }
-        }
-        String attributeName = document.name();
-        if(countQuery) {
-            if (ID_FIELD.equals(document.name())) {
-                attributeName = RID_FIELD;
-            }
-        }
+    private static void appendCondition(StringBuilder query, List<Object> params, Element document, String condition) {
+        String attributeName = ID_FIELD.equals(document.name()) ? RID_FIELD : document.name();
         query.append(identifier(attributeName))
                 .append(condition).append(PARAM_APPENDER);
         if (IN.equals(condition)) {
@@ -183,6 +180,11 @@ final class QueryOSQLConverter {
         } else {
             params.add(document.get());
         }
+    }
+
+    private static boolean isIdLookup(CriteriaCondition condition) {
+        return condition.condition() == Condition.EQUALS
+                && (RID_FIELD.equals(condition.element().name()) || ID_FIELD.equals(condition.element().name()));
     }
 
     private static void appendSort(List<Sort<?>> sorts, StringBuilder query) {

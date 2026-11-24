@@ -15,9 +15,13 @@
  */
 package org.eclipse.jnosql.databases.orientdb.communication;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
+import org.eclipse.jnosql.communication.semistructured.Element;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -138,13 +142,13 @@ public class QueryOSQLConverterTest {
             softly.assertThat(selectQuery)
                     .as("Converted OrientDB SQL query is different than expected")
                     .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
-                    .containsExactly("SELECT FROM collection WHERE NOT (city = ?) AND name = ? OR NOT (name = ?)",
+                    .containsExactly("SELECT FROM collection WHERE (NOT (city = ?) AND name = ?) OR NOT (name = ?)",
                             List.of("Assis", "Otavio", "Lucas"));
 
             softly.assertThat(selectCountQuery)
                     .as("Converted OrientDB SQL count query is different than expected")
                     .extracting(QueryOSQLConverter.Query::query, QueryOSQLConverter.Query::params)
-                    .containsExactly("SELECT COUNT(*) FROM collection WHERE NOT (city = ?) AND name = ? OR NOT (name = ?)",
+                    .containsExactly("SELECT COUNT(*) FROM collection WHERE (NOT (city = ?) AND name = ?) OR NOT (name = ?)",
                             List.of("Assis", "Otavio", "Lucas"));
 
         });
@@ -338,4 +342,107 @@ public class QueryOSQLConverterTest {
         assertThat(QueryOSQLConverter.selectCount(query).query())
                 .isEqualTo("SELECT COUNT(*) FROM collection WHERE @rid = ?");
     }
+
+    @Nested
+    @DisplayName("Nested boolean groups")
+    class NestedBooleanGroups {
+
+        private CriteriaCondition eq(String name, Object value) {
+            return CriteriaCondition.eq(Element.of(name, value));
+        }
+
+        private QueryOSQLConverter.Query convert(CriteriaCondition condition) {
+            var query = org.mockito.Mockito.mock(org.eclipse.jnosql.communication.semistructured.SelectQuery.class);
+            org.mockito.Mockito.when(query.name()).thenReturn("collection");
+            org.mockito.Mockito.when(query.condition()).thenReturn(java.util.Optional.of(condition));
+            org.mockito.Mockito.when(query.sorts()).thenReturn(List.of());
+            return QueryOSQLConverter.select(query);
+        }
+
+        @Test
+        @DisplayName("should keep an OR group inside an AND")
+        void shouldKeepOrGroupInsideAnd() {
+            var result = convert(CriteriaCondition.and(CriteriaCondition.or(eq("a", 1), eq("b", 2)), eq("c", 3)));
+
+            assertSoftly(softly -> {
+                softly.assertThat(result.query()).isEqualTo("SELECT FROM collection WHERE (a = ? OR b = ?) AND c = ?");
+                softly.assertThat(result.params()).containsExactly(1, 2, 3);
+            });
+        }
+
+        @Test
+        @DisplayName("should keep AND groups inside an OR")
+        void shouldKeepAndGroupsInsideOr() {
+            var result = convert(CriteriaCondition.or(
+                    CriteriaCondition.and(eq("a", 1), eq("b", 2)),
+                    CriteriaCondition.and(eq("c", 3), eq("d", 4))));
+
+            assertSoftly(softly -> {
+                softly.assertThat(result.query())
+                        .isEqualTo("SELECT FROM collection WHERE (a = ? AND b = ?) OR (c = ? AND d = ?)");
+                softly.assertThat(result.params()).containsExactly(1, 2, 3, 4);
+            });
+        }
+
+        @Test
+        @DisplayName("should keep the id predicate inside an AND")
+        void shouldKeepIdPredicateInsideAnd() {
+            var result = convert(CriteriaCondition.and(eq("_id", "#12:0"), eq("active", true)));
+
+            assertSoftly(softly -> {
+                softly.assertThat(result.query()).isEqualTo("SELECT FROM collection WHERE @rid = ? AND active = ?");
+                softly.assertThat(result.params()).containsExactly("#12:0", true);
+                softly.assertThat(result.ids()).isEmpty();
+            });
+        }
+
+        @Test
+        @DisplayName("should keep the non-id predicate inside an OR with an id")
+        void shouldKeepNonIdPredicateInsideOr() {
+            var result = convert(CriteriaCondition.or(eq("_id", "#12:0"), eq("active", true)));
+
+            assertSoftly(softly -> {
+                softly.assertThat(result.query()).isEqualTo("SELECT FROM collection WHERE @rid = ? OR active = ?");
+                softly.assertThat(result.ids()).isEmpty();
+            });
+        }
+
+        @Test
+        @DisplayName("should negate an id predicate natively")
+        void shouldNegateIdPredicate() {
+            var result = convert(CriteriaCondition.eq(Element.of("_id", "#12:0")).negate());
+
+            assertSoftly(softly -> {
+                softly.assertThat(result.query()).isEqualTo("SELECT FROM collection WHERE NOT (@rid = ?)");
+                softly.assertThat(result.ids()).isEmpty();
+            });
+        }
+
+        @Test
+        @DisplayName("should keep the direct lookup for a standalone id equality")
+        void shouldKeepDirectLookupForStandaloneId() {
+            var result = convert(eq("_id", "#12:0"));
+
+            assertThat(result.ids()).hasSize(1);
+            assertThat(result.params()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("should keep a standalone id predicate in the SQL for live queries")
+        void shouldKeepIdPredicateInSqlForLiveQueries() {
+            var query = org.mockito.Mockito.mock(org.eclipse.jnosql.communication.semistructured.SelectQuery.class);
+            org.mockito.Mockito.when(query.name()).thenReturn("collection");
+            org.mockito.Mockito.when(query.condition()).thenReturn(java.util.Optional.of(eq("_id", "#12:0")));
+            org.mockito.Mockito.when(query.sorts()).thenReturn(List.of());
+
+            var result = QueryOSQLFactory.toLive(query, null);
+
+            assertSoftly(softly -> {
+                softly.assertThat(result.getQuery()).isEqualTo("SELECT FROM collection WHERE @rid = ?");
+                softly.assertThat(result.getParams()).hasSize(1);
+                softly.assertThat(result.getIds()).isEmpty();
+            });
+        }
+    }
+
 }

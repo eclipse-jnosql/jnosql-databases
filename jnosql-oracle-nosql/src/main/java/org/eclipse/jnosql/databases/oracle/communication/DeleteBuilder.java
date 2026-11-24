@@ -43,7 +43,7 @@ final class DeleteBuilder extends AbstractQueryBuilder {
         FieldValue entity = entityCondition(query, documentQuery.name());
         this.documentQuery.condition().ifPresent(c -> {
             query.append(" AND ");
-            condition(c, query, params, ids,false);
+            condition(c, query, params, ids, false, isIdLookup(c));
         });
         return new OracleQuery(query.toString(), params, ids, entity);
     }

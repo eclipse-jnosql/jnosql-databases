@@ -386,6 +386,7 @@ public class CouchbaseDocumentManagerTest {
         var query = SelectQuery.select()
                 .from(COLLECTION_PERSON_NAME).where("name")
                 .eq("Poliana").and("city").eq("Salvador").limit(1).skip(1).build();
+        await().until(() -> !entityManager.select(query).toList().isEmpty());
         List<CommunicationEntity> select = entityManager.select(query).toList();
         Assertions.assertThat(select).flatMap(d -> d.find("name").stream().toList())
                 .containsOnly(Element.of("name", "Poliana"));

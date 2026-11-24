@@ -243,7 +243,7 @@ class DefaultOrientDBDocumentManager implements OrientDBDocumentManager {
         requireNonNull(callbacks, "callbacks is required");
         ODatabaseSession tx = pool.acquire();
         QueryOSQLFactory.QueryResult queryResult = QueryOSQLFactory.toLive(query, callbacks);
-        tx.live(queryResult.getQuery(), new LiveQueryListener(callbacks, tx));
+        tx.live(queryResult.getQuery(), new LiveQueryListener(callbacks, tx), queryResult.getParams());
     }
 
     @Override

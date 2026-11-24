@@ -312,6 +312,7 @@ final class DefaultOracleNoSQLDocumentManager implements OracleNoSQLDocumentMana
                 if(result.get(JSON_FIELD) != null){
                     var json = result.get(JSON_FIELD).toJson();
                     entity.addAll(Elements.of(jsonB.fromJson(json, Map.class)));
+                    entity.remove(ENTITY);
                 }
                 Map<String, Object> projectedFields = new LinkedHashMap<>();
                 for (Map.Entry<String, FieldValue> entry : result) {

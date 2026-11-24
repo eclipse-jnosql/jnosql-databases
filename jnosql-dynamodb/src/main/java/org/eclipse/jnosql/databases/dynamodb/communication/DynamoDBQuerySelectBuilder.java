@@ -15,6 +15,7 @@
 
 package org.eclipse.jnosql.databases.dynamodb.communication;
 
+import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
@@ -51,10 +52,17 @@ class DynamoDBQuerySelectBuilder extends DynamoDBQueryBuilder {
 
         this.selectQuery.condition().ifPresent(c -> {
             filterExpression.append(" AND ");
+            boolean grouped = c.condition() == Condition.OR || c.condition() == Condition.AND;
+            if (grouped) {
+                filterExpression.append('(');
+            }
             super.condition(c,
                     filterExpression,
                     expressionAttributeNames,
                     expressionAttributeValues);
+            if (grouped) {
+                filterExpression.append(')');
+            }
         });
 
 

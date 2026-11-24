@@ -139,20 +139,22 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
         }
     }
 
-    protected boolean hasOnlyIdConditions(CriteriaCondition condition) {
+    /**
+     * Only a standalone id equality or id IN may bypass the query and load by key. Inside an
+     * AND, OR or NOT the id is a regular predicate, because loading by key would ignore the
+     * surrounding conditions.
+     */
+    protected boolean isIdLookup(CriteriaCondition condition) {
         var document = condition.element();
-        switch (condition.condition()) {
-            case EQUALS:
-            case IN:
-                return document.name().equals(DefaultOracleNoSQLDocumentManager.ID);
-            case OR:
-            case AND:
-                var conditions = document.get(new TypeReference<List<CriteriaCondition>>() {
-                });
-                return !conditions.isEmpty() && conditions.stream().allMatch(this::hasOnlyIdConditions);
-            default:
-                return false;
+        if (!document.name().equals(DefaultOracleNoSQLDocumentManager.ID)) {
+            return false;
         }
+        return switch (condition.condition()) {
+            case EQUALS -> !document.value().isNull();
+            case IN -> !document.get(new TypeReference<List<String>>() {
+            }).isEmpty();
+            default -> false;
+        };
     }
 
     protected void predicateBetween(StringBuilder query,List<FieldValue> params, Element document) {
@@ -196,19 +198,11 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
     protected void appendCondition(StringBuilder query, List<FieldValue> params,
                                  List<CriteriaCondition> conditions,
                                  String condition, List<String> ids, boolean forCount, boolean allowIdFastPath) {
-        int index = ORIGIN;
-        for (CriteriaCondition documentCondition : conditions) {
-            StringBuilder appendQuery = new StringBuilder();
-            condition(documentCondition, appendQuery, params, ids, forCount, allowIdFastPath);
-            if(index == ORIGIN && !appendQuery.isEmpty()){
-                query.append(appendQuery);
-            } else if(!appendQuery.isEmpty()) {
-                if(!query.substring(query.length()-condition.length()).equals(condition)){
-                    query.append(condition);
-                }
-                query.append(appendQuery);
+        for (int index = ORIGIN; index < conditions.size(); index++) {
+            if (index > ORIGIN) {
+                query.append(condition);
             }
-            index++;
+            condition(conditions.get(index), query, params, ids, forCount, allowIdFastPath);
         }
     }
 
