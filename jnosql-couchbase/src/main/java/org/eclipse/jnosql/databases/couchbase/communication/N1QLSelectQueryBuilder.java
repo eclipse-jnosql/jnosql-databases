@@ -44,7 +44,7 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
                 .append(quoteIdentifier(query.name()));
 
         query.condition().ifPresent(c -> {
-            if (!shouldCount && isIdLookup(c)) {
+            if (!shouldCount && !c.isNative() && isIdLookup(c)) {
                 List<String> lookupIds = idsOf(c);
                 if (!lookupIds.isEmpty()) {
                     ids.addAll(lookupIds);
@@ -104,6 +104,10 @@ record N1QLSelectQueryBuilder(SelectQuery query, String database, String scope,
     }
 
     private void condition(CriteriaCondition condition, StringBuilder n1ql, JsonObject params) {
+        if (condition.isNative()) {
+            n1ql.append(N1QLNativeFunction.convert(condition, null, params));
+            return;
+        }
         Element document = condition.element();
         switch (condition.condition()) {
             case EQUALS:
