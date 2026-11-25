@@ -55,6 +55,10 @@ final class QdrantFilterConverter {
     }
 
     private static Condition toCondition(CriteriaCondition criteria) {
+        if (criteria.isNative()) {
+            throw new UnsupportedOperationException(
+                    "The Qdrant driver does not support native functions in a metadata filter: payload conditions match stored values only and have no scalar functions");
+        }
         String field = criteria.element().name();
         Object value = QdrantValueWriteDecorator.convert(criteria.element().value());
         return switch (criteria.condition()) {
