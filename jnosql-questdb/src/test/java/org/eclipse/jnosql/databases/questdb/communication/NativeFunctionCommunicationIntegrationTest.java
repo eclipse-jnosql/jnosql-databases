@@ -18,12 +18,12 @@ import jakarta.data.Sort;
 import org.eclipse.jnosql.communication.Condition;
 import org.eclipse.jnosql.communication.Value;
 import org.eclipse.jnosql.communication.function.FunctionArgument;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -472,7 +472,7 @@ class NativeFunctionCommunicationIntegrationTest {
         void shouldUpdateOnlyMatchingRows() {
             var condition = compare(function("UPPER", attribute("name")), Condition.EQUALS, constant("OTAVIO"));
 
-            manager.update(new DefaultUpdateQuery(MUTATIONS, List.of(Element.of("marker", "changed")), condition));
+            manager.update(NativeFunctionQueries.update(MUTATIONS, List.of(Element.of("marker", "changed")), condition));
 
             awaitEquals(() -> markers(), Map.of(1, "changed", 2, "changed", 3, "keep"));
         }
