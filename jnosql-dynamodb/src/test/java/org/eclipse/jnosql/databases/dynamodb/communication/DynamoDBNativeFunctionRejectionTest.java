@@ -21,7 +21,7 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
@@ -123,7 +123,7 @@ class DynamoDBNativeFunctionRejectionTest {
         @MethodSource("org.eclipse.jnosql.databases.dynamodb.communication.DynamoDBNativeFunctionRejectionTest#conditions")
         @DisplayName("A rejected delete issues neither a describe, a scan nor a delete request")
         void shouldRejectDelete(String name, CriteriaCondition condition) {
-            var query = new DefaultDeleteQuery("people", condition, List.of());
+            var query = NativeFunctionQueries.delete("people", condition, List.of());
 
             assertSoftly(soft -> soft.assertThatThrownBy(() -> manager.delete(query))
                     .isInstanceOf(UnsupportedOperationException.class));
@@ -138,7 +138,7 @@ class DynamoDBNativeFunctionRejectionTest {
         void shouldRejectInBuilder(String name, CriteriaCondition condition) {
             var query = new DefaultSelectQuery(0, 0, "people", List.of(), List.of(), condition, false);
 
-            assertSoftly(soft -> soft.assertThatThrownBy(() -> DynamoDBQuery.builderOf("people", query).get())
+            assertSoftly(soft -> soft.assertThatThrownBy(() -> DynamoDBQuery.builderOf("people", "entity", query).get())
                     .isInstanceOf(UnsupportedOperationException.class));
         }
     }
@@ -165,9 +165,9 @@ class DynamoDBNativeFunctionRejectionTest {
             verify(client).scanPaginator(captor.capture());
             var request = captor.getValue();
             assertSoftly(soft -> {
-                soft.assertThat(request.filterExpression()).isEqualTo("#n0 = :v0");
-                soft.assertThat(request.expressionAttributeNames()).containsEntry("#n0", "name");
-                soft.assertThat(request.expressionAttributeValues().get(":v0").s()).isEqualTo("OTAVIO");
+                soft.assertThat(request.filterExpression()).isEqualTo("#n0 = :v0 AND #n1 = :v1");
+                soft.assertThat(request.expressionAttributeNames()).containsEntry("#n1", "name");
+                soft.assertThat(request.expressionAttributeValues().get(":v1").s()).isEqualTo("OTAVIO");
             });
         }
     }
