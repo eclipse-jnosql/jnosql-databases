@@ -51,7 +51,7 @@ final class DocumentQueryConversor {
             }
             case NOT -> {
                 var criteriaCondition = document.get(CriteriaCondition.class);
-                if (Condition.EQUALS.equals(criteriaCondition.condition())) {
+                if (!criteriaCondition.isNative() && Condition.EQUALS.equals(criteriaCondition.condition())) {
                     Element element = criteriaCondition.element();
                     if (element.get() == null) {
                         yield Filters.exists(element.name(), true);
