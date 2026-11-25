@@ -38,8 +38,36 @@ class DocumentQueryConverter {
     }
 
 
+    /**
+     * Rejects a condition tree that contains a native function predicate. RQL has no scalar function that can be
+     * used in a filter without an index or a scan, so every native function is unsupported. The check does not
+     * need a session, which lets the manager reject the query before any request reaches the server.
+     *
+     * @param condition the condition of the query
+     * @throws UnsupportedOperationException when any predicate of the tree has a native function operand
+     */
+    static void requireNoNativeFunction(Optional<CriteriaCondition> condition) {
+        condition.ifPresent(DocumentQueryConverter::requireNoNativeFunction);
+    }
+
+    private static void requireNoNativeFunction(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            throw new UnsupportedOperationException("The RavenDB driver does not support native functions in a "
+                    + "predicate: RQL has no scalar function for filtering that does not require an index, a "
+                    + "script or a scan, and the driver does not evaluate functions on the client");
+        }
+        switch (condition.condition()) {
+            case AND, OR -> condition.element().value().get(new TypeReference<List<CriteriaCondition>>() {
+            }).forEach(DocumentQueryConverter::requireNoNativeFunction);
+            case NOT -> requireNoNativeFunction(condition.element().get(CriteriaCondition.class));
+            default -> {
+            }
+        }
+    }
+
     public static QueryResult createQuery(IDocumentSession session, SelectQuery query) {
 
+        requireNoNativeFunction(query.condition());
         List<String> ids = new ArrayList<>();
         IDocumentQuery<HashMap> ravenQuery = session.query(HashMap.class, Query.collection(query.name()));
         Optional<CriteriaCondition> condition = query.condition();
