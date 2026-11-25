@@ -199,6 +199,10 @@ final class QueryAQLConverter {
                                          Map<String, Object> params,
                                          char entity) {
 
+        if (condition.isNative()) {
+            aql.append(ArangoNativeFunction.convert(condition, entity, params));
+            return;
+        }
         Element document = condition.element();
         switch (condition.condition()) {
             case IN:
@@ -310,7 +314,7 @@ final class QueryAQLConverter {
         return name;
     }
 
-    private static String identifier(String name) {
+    static String identifier(String name) {
         for (String part : name.split("\\.", -1)) {
             validateIdentifier(part);
         }
