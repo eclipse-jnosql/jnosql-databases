@@ -84,6 +84,11 @@ final class MangoQueryConverter implements Function<SelectQuery, JsonObject> {
     }
 
     private void appendCondition(CriteriaCondition condition, JsonObjectBuilder selector) {
+        if (condition.isNative()) {
+            throw new UnsupportedOperationException(
+                    "The CouchDB driver does not support native functions in a predicate: Mango selectors have "
+                    + "no scalar functions, and views or client-side filtering are not used");
+        }
         Element document = condition.element();
         String name = document.name();
         Object value = ValueUtil.convert(document.value());
