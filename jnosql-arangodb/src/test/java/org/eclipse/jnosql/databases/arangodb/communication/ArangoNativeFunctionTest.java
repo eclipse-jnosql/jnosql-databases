@@ -21,9 +21,8 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -87,11 +86,11 @@ class ArangoNativeFunctionTest {
     }
 
     private static AQLQueryResult delete(CriteriaCondition condition) {
-        return QueryAQLConverter.delete(new DefaultDeleteQuery("person", condition, List.of()));
+        return QueryAQLConverter.delete(NativeFunctionQueries.delete("person", condition, List.of()));
     }
 
     private static AQLQueryResult update(CriteriaCondition condition) {
-        return QueryAQLConverter.update(new DefaultUpdateQuery("person", List.of(Element.of("status", "x")),
+        return QueryAQLConverter.update(NativeFunctionQueries.update("person", List.of(Element.of("status", "x")),
                 condition));
     }
 
