@@ -266,7 +266,7 @@ class InfluxDBNativeFunctionTest {
         void shouldClampHugeLength() {
             var rendered = select(eq(fn("RIGHT", attr("name"), value(Long.MAX_VALUE)), constant("A")));
 
-            assertThat(rendered.parameters().getFirst()).isEqualTo(Long.MAX_VALUE);
+            assertThat(rendered.parameters().get(0)).isEqualTo(Long.MAX_VALUE);
         }
     }
 }
