@@ -21,9 +21,8 @@ import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +86,7 @@ class NativeFunctionCommunicationIntegrationTest {
     }
 
     private static void clear(String collection) {
-        manager.delete(new DefaultDeleteQuery(collection, null, List.of()));
+        manager.delete(NativeFunctionQueries.delete(collection, null, List.of()));
         awaitCount(collection, 0);
     }
 
@@ -425,7 +424,7 @@ class NativeFunctionCommunicationIntegrationTest {
         void shouldDeleteOnlyMatchingRecords() {
             var condition = compare(function("UPPER", attribute("name")), Condition.EQUALS, constant("OTAVIO"));
 
-            var deleted = manager.deleteAndCount(new DefaultDeleteQuery(ACCOUNTS, condition, List.of()));
+            var deleted = manager.deleteAndCount(NativeFunctionQueries.delete(ACCOUNTS, condition, List.of()));
 
             assertThat(deleted).isEqualTo(2);
             awaitCount(ACCOUNTS, 3);
@@ -436,7 +435,7 @@ class NativeFunctionCommunicationIntegrationTest {
         void shouldUpdateOnlyMatchingRecords() {
             var condition = compare(function("LOWER", attribute("name")), Condition.EQUALS, constant("java"));
 
-            manager.update(new DefaultUpdateQuery(ACCOUNTS, List.of(Element.of("flag", true)), condition));
+            manager.update(NativeFunctionQueries.update(ACCOUNTS, List.of(Element.of("flag", true)), condition));
 
             await().atMost(Duration.ofSeconds(30)).untilAsserted(() ->
                     assertThat(accounts(CriteriaCondition.eq("flag", true))).isEqualTo(ids("3")));
@@ -447,7 +446,7 @@ class NativeFunctionCommunicationIntegrationTest {
         void shouldRejectUnsupportedDeleteWithoutDeleting() {
             var condition = compare(function("SOUNDEX", attribute("name")), Condition.EQUALS, constant("O300"));
 
-            assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery(ACCOUNTS, condition, List.of())))
+            assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete(ACCOUNTS, condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class)
                     .hasMessageContaining("Couchbase").hasMessageContaining("SOUNDEX");
             assertThat(accounts(null)).isEqualTo(ids("1", "2", "3", "4", "5"));
@@ -458,7 +457,7 @@ class NativeFunctionCommunicationIntegrationTest {
             var condition = compare(function("LEFT", attribute("name"), attribute("balance")), Condition.EQUALS,
                     constant("O"));
 
-            assertThatThrownBy(() -> manager.update(new DefaultUpdateQuery(ACCOUNTS,
+            assertThatThrownBy(() -> manager.update(NativeFunctionQueries.update(ACCOUNTS,
                     List.of(Element.of("flag", true)), condition)))
                     .isInstanceOf(UnsupportedOperationException.class);
             assertThat(accounts(CriteriaCondition.eq("flag", true))).isEmpty();
