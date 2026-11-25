@@ -87,7 +87,7 @@ class OracleNativeFunctionMappingTest {
     @Test
     @DisplayName("A native function uses the mapped column and the evaluated value is an ordinary value")
     void shouldMapAttributeAndBindEvaluatedValue() {
-        template.query("FROM MockedAccount WHERE UPPER(name) = UPPER(:name)").bind("name", "otavio").result();
+        template.prepare("FROM MockedAccount WHERE UPPER(name) = UPPER(:name)").bind("name", "otavio").result();
 
         assertSoftly(soft -> {
             soft.assertThat(statements()).singleElement().asString()
@@ -99,7 +99,7 @@ class OracleNativeFunctionMappingTest {
     @Test
     @DisplayName("Partial evaluation reduces the length argument to the number 3")
     void shouldPartiallyEvaluate() {
-        template.query("FROM MockedAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix")
+        template.prepare("FROM MockedAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix")
                 .bind("prefix", "Ota").result();
 
         assertSoftly(soft -> {
@@ -111,8 +111,8 @@ class OracleNativeFunctionMappingTest {
     @Test
     @DisplayName("Nested native functions and a native function on the right keep their structure")
     void shouldTranslateNestedAndRightSide() {
-        template.query("FROM MockedAccount WHERE UPPER(LEFT(name, 3)) = 'OTA'").result();
-        template.query("FROM MockedAccount WHERE name = UPPER(otherName)").result();
+        template.prepare("FROM MockedAccount WHERE UPPER(LEFT(name, 3)) = 'OTA'").result();
+        template.prepare("FROM MockedAccount WHERE name = UPPER(otherName)").result();
 
         assertThat(statements()).hasSize(2)
                 .first().asString().contains("upper(CASE WHEN").contains("substring(" + NAME + ", 0, 3)");
@@ -122,7 +122,7 @@ class OracleNativeFunctionMappingTest {
     @Test
     @DisplayName("Rebinding the same query does not reuse stale values")
     void shouldRebind() {
-        var query = template.query("FROM MockedAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix");
+        var query = template.prepare("FROM MockedAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix");
         query.bind("prefix", "Ota").result();
         query.bind("prefix", "Jakarta").result();
 
@@ -149,7 +149,7 @@ class OracleNativeFunctionMappingTest {
     @Test
     @DisplayName("DELETE with a native function is a restricted delete")
     void shouldDeleteWithNativeFunction() {
-        template.query("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'").executeUpdate();
+        template.prepare("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'").result();
 
         assertThat(statements()).singleElement().asString().startsWith("DELETE").contains("upper(" + NAME + ")");
     }
@@ -158,8 +158,8 @@ class OracleNativeFunctionMappingTest {
     @DisplayName("An unsupported native function is rejected before any request")
     void shouldRejectUnsupportedSelect() {
         assertThatThrownBy(() -> repository.unsupportedLength()).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> template.query("DELETE FROM MockedAccount WHERE LEFT(name, balance) = 'x'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("DELETE FROM MockedAccount WHERE LEFT(name, balance) = 'x'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
 
         verify(MockedHandleProducer.HANDLE, never()).prepare(any(PrepareRequest.class));
         verifyNoInteractions(MockedHandleProducer.STATEMENT);
