@@ -22,7 +22,7 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
@@ -111,7 +111,7 @@ class CouchNativeFunctionRejectionTest {
         @MethodSource("org.eclipse.jnosql.databases.couchdb.communication.CouchNativeFunctionRejectionTest#conditions")
         @DisplayName("A rejected delete never searches or removes a document")
         void shouldRejectDeleteBeforeAnyRequest(String name, CriteriaCondition condition) {
-            assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("person", condition, List.of())))
+            assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("person", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
             assertThat(MockedCouchProducer.CLIENT.calls()).isEmpty();
         }
