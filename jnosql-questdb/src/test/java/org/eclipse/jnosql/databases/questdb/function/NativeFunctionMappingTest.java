@@ -80,7 +80,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("Native functions stay structured, use mapped names and bind parameters")
     void shouldTranslateNativeFunctions() {
-        template.query("FROM MockedSensorReading WHERE UPPER(name) = UPPER(:name) AND name = UPPER(otherName)")
+        template.prepare("FROM MockedSensorReading WHERE UPPER(name) = UPPER(:name) AND name = UPPER(otherName)")
                 .bind("name", "ota").result();
 
         assertThat(sql(0)).isEqualTo("SELECT * FROM \"sensor_reading\" WHERE "
@@ -91,9 +91,9 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("Nested native functions and partial evaluation expose the ordinary length")
     void shouldEvaluateLengthBeforeTranslation() {
-        template.query("FROM MockedSensorReading WHERE LEFT(name, LENGTH(:prefix)) = :prefix")
+        template.prepare("FROM MockedSensorReading WHERE LEFT(name, LENGTH(:prefix)) = :prefix")
                 .bind("prefix", "Ota").result();
-        template.query("FROM MockedSensorReading WHERE UPPER(LEFT(name, 3)) = 'OTA'").result();
+        template.prepare("FROM MockedSensorReading WHERE UPPER(LEFT(name, 3)) = 'OTA'").result();
 
         var first = binds(0);
         assertThat(sql(0)).isEqualTo("SELECT * FROM \"sensor_reading\" WHERE (left(\"sensor_name\", $1) = $2)");
@@ -106,7 +106,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("An evaluable function is an ordinary value, rebound on every execution")
     void shouldKeepEvaluableFunctionsTransparent() {
-        var statement = template.query("FROM MockedSensorReading WHERE name = UPPER(LEFT(:name, 3))");
+        var statement = template.prepare("FROM MockedSensorReading WHERE name = UPPER(LEFT(:name, 3))");
         statement.bind("name", "otavio").result();
         statement.bind("name", "jakarta").result();
 
@@ -121,7 +121,7 @@ class NativeFunctionMappingTest {
             "FROM MockedSensorReading WHERE UPPER(name) LIKE 'O%'"})
     @DisplayName("Unsupported native predicates are rejected before the client is used")
     void shouldRejectUnsupported(String jdql) {
-        assertThatThrownBy(() -> template.query(jdql).result()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare(jdql).result()).isInstanceOf(UnsupportedOperationException.class);
 
         verifyNoInteractions(MockedQuestDBConfiguration.CLIENT);
     }
@@ -129,8 +129,8 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("A delete with a native function sends no mutation")
     void shouldRejectDelete() {
-        assertThatThrownBy(() -> template.query("DELETE FROM MockedSensorReading WHERE UPPER(name) = 'A'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("DELETE FROM MockedSensorReading WHERE UPPER(name) = 'A'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
 
         verifyNoInteractions(MockedQuestDBConfiguration.CLIENT);
     }
