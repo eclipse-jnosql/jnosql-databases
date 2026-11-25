@@ -20,7 +20,7 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -88,7 +88,7 @@ class OrientNativeFunctionManagerTest {
         @Test
         @DisplayName("Delete selects with the native predicate and never an unrestricted statement")
         void shouldDeleteWithNativePredicate() {
-            manager.delete(new DefaultDeleteQuery("person", condition("LOWER", "name", "x"), List.of()));
+            manager.delete(NativeFunctionQueries.delete("person", condition("LOWER", "name", "x"), List.of()));
 
             assertSoftly(soft -> soft.assertThat(MockedOrientProducer.commands()).singleElement().satisfies(call ->
                     soft.assertThat(call.getArgument(0, String.class)).contains("WHERE (name.toLowerCase() = ?)")));
@@ -114,7 +114,7 @@ class OrientNativeFunctionManagerTest {
                         .isInstanceOf(UnsupportedOperationException.class);
                 soft.assertThatThrownBy(() -> manager.count(select(condition, true)))
                         .isInstanceOf(UnsupportedOperationException.class);
-                soft.assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("person", condition, List.of())))
+                soft.assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("person", condition, List.of())))
                         .isInstanceOf(UnsupportedOperationException.class);
                 soft.assertThat(MockedOrientProducer.acquisitions()).isZero();
                 soft.assertThat(MockedOrientProducer.commands()).isEmpty();
@@ -126,7 +126,7 @@ class OrientNativeFunctionManagerTest {
         void shouldRejectGroupedDelete() {
             var condition = CriteriaCondition.or(condition("UPPER", "name", "A"), condition("LENGTH", "name", 3));
 
-            assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("person", condition, List.of())))
+            assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("person", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
             assertSoftly(soft -> soft.assertThat(MockedOrientProducer.commands()).isEmpty());
         }
