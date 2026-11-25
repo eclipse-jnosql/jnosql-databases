@@ -18,11 +18,9 @@ import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.query.QueryOptions;
 import com.couchbase.client.java.query.QueryResult;
-import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.enterprise.inject.Produces;
-import jakarta.interceptor.Interceptor;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
 import org.eclipse.jnosql.mapping.Database;
 import org.eclipse.jnosql.mapping.DatabaseType;
@@ -39,7 +37,6 @@ import static org.mockito.Mockito.when;
  * Produces the real Couchbase communication manager on top of a mocked {@link Cluster}.
  */
 @Alternative
-@Priority(Interceptor.Priority.APPLICATION)
 @ApplicationScoped
 public class MockedClusterProducer {
 
