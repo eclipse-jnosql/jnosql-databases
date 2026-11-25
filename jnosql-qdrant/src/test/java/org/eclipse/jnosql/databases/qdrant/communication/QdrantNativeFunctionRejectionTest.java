@@ -22,7 +22,7 @@ import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
 import org.eclipse.jnosql.communication.semistructured.Element;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.SelectQuery;
 import java.util.List;
@@ -112,7 +112,7 @@ class QdrantNativeFunctionRejectionTest {
                     condition, false))).isInstanceOf(UnsupportedOperationException.class);
             soft.assertThatThrownBy(() -> manager.count(new DefaultSelectQuery(0, 0, "books", List.of(), List.of(),
                     condition, true))).isInstanceOf(UnsupportedOperationException.class);
-            soft.assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("books", condition, List.of())))
+            soft.assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("books", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
         });
         org.mockito.Mockito.verifyNoInteractions(client);
