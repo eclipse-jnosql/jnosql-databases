@@ -25,9 +25,8 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -168,7 +167,7 @@ class QuestDBNativeFunctionCommunicationTest {
         @Test
         @DisplayName("UPDATE WHERE carries the native predicate")
         void shouldSendUpdateWithNativePredicate() {
-            manager.update(new DefaultUpdateQuery("sensor_reading", List.of(Element.of("value", 1)),
+            manager.update(NativeFunctionQueries.update("sensor_reading", List.of(Element.of("value", 1)),
                     eq(fn("UPPER", attr("name")), constant("OTAVIO"))));
 
             assertSoftly(soft -> soft.assertThat(capturedSql(0)).contains("WHERE (upper(\"name\") = $").contains("UPDATE"));
@@ -187,7 +186,7 @@ class QuestDBNativeFunctionCommunicationTest {
                         .isInstanceOf(UnsupportedOperationException.class);
                 soft.assertThatThrownBy(() -> manager.count(select(condition, true)))
                         .isInstanceOf(UnsupportedOperationException.class);
-                soft.assertThatThrownBy(() -> manager.update(new DefaultUpdateQuery("sensor_reading",
+                soft.assertThatThrownBy(() -> manager.update(NativeFunctionQueries.update("sensor_reading",
                         List.of(Element.of("value", 1)), condition))).isInstanceOf(UnsupportedOperationException.class);
             });
             verifyNoInteractions(questDB);
@@ -199,7 +198,7 @@ class QuestDBNativeFunctionCommunicationTest {
             var condition = eq(fn("UPPER", attr("name")), constant("OTAVIO"));
 
             assertSoftly(soft -> soft.assertThatThrownBy(() -> manager.delete(
-                    new DefaultDeleteQuery("sensor_reading", condition, List.of())))
+                    NativeFunctionQueries.delete("sensor_reading", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class));
             verifyNoInteractions(questDB);
         }
