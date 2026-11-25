@@ -33,9 +33,11 @@ import static org.eclipse.jnosql.databases.iotdb.communication.IoTDBEntityConver
 /**
  * Translates a predicate that has a {@link CriteriaOperand.Function} operand into a IoTDB table model SQL boolean expression.
  * <p>
- * Supported functions: {@code ABS} as {@code abs}, {@code LOWER} as {@code lower}, {@code UPPER} as {@code upper}
- * and {@code LENGTH} as {@code length}, which counts characters. {@code LEFT} and {@code RIGHT} are rejected: IoTDB
- * has no such function and {@code substring} fails when the start is beyond the string length. Values are rendered
+ * Supported functions: {@code ABS} as {@code abs}, {@code LOWER} as {@code lower} and {@code UPPER} as
+ * {@code upper}. {@code LEFT} and {@code RIGHT} are rejected: IoTDB has no such function and {@code substring} fails
+ * when the start is beyond the string length. {@code LENGTH} is rejected: IoTDB {@code length} counts UTF-16 code
+ * units, so a supplementary character such as an emoji counts as two, which differs from the code point count
+ * of the JNoSQL contract and has no code point alternative. Values are rendered
  * by the converter literal rendering, which quotes strings and fails for unsupported types.
  * Attribute names go through the converter's identifier quoting and values are never concatenated into the
  * statement as text. The temporal identifier ({@code _id}) is not accepted as a function operand because it is not
@@ -150,7 +152,8 @@ final class IoTDBNativeFunction {
             case ABS -> "abs(" + text + ")";
             case LOWER -> "lower(" + text + ")";
             case UPPER -> "upper(" + text + ")";
-            case LENGTH -> "length(" + text + ")";
+            case LENGTH -> throw new UnsupportedOperationException("The " + DATABASE + " driver does not support "
+                    + "native LENGTH: IoTDB length counts UTF-16 code units instead of Unicode code points");
             case LEFT, RIGHT -> throw new UnsupportedOperationException("The " + DATABASE + " driver does not support "
                     + "native " + standard.name() + ": IoTDB has no left or right function and substring fails "
                     + "when the start is beyond the string");
