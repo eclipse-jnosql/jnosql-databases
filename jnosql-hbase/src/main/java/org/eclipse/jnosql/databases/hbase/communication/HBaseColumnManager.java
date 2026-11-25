@@ -248,6 +248,7 @@ public class HBaseColumnManager implements DatabaseManager {
     }
 
     private void checkedCondition(CriteriaCondition columnCondition) {
+        requireNoNativeFunction(columnCondition);
 
         Condition condition = columnCondition.condition();
         if (OR.equals(condition)) {
@@ -264,6 +265,23 @@ public class HBaseColumnManager implements DatabaseManager {
         }
     }
 
+
+    /**
+     * HBase gets are keyed by row key and cannot apply scalar functions without custom filters or client-side scans,
+     * so any native function predicate is rejected before the table is used.
+     */
+    private void requireNoNativeFunction(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            throw new UnsupportedOperationException("Native functions in predicates are not supported in the HBase driver");
+        }
+        Condition type = condition.condition();
+        if (Condition.AND.equals(type) || Condition.OR.equals(type)) {
+            condition.element().get(new TypeReference<List<CriteriaCondition>>() {
+            }).forEach(this::requireNoNativeFunction);
+        } else if (Condition.NOT.equals(type)) {
+            requireNoNativeFunction(condition.element().get(CriteriaCondition.class));
+        }
+    }
 
     @Override
     public String toString() {
