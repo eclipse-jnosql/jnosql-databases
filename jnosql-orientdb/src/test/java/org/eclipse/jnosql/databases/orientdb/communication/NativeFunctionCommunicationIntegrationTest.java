@@ -22,7 +22,7 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeAll;
@@ -64,8 +64,8 @@ class NativeFunctionCommunicationIntegrationTest {
 
     @BeforeEach
     void insertDataset() {
-        manager.delete(new DefaultDeleteQuery(ACCOUNTS, null, List.of()));
-        manager.delete(new DefaultDeleteQuery(MIXED, null, List.of()));
+        manager.delete(NativeFunctionQueries.delete(ACCOUNTS, null, List.of()));
+        manager.delete(NativeFunctionQueries.delete(MIXED, null, List.of()));
         account(1, "Otavio", "OTAVIO", -100);
         account(2, "otavio", "JAVA", 100);
         account(3, "JAVA", "java", -250);
@@ -318,7 +318,7 @@ class NativeFunctionCommunicationIntegrationTest {
         void shouldDeleteOnlyMatchingRecords() {
             var condition = compare(function("UPPER", attribute("name")), Condition.EQUALS, constant("OTAVIO"));
 
-            manager.delete(new DefaultDeleteQuery(ACCOUNTS, condition, List.of()));
+            manager.delete(NativeFunctionQueries.delete(ACCOUNTS, condition, List.of()));
 
             assertThat(accounts(null)).isEqualTo(ids(3, 4, 5));
         }
