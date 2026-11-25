@@ -70,7 +70,7 @@ class NativeFunctionMappingTest {
             "FROM MockedAccount WHERE (UPPER(name) = 'A' OR balance = 1) AND NOT (LOWER(name) = 'b')"})
     @DisplayName("Every native function is rejected before the store is used")
     void shouldRejectNativeSelect(String jdql) {
-        assertThatThrownBy(() -> template.query(jdql).bind("name", "Ota").result())
+        assertThatThrownBy(() -> template.prepare(jdql).bind("name", "Ota").result())
                 .isInstanceOf(UnsupportedOperationException.class);
 
         verify(MockedRavenProducer.STORE, never()).openSession();
@@ -80,8 +80,8 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("A delete with a native function never reaches the store")
     void shouldRejectNativeDelete() {
-        assertThatThrownBy(() -> template.query("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
 
         verify(MockedRavenProducer.STORE, never()).openSession();
         verifyNoInteractions(MockedRavenProducer.SESSION);
@@ -90,7 +90,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("An evaluable function is an ordinary value and uses the mapped field name")
     void shouldKeepEvaluableFunctionsTransparent() {
-        var query = template.query("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))");
+        var query = template.prepare("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))");
         query.bind("name", "otavio").result();
         query.bind("name", "jakarta").result();
 
