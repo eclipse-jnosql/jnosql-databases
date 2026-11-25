@@ -35,6 +35,7 @@ abstract class DynamoDBQueryBuilder implements Supplier<DynamoDBQuery> {
                              StringBuilder filterExpression,
                              Map<String, String> expressionAttributeNames,
                              Map<String, AttributeValue> expressionAttributeValues) {
+        requireNoNativeFunction(condition);
         var element = condition.element();
 
         switch (condition.condition()) {
@@ -77,6 +78,23 @@ abstract class DynamoDBQueryBuilder implements Supplier<DynamoDBQuery> {
                 break;
             default:
                 throw new IllegalArgumentException("Unknown condition " + condition.condition());
+        }
+    }
+
+    /**
+     * DynamoDB expressions have no equivalent of ABS, LOWER, UPPER, LEFT or RIGHT, and {@code size()} counts bytes for
+     * strings, which differs from the LENGTH contract, so every native function predicate is rejected.
+     */
+    static void requireNoNativeFunction(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            throw new UnsupportedOperationException("Native functions in predicates are not supported in the DynamoDB driver");
+        }
+        Condition type = condition.condition();
+        if (Condition.AND.equals(type) || Condition.OR.equals(type)) {
+            condition.element().get(new TypeReference<List<CriteriaCondition>>() {
+            }).forEach(DynamoDBQueryBuilder::requireNoNativeFunction);
+        } else if (Condition.NOT.equals(type)) {
+            requireNoNativeFunction(condition.element().get(CriteriaCondition.class));
         }
     }
 
