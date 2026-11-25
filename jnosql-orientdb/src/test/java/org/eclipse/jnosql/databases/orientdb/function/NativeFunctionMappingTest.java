@@ -69,7 +69,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("A native function uses the mapped field and the evaluated value is an ordinary parameter")
     void shouldMapAttributeAndBindEvaluatedValue() {
-        template.query("FROM MockedAccount WHERE UPPER(name) = UPPER(:name)").bind("name", "otavio").result();
+        template.prepare("FROM MockedAccount WHERE UPPER(name) = UPPER(:name)").bind("name", "otavio").result();
 
         assertSoftly(soft -> soft.assertThat(MockedOrientProducer.commands()).singleElement().satisfies(call -> {
             soft.assertThat(sql(call)).contains("account_name.toUpperCase() = ?").doesNotContain("(name.toUpperCase");
@@ -80,9 +80,9 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("Nested functions, a function on the right and ABS on a mapped field")
     void shouldTranslateNestedRightSideAndAbs() {
-        template.query("FROM MockedAccount WHERE UPPER(LOWER(name)) = 'OTA'").result();
-        template.query("FROM MockedAccount WHERE name = UPPER(otherName)").result();
-        template.query("FROM MockedAccount WHERE ABS(balance) = 4").result();
+        template.prepare("FROM MockedAccount WHERE UPPER(LOWER(name)) = 'OTA'").result();
+        template.prepare("FROM MockedAccount WHERE name = UPPER(otherName)").result();
+        template.prepare("FROM MockedAccount WHERE ABS(balance) = 4").result();
 
         var calls = MockedOrientProducer.commands();
         assertSoftly(soft -> {
@@ -96,7 +96,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("Rebinding the same query does not reuse stale values")
     void shouldRebind() {
-        var query = template.query("FROM MockedAccount WHERE UPPER(name) = UPPER(:name)");
+        var query = template.prepare("FROM MockedAccount WHERE UPPER(name) = UPPER(:name)");
         query.bind("name", "first").result();
         query.bind("name", "second").result();
         repository.sameUpperName("third");
@@ -113,10 +113,10 @@ class NativeFunctionMappingTest {
     @DisplayName("Unsupported functions are rejected before any connection is used")
     void shouldRejectUnsupported() {
         assertThatThrownBy(() -> repository.unsupportedLength()).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> template.query("FROM MockedAccount WHERE LEFT(name, 3) = 'Ota'").result())
+        assertThatThrownBy(() -> template.prepare("FROM MockedAccount WHERE LEFT(name, 3) = 'Ota'").result())
                 .isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> template.query("DELETE FROM MockedAccount WHERE RIGHT(name, 3) = 'avio'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("DELETE FROM MockedAccount WHERE RIGHT(name, 3) = 'avio'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
 
         assertSoftly(soft -> {
             soft.assertThat(MockedOrientProducer.commands()).isEmpty();
@@ -127,7 +127,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("An ordinary evaluated function stays a plain value")
     void shouldKeepEvaluableFunctionTransparent() {
-        template.query("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))").bind("name", "otavio").result();
+        template.prepare("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))").bind("name", "otavio").result();
 
         assertSoftly(soft -> soft.assertThat(MockedOrientProducer.commands()).singleElement().satisfies(call -> {
             soft.assertThat(sql(call)).doesNotContain("toUpperCase").contains("account_name = ?");
