@@ -66,6 +66,10 @@ final class IoTDBQueryConverter {
     }
 
     private static String condition(CriteriaCondition condition, boolean temporalOnly) {
+        if (condition.isNative()) {
+            return IoTDBNativeFunction.convert(condition, IoTDBEntityConverter::identifier,
+                    value -> literal("", value));
+        }
         Element element = condition.element();
         String name = element.name();
         String column = identifier(column(name));
@@ -86,6 +90,10 @@ final class IoTDBQueryConverter {
     }
 
     private static String deleteCondition(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            throw new UnsupportedOperationException(
+                    "IoTDB delete supports only temporal comparisons, not native functions");
+        }
         Element element = condition.element();
         if (condition.condition() == org.eclipse.jnosql.communication.Condition.AND) {
             return combination(element, "AND", true);
