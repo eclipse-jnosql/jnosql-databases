@@ -22,7 +22,7 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.DisplayName;
@@ -109,7 +109,7 @@ class OracleNativeFunctionTest {
     }
 
     private static OracleQuery delete(CriteriaCondition condition) {
-        return new DeleteBuilder(new DefaultDeleteQuery("person", condition, List.of()), "database").get();
+        return new DeleteBuilder(NativeFunctionQueries.delete("person", condition, List.of()), "database").get();
     }
 
     private static String where(OracleQuery query) {
