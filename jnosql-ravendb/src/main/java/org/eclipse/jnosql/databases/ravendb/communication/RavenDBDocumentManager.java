@@ -153,6 +153,7 @@ public class RavenDBDocumentManager implements DatabaseManager {
     @Override
     public void delete(DeleteQuery query) {
         Objects.requireNonNull(query, "query is required");
+        DocumentQueryConverter.requireNoNativeFunction(query.condition());
 
         try (IDocumentSession session = store.openSession()) {
             Stream<Map> entities = getQueryMaps(new RavenDeleteQuery(query), session);
@@ -166,6 +167,7 @@ public class RavenDBDocumentManager implements DatabaseManager {
     @Override
     public Stream<CommunicationEntity> select(SelectQuery query) {
         Objects.requireNonNull(query, "query is required");
+        DocumentQueryConverter.requireNoNativeFunction(query.condition());
 
         try (IDocumentSession session = store.openSession()) {
             Stream<Map> entities = getQueryMaps(query, session);
