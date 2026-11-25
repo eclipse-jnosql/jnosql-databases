@@ -76,7 +76,7 @@ class NativeFunctionMappingTest {
     void shouldRejectNativeSelect(String jdql) {
         Mockito.clearInvocations(MockedHBaseProducer.TABLE);
 
-        assertThatThrownBy(() -> template.query(jdql).bind("name", "Ota").result())
+        assertThatThrownBy(() -> template.prepare(jdql).bind("name", "Ota").result())
                 .isInstanceOf(UnsupportedOperationException.class);
 
         verifyNoInteractions(MockedHBaseProducer.TABLE);
@@ -87,8 +87,8 @@ class NativeFunctionMappingTest {
     void shouldRejectNativeDelete() {
         Mockito.clearInvocations(MockedHBaseProducer.TABLE);
 
-        assertThatThrownBy(() -> template.query("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
 
         verifyNoInteractions(MockedHBaseProducer.TABLE);
     }
@@ -96,7 +96,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("An evaluable function is an ordinary value, rebound on every execution")
     void shouldKeepEvaluableFunctionsTransparent() throws java.io.IOException {
-        var query = template.query("FROM MockedAccount WHERE _id = UPPER(LEFT(:name, 3))");
+        var query = template.prepare("FROM MockedAccount WHERE _id = UPPER(LEFT(:name, 3))");
         query.bind("name", "otavio").result();
         query.bind("name", "jakarta").result();
 
