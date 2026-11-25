@@ -126,11 +126,16 @@ final class QuestDBNativeFunction {
     }
 
     private String expression(CriteriaOperand operand) {
-        return switch (operand) {
-            case CriteriaOperand.Attribute attribute -> attribute(attribute.name());
-            case CriteriaOperand.Constant constant -> bindComparison(ValueUtil.convert(constant.value()));
-            case CriteriaOperand.Function function -> function(function.function());
-        };
+        if (operand instanceof CriteriaOperand.Attribute attribute) {
+            return attribute(attribute.name());
+        }
+        if (operand instanceof CriteriaOperand.Constant constant) {
+            return bindComparison(ValueUtil.convert(constant.value()));
+        }
+        if (operand instanceof CriteriaOperand.Function function) {
+            return function(function.function());
+        }
+        throw new IllegalStateException("Unexpected " + operand);
     }
 
     private String attribute(String name) {
@@ -159,29 +164,38 @@ final class QuestDBNativeFunction {
     }
 
     private String argument(StandardFunction function, int index, ArgumentType type, FunctionArgument argument) {
-        return switch (argument) {
-            case FunctionArgument.AttributePath path -> {
-                if (type == ArgumentType.INTEGER) {
-                    throw unsupportedLength(function);
-                }
-                yield attribute(path.path());
+        if (argument instanceof FunctionArgument.AttributePath path) {
+            if (type == ArgumentType.INTEGER) {
+                throw unsupportedLength(function);
             }
-            case FunctionArgument.NativeArgument nested -> {
-                if (type == ArgumentType.INTEGER
-                        && !"LENGTH".equals(nested.function().name().toUpperCase(Locale.ROOT))) {
-                    throw unsupportedLength(function);
-                }
-                yield function(nested.function());
+            return attribute(path.path());
+        }
+        if (argument instanceof FunctionArgument.NativeArgument nested) {
+            if (type == ArgumentType.INTEGER
+                    && !"LENGTH".equals(nested.function().name().toUpperCase(Locale.ROOT))) {
+                throw unsupportedLength(function);
             }
-            case FunctionArgument.Literal literal -> constant(function, index, type, literal.value());
-            case FunctionArgument.ValueArgument value -> constant(function, index, type, value.value().get());
-            case FunctionArgument.EvaluableArgument nested -> constant(function, index, type,
+            return function(nested.function());
+        }
+        if (argument instanceof FunctionArgument.Literal literal) {
+            return constant(function, index, type, literal.value());
+        }
+        if (argument instanceof FunctionArgument.ValueArgument value) {
+            return constant(function, index, type, value.value().get());
+        }
+        if (argument instanceof FunctionArgument.EvaluableArgument nested) {
+            return constant(function, index, type,
                     nested.function().get());
-            case FunctionArgument.NamedParameter parameter -> throw new IllegalStateException(
+        }
+        if (argument instanceof FunctionArgument.NamedParameter parameter) {
+            throw new IllegalStateException(
                     "Unbound parameter :" + parameter.name() + " in " + function.name());
-            case FunctionArgument.PositionalParameter parameter -> throw new IllegalStateException(
+        }
+        if (argument instanceof FunctionArgument.PositionalParameter parameter) {
+            throw new IllegalStateException(
                     "Unbound parameter ?" + parameter.position() + " in " + function.name());
-        };
+        }
+        throw new IllegalStateException("Unexpected " + argument);
     }
 
     private static UnsupportedOperationException unsupportedLength(StandardFunction function) {
