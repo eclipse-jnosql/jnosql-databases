@@ -23,7 +23,7 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.AfterEach;
@@ -162,7 +162,7 @@ class TinkerpopNativeFunctionTest {
                 soft.assertThatThrownBy(() -> manager.count(
                         new DefaultSelectQuery(0, 0, "person", List.of(), List.of(), condition, true)))
                         .isInstanceOf(UnsupportedOperationException.class);
-                soft.assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("person", condition, List.of())))
+                soft.assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("person", condition, List.of())))
                         .isInstanceOf(UnsupportedOperationException.class);
             });
             verify(spied, never()).tx();
@@ -177,7 +177,7 @@ class TinkerpopNativeFunctionTest {
             var condition = eq(fn("ABS", attr("age")), constant(30));
 
             assertSoftly(soft -> soft.assertThatThrownBy(() ->
-                    manager.delete(new DefaultDeleteQuery("person", condition, List.of())))
+                    manager.delete(NativeFunctionQueries.delete("person", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class));
             assertThat(graph.traversal().V().count().next()).isEqualTo(4L);
         }
