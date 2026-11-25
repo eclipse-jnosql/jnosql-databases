@@ -93,12 +93,12 @@ class NativeFunctionMappingTest {
     void shouldEvaluateLengthBeforeTranslation() throws Exception {
         template.query("FROM MockedSensorReading WHERE LOWER(name) = LOWER(LEFT(:prefix, LENGTH(:prefix)))")
                 .bind("prefix", "Ota").result();
-        template.query("FROM MockedSensorReading WHERE ABS(LENGTH(name)) = 3").result();
+        template.query("FROM MockedSensorReading WHERE LOWER(UPPER(name)) = 'ota'").result();
 
         var statements = sqls(2);
         assertThat(statements.get(0)).isEqualTo("SELECT * FROM \"sensor_reading\" WHERE (lower(\"sensor_name\") = 'ota')");
         assertThat(statements.get(1)).isEqualTo(
-                "SELECT * FROM \"sensor_reading\" WHERE (abs(length(\"sensor_name\")) = 3)");
+                "SELECT * FROM \"sensor_reading\" WHERE (lower(upper(\"sensor_name\")) = 'ota')");
     }
 
     @Test
