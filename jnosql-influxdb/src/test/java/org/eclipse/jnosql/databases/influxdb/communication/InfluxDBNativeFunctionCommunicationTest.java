@@ -21,9 +21,8 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -170,9 +169,9 @@ class InfluxDBNativeFunctionCommunicationTest {
             var condition = eq(fn("UPPER", attr("name")), constant("OTAVIO"));
 
             assertSoftly(soft -> {
-                soft.assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("temperature", condition,
+                soft.assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("temperature", condition,
                         List.of()))).isInstanceOf(UnsupportedOperationException.class);
-                soft.assertThatThrownBy(() -> manager.update(new DefaultUpdateQuery("temperature",
+                soft.assertThatThrownBy(() -> manager.update(NativeFunctionQueries.update("temperature",
                         List.of(Element.of("value", 1)), condition))).isInstanceOf(UnsupportedOperationException.class);
             });
             verifyNoInteractions(client);
