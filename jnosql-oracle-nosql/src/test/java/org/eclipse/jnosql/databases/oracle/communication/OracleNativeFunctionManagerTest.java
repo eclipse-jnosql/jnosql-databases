@@ -30,7 +30,7 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -164,7 +164,7 @@ class OracleNativeFunctionManagerTest {
         @ParameterizedTest(name = "{1}")
         @MethodSource("org.eclipse.jnosql.databases.oracle.communication.OracleNativeFunctionManagerTest#functions")
         void shouldDelete(CriteriaCondition condition, String fragment, List<Object> variables) {
-            manager.delete(new DefaultDeleteQuery("person", condition, List.of()));
+            manager.delete(NativeFunctionQueries.delete("person", condition, List.of()));
 
             assertSoftly(soft -> {
                 soft.assertThat(preparedStatement()).startsWith("DELETE").contains(fragment);
@@ -257,9 +257,9 @@ class OracleNativeFunctionManagerTest {
         @MethodSource("unsupported")
         @DisplayName("An unsupported delete is rejected and never becomes an unrestricted delete")
         void shouldRejectDeleteWithoutRequest(CriteriaCondition condition) {
-            assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("person", condition, List.of())))
+            assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("person", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
-            assertThatThrownBy(() -> manager.deleteAndCount(new DefaultDeleteQuery("person", condition, List.of())))
+            assertThatThrownBy(() -> manager.deleteAndCount(NativeFunctionQueries.delete("person", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
             verifyNoInteractions(handle);
         }
