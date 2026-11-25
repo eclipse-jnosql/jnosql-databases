@@ -273,6 +273,7 @@ public class DefaultDynamoDBDatabaseManager implements DynamoDBDatabaseManager {
     @Override
     public long deleteAndCount(DeleteQuery deleteQuery) {
         Objects.requireNonNull(deleteQuery, "deleteQuery is required");
+        deleteQuery.condition().ifPresent(DynamoDBQueryBuilder::requireNoNativeFunction);
 
         List<String> primaryKeys = getDescribeTableResponse(deleteQuery.name())
                 .table()
