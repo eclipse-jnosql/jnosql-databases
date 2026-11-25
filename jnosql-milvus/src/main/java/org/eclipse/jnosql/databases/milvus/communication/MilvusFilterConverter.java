@@ -53,6 +53,10 @@ final class MilvusFilterConverter {
     }
 
     private String toExpression(CriteriaCondition criteria) {
+        if (criteria.isNative()) {
+            throw new UnsupportedOperationException(
+                    "The Milvus driver does not support native functions in a metadata filter: boolean filter expressions have no abs, lower, upper, length, left or right");
+        }
         return switch (criteria.condition()) {
             case AND -> join(criteria, " and ");
             case OR -> join(criteria, " or ");
