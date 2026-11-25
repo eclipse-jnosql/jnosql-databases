@@ -245,8 +245,8 @@ class ArangoNativeFunctionTest {
         void shouldTranslateOrdering(Condition condition, String operator) {
             var result = select(compare(function("LENGTH", attribute("name")), condition, constant(3)));
 
-            assertThat(filter(result)).isEqualTo("((IS_STRING(p.name) ? CHAR_LENGTH(p.name) : null) " + operator
-                    + " @nf)");
+            var length = "(IS_STRING(p.name) ? CHAR_LENGTH(p.name) : null)";
+            assertThat(filter(result)).isEqualTo("(" + length + " " + operator + " @nf AND " + length + " != null)");
         }
 
         @Test
