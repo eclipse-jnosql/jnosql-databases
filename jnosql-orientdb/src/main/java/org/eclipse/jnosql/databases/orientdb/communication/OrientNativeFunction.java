@@ -145,9 +145,9 @@ final class OrientNativeFunction {
         var standard = StandardFunction.find(function.name()).orElseThrow(() -> new UnsupportedOperationException(
                 "The " + DATABASE + " driver does not support the native function " + function.name()));
         return switch (standard) {
-            case ABS -> "abs(" + argument(standard, function.arguments().getFirst()) + ")";
-            case LOWER -> argument(standard, function.arguments().getFirst()) + ".toLowerCase()";
-            case UPPER -> argument(standard, function.arguments().getFirst()) + ".toUpperCase()";
+            case ABS -> "abs(" + argument(standard, function.arguments().get(0)) + ")";
+            case LOWER -> argument(standard, function.arguments().get(0)) + ".toLowerCase()";
+            case UPPER -> argument(standard, function.arguments().get(0)) + ".toUpperCase()";
             case LENGTH, LEFT, RIGHT -> throw new UnsupportedOperationException("The " + DATABASE
                     + " driver does not support the native function " + standard.name()
                     + ": OrientDB counts UTF-16 code units and returns 0 for a null length, which differs from "
