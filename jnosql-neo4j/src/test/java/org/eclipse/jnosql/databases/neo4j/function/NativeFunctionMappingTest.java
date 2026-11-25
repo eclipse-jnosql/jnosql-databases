@@ -65,7 +65,7 @@ class NativeFunctionMappingTest {
             "FROM MockedAccount WHERE (LEFT(name, 1) = 'A' OR balance = 1) AND NOT (LOWER(name) = 'b')"})
     @DisplayName("Unsupported functions are rejected before a transaction starts")
     void shouldRejectUnsupported(String jdql) {
-        assertThatThrownBy(() -> template.query(jdql).bind("name", "Ota").result())
+        assertThatThrownBy(() -> template.prepare(jdql).bind("name", "Ota").result())
                 .isInstanceOf(UnsupportedOperationException.class);
 
         verifyNoInteractions(MockedNeo4JProducer.SESSION, MockedNeo4JProducer.TRANSACTION);
@@ -74,8 +74,8 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("A delete with an unsupported function sends no mutation")
     void shouldRejectUnsupportedDelete() {
-        assertThatThrownBy(() -> template.query("DELETE FROM MockedAccount WHERE RIGHT(name, 2) = 'io'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("DELETE FROM MockedAccount WHERE RIGHT(name, 2) = 'io'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
 
         verifyNoInteractions(MockedNeo4JProducer.SESSION, MockedNeo4JProducer.TRANSACTION);
     }
@@ -83,7 +83,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("Native functions stay structured, use mapped names and bind parameters")
     void shouldTranslateNativeFunctions() {
-        template.query("FROM MockedAccount WHERE UPPER(name) = UPPER(:name) AND name = UPPER(otherName)")
+        template.prepare("FROM MockedAccount WHERE UPPER(name) = UPPER(:name) AND name = UPPER(otherName)")
                 .bind("name", "ota").result();
 
         var cypher = ArgumentCaptor.forClass(String.class);
@@ -97,7 +97,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("An evaluable function is an ordinary value, rebound on every execution")
     void shouldKeepEvaluableFunctionsTransparent() {
-        var query = template.query("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))");
+        var query = template.prepare("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))");
         query.bind("name", "otavio").result();
         query.bind("name", "jakarta").result();
 
