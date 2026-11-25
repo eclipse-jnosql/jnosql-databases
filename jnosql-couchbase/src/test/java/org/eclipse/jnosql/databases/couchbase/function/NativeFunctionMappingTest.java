@@ -27,6 +27,7 @@ import org.eclipse.jnosql.mapping.reflection.Reflections;
 import org.eclipse.jnosql.mapping.reflection.spi.ReflectionEntityMetadataExtension;
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddBeanClasses;
+import org.jboss.weld.junit5.auto.EnableAlternatives;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
@@ -44,6 +45,7 @@ import static org.mockito.Mockito.mockingDetails;
 @AddPackages(value = {Database.class, EntityConverter.class, DocumentTemplate.class})
 @AddPackages(MockedAccount.class)
 @AddBeanClasses(MockedClusterProducer.class)
+@EnableAlternatives(MockedClusterProducer.class)
 @AddPackages(CouchbaseTemplate.class)
 @AddPackages(Reflections.class)
 @AddPackages(Converters.class)
