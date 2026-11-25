@@ -92,10 +92,10 @@ class NativeFunctionMappingTest {
 
         var captured = capture(2);
         assertThat(captured.statements().get(0)).isEqualTo(
-                "SELECT * FROM \"sensor_reading\" WHERE (left(\"sensor_name\", $p0) = $p1)");
+                "SELECT * FROM \"sensor_reading\" WHERE (left(\"sensor_name\", CAST($p0 AS BIGINT)) = $p1)");
         assertThat(captured.parameters().get(0)).containsEntry("p0", 3L).containsEntry("p1", "Ota");
         assertThat(captured.statements().get(1)).isEqualTo(
-                "SELECT * FROM \"sensor_reading\" WHERE (upper(left(\"sensor_name\", $p0)) = $p1)");
+                "SELECT * FROM \"sensor_reading\" WHERE (upper(left(\"sensor_name\", CAST($p0 AS BIGINT))) = $p1)");
     }
 
     @Test
