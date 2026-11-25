@@ -25,9 +25,8 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -135,7 +134,7 @@ class NativeFunctionManagerTest {
         @ParameterizedTest(name = "{1}")
         @MethodSource("org.eclipse.jnosql.databases.mongodb.communication.NativeFunctionManagerTest#functions")
         void shouldDelete(CriteriaCondition condition, String operator, String argument) {
-            manager.delete(new DefaultDeleteQuery("accounts", condition, List.of()));
+            manager.delete(NativeFunctionQueries.delete("accounts", condition, List.of()));
 
             assertSoftly(soft -> soft.assertThat(captured("delete")).startsWith("{\"$expr\"")
                     .contains(operator).contains(argument));
@@ -144,7 +143,7 @@ class NativeFunctionManagerTest {
         @ParameterizedTest(name = "{1}")
         @MethodSource("org.eclipse.jnosql.databases.mongodb.communication.NativeFunctionManagerTest#functions")
         void shouldUpdate(CriteriaCondition condition, String operator, String argument) {
-            manager.update(new DefaultUpdateQuery("accounts", List.of(Element.of("flag", true)), condition));
+            manager.update(NativeFunctionQueries.update("accounts", List.of(Element.of("flag", true)), condition));
 
             assertSoftly(soft -> soft.assertThat(captured("update")).startsWith("{\"$expr\"")
                     .contains(operator).contains(argument));
@@ -215,7 +214,7 @@ class NativeFunctionManagerTest {
         @MethodSource("unsupported")
         @DisplayName("An unsupported delete never becomes an unrestricted delete")
         void shouldRejectDeleteWithoutMutation(CriteriaCondition condition) {
-            assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("accounts", condition, List.of())))
+            assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("accounts", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
             verifyNoInteractions(collection);
         }
@@ -224,7 +223,7 @@ class NativeFunctionManagerTest {
         @MethodSource("unsupported")
         @DisplayName("An unsupported update never becomes an unrestricted update")
         void shouldRejectUpdateWithoutMutation(CriteriaCondition condition) {
-            assertThatThrownBy(() -> manager.update(new DefaultUpdateQuery("accounts",
+            assertThatThrownBy(() -> manager.update(NativeFunctionQueries.update("accounts",
                     List.of(Element.of("flag", true)), condition)))
                     .isInstanceOf(UnsupportedOperationException.class);
             verifyNoInteractions(collection);
