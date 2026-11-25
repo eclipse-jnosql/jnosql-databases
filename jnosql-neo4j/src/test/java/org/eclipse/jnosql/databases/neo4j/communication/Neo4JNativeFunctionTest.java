@@ -19,9 +19,8 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -145,14 +144,14 @@ class Neo4JNativeFunctionTest {
             var countQuery = Neo4JQueryBuilder.INSTANCE.buildCountQuery(
                     new DefaultSelectQuery(0, 0, "person", List.of(), List.of(), condition, true), count);
             var deleteQuery = Neo4JQueryBuilder.INSTANCE.buildQuery(
-                    new DefaultDeleteQuery("person", condition, List.of()), delete);
+                    NativeFunctionQueries.delete("person", condition, List.of()), delete);
             var updateQuery = Neo4JQueryBuilder.INSTANCE.buildQuery(
-                    new DefaultUpdateQuery("person", List.of(Element.of("flag", true)), condition), update);
+                    NativeFunctionQueries.update("person", List.of(Element.of("flag", true)), condition), update);
 
             assertSoftly(soft -> {
                 soft.assertThat(countQuery).isEqualTo("MATCH (e:person) WHERE (toUpper(e.name) = $nf) RETURN COUNT(e) as count");
                 soft.assertThat(deleteQuery).isEqualTo("MATCH (e:person) WHERE (toUpper(e.name) = $nf) DELETE e");
-                soft.assertThat(updateQuery).isEqualTo("MATCH (e:person) WHERE (toUpper(e.name) = $nf) SET e.flag = $flag");
+                soft.assertThat(updateQuery).isEqualTo("MATCH (e:person) WHERE (toUpper(e.name) = $nf) SET e.flag = $flag RETURN e");
                 soft.assertThat(update).containsEntry("nf", "OTA").containsEntry("flag", true);
             });
         }
@@ -223,9 +222,9 @@ class Neo4JNativeFunctionTest {
                         new DefaultSelectQuery(0, 0, "person", List.of(), List.of(), condition, true)))
                         .isInstanceOfAny(UnsupportedOperationException.class,
                                 org.eclipse.jnosql.communication.CommunicationException.class);
-                soft.assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("person", condition, List.of())))
+                soft.assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("person", condition, List.of())))
                         .isInstanceOf(UnsupportedOperationException.class);
-                soft.assertThatThrownBy(() -> manager.update(new DefaultUpdateQuery("person",
+                soft.assertThatThrownBy(() -> manager.update(NativeFunctionQueries.update("person",
                         List.of(Element.of("flag", true)), condition)))
                         .isInstanceOf(UnsupportedOperationException.class);
             });
