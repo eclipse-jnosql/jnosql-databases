@@ -106,7 +106,7 @@ class ArangoNativeFunctionManagerTest {
 
     private Invocation request() {
         assertThat(requests()).hasSize(1);
-        return requests().getFirst();
+        return requests().get(0);
     }
 
     private String aql() {
