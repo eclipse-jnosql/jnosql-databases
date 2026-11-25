@@ -73,6 +73,10 @@ record N1QLUpdateQueryBuilder(UpdateQuery query, String database, String scope) 
     }
 
     private void condition(CriteriaCondition condition, String alias, StringBuilder n1ql, JsonObject params) {
+        if (condition.isNative()) {
+            n1ql.append(N1QLNativeFunction.convert(condition, alias, params));
+            return;
+        }
         Element document = condition.element();
         switch (condition.condition()) {
             case EQUALS:
