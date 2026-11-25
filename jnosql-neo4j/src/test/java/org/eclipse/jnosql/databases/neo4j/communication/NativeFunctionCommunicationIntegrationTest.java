@@ -21,9 +21,8 @@ import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,8 +61,8 @@ class NativeFunctionCommunicationIntegrationTest {
 
     @BeforeEach
     void insertDataset() {
-        manager.delete(new DefaultDeleteQuery(ACCOUNTS, null, List.of()));
-        manager.delete(new DefaultDeleteQuery(MIXED, null, List.of()));
+        manager.delete(NativeFunctionQueries.delete(ACCOUNTS, null, List.of()));
+        manager.delete(NativeFunctionQueries.delete(MIXED, null, List.of()));
         account(1, "Otavio", "OTAVIO", -100);
         account(2, "otavio", "JAVA", 100);
         account(3, "JAVA", "java", -250);
@@ -324,7 +323,7 @@ class NativeFunctionCommunicationIntegrationTest {
         void shouldDeleteOnlyMatchingRecords() {
             var condition = compare(function("UPPER", attribute("name")), Condition.EQUALS, constant("OTAVIO"));
 
-            manager.delete(new DefaultDeleteQuery(ACCOUNTS, condition, List.of()));
+            manager.delete(NativeFunctionQueries.delete(ACCOUNTS, condition, List.of()));
 
             assertThat(accounts(null)).isEqualTo(ids(3, 4, 5));
         }
@@ -333,7 +332,7 @@ class NativeFunctionCommunicationIntegrationTest {
         void shouldUpdateOnlyMatchingRecords() {
             var condition = compare(function("LOWER", attribute("name")), Condition.EQUALS, constant("java"));
 
-            manager.update(new DefaultUpdateQuery(ACCOUNTS, List.of(Element.of("flag", true)), condition));
+            manager.update(NativeFunctionQueries.update(ACCOUNTS, List.of(Element.of("flag", true)), condition));
 
             assertThat(accounts(CriteriaCondition.eq("flag", true))).isEqualTo(ids(3));
         }
