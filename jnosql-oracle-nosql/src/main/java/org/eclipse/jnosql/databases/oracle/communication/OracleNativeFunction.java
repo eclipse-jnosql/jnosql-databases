@@ -152,7 +152,7 @@ final class OracleNativeFunction {
     private Sql in(CriteriaOperand left, CriteriaOperand right) {
         var leftExpression = expression(left);
         List<Object> values = ValueUtil.convertToList(constant(right, "IN").value());
-        return Sql.compose(false, leftExpression, " IN ?[]", FieldValueConverter.of(values));
+        return Sql.compose(false, leftExpression, " IN ?[]", FieldValueConverter.INSTANCE.of(values));
     }
 
     private Sql between(CriteriaOperand left, CriteriaOperand right) {
@@ -175,11 +175,16 @@ final class OracleNativeFunction {
     }
 
     private Sql expression(CriteriaOperand operand) {
-        return switch (operand) {
-            case CriteriaOperand.Attribute attribute -> Sql.of(attribute(attribute.name()), false);
-            case CriteriaOperand.Constant constant -> parameter(ValueUtil.convert(constant.value()));
-            case CriteriaOperand.Function function -> function(function.function());
-        };
+        if (operand instanceof CriteriaOperand.Attribute attribute) {
+            return Sql.of(attribute(attribute.name()), false);
+        }
+        if (operand instanceof CriteriaOperand.Constant constant) {
+            return parameter(ValueUtil.convert(constant.value()));
+        }
+        if (operand instanceof CriteriaOperand.Function function) {
+            return function(function.function());
+        }
+        throw new IllegalStateException("Unexpected " + operand);
     }
 
     private Sql function(NativeFunction function) {
@@ -233,38 +238,51 @@ final class OracleNativeFunction {
     }
 
     private static boolean isNullConstant(FunctionArgument argument) {
-        return switch (argument) {
-            case FunctionArgument.Literal literal -> literal.value() == null;
-            case FunctionArgument.ValueArgument value -> value.value().isNull();
-            case FunctionArgument.EvaluableArgument nested -> nested.function().get() == null;
-            default -> false;
-        };
+        if (argument instanceof FunctionArgument.Literal literal) {
+            return literal.value() == null;
+        }
+        if (argument instanceof FunctionArgument.ValueArgument value) {
+            return value.value().isNull();
+        }
+        if (argument instanceof FunctionArgument.EvaluableArgument nested) {
+            return nested.function().get() == null;
+        }
+        return false;
     }
 
     private Sql argument(StandardFunction function, int index, ArgumentType type, FunctionArgument argument) {
-        return switch (argument) {
-            case FunctionArgument.AttributePath path -> {
-                if (type == ArgumentType.INTEGER) {
-                    throw unsupportedLength(function);
-                }
-                yield Sql.of(attribute(path.path()), false);
+        if (argument instanceof FunctionArgument.AttributePath path) {
+            if (type == ArgumentType.INTEGER) {
+                throw unsupportedLength(function);
             }
-            case FunctionArgument.NativeArgument nested -> {
-                if (type == ArgumentType.INTEGER
-                        && !"LENGTH".equals(nested.function().name().toUpperCase(Locale.ROOT))) {
-                    throw unsupportedLength(function);
-                }
-                yield function(nested.function());
+            return Sql.of(attribute(path.path()), false);
+        }
+        if (argument instanceof FunctionArgument.NativeArgument nested) {
+            if (type == ArgumentType.INTEGER
+                    && !"LENGTH".equals(nested.function().name().toUpperCase(Locale.ROOT))) {
+                throw unsupportedLength(function);
             }
-            case FunctionArgument.Literal literal -> constant(function, index, type, literal.value());
-            case FunctionArgument.ValueArgument value -> constant(function, index, type, value.value().get());
-            case FunctionArgument.EvaluableArgument nested -> constant(function, index, type,
+            return function(nested.function());
+        }
+        if (argument instanceof FunctionArgument.Literal literal) {
+            return constant(function, index, type, literal.value());
+        }
+        if (argument instanceof FunctionArgument.ValueArgument value) {
+            return constant(function, index, type, value.value().get());
+        }
+        if (argument instanceof FunctionArgument.EvaluableArgument nested) {
+            return constant(function, index, type,
                     nested.function().get());
-            case FunctionArgument.NamedParameter parameter -> throw new IllegalStateException(
+        }
+        if (argument instanceof FunctionArgument.NamedParameter parameter) {
+            throw new IllegalStateException(
                     "Unbound parameter :" + parameter.name() + " in " + function.name());
-            case FunctionArgument.PositionalParameter parameter -> throw new IllegalStateException(
+        }
+        if (argument instanceof FunctionArgument.PositionalParameter parameter) {
+            throw new IllegalStateException(
                     "Unbound parameter ?" + parameter.position() + " in " + function.name());
-        };
+        }
+        throw new IllegalStateException("Unexpected " + argument);
     }
 
     private static UnsupportedOperationException unsupportedLength(StandardFunction function) {
@@ -312,6 +330,6 @@ final class OracleNativeFunction {
     }
 
     private static Sql parameter(Object value) {
-        return new Sql("?", true, List.of(FieldValueConverter.of(value)));
+        return new Sql("?", true, List.of(FieldValueConverter.INSTANCE.of(value)));
     }
 }
