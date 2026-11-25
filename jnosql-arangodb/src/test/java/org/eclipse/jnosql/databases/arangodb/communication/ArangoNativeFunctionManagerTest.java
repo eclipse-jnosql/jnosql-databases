@@ -24,9 +24,8 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -172,7 +171,7 @@ class ArangoNativeFunctionManagerTest {
         @ParameterizedTest(name = "{1}")
         @MethodSource("org.eclipse.jnosql.databases.arangodb.communication.ArangoNativeFunctionManagerTest#functions")
         void shouldDelete(CriteriaCondition condition, String fragment, Map<String, Object> variables) {
-            manager.delete(new DefaultDeleteQuery("person", condition, List.of()));
+            manager.delete(NativeFunctionQueries.delete("person", condition, List.of()));
 
             assertSoftly(soft -> {
                 soft.assertThat(aql()).startsWith("FOR p IN person FILTER").contains(fragment)
@@ -184,7 +183,7 @@ class ArangoNativeFunctionManagerTest {
         @ParameterizedTest(name = "{1}")
         @MethodSource("org.eclipse.jnosql.databases.arangodb.communication.ArangoNativeFunctionManagerTest#functions")
         void shouldUpdate(CriteriaCondition condition, String fragment, Map<String, Object> variables) {
-            manager.update(new DefaultUpdateQuery("person", List.of(Element.of("status", "x")), condition));
+            manager.update(NativeFunctionQueries.update("person", List.of(Element.of("status", "x")), condition));
 
             assertSoftly(soft -> {
                 soft.assertThat(aql()).startsWith("FOR p IN person FILTER").contains(fragment)
@@ -238,9 +237,9 @@ class ArangoNativeFunctionManagerTest {
         @MethodSource("unsupported")
         @DisplayName("An unsupported DELETE never runs an unrestricted removal")
         void shouldRejectDelete(CriteriaCondition condition) {
-            assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("person", condition, List.of())))
+            assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("person", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
-            assertThatThrownBy(() -> manager.deleteAndCount(new DefaultDeleteQuery("person", condition, List.of())))
+            assertThatThrownBy(() -> manager.deleteAndCount(NativeFunctionQueries.delete("person", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
             assertThat(touchedTheServer()).isFalse();
         }
@@ -250,7 +249,7 @@ class ArangoNativeFunctionManagerTest {
         @DisplayName("An unsupported UPDATE never runs an unrestricted update")
         void shouldRejectUpdate(CriteriaCondition condition) {
             assertThatThrownBy(() -> manager.update(
-                    new DefaultUpdateQuery("person", List.of(Element.of("status", "x")), condition)))
+                    NativeFunctionQueries.update("person", List.of(Element.of("status", "x")), condition)))
                     .isInstanceOf(UnsupportedOperationException.class);
             assertThat(touchedTheServer()).isFalse();
         }
