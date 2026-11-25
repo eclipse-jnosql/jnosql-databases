@@ -28,6 +28,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Translates a predicate that has a {@link CriteriaOperand.Function} operand into an AQL boolean expression.
@@ -95,7 +97,18 @@ final class ArangoNativeFunction {
     }
 
     private String comparison(String operator, CriteriaOperand left, CriteriaOperand right) {
-        return expression(left).text() + operator + expression(right).text();
+        var leftExpression = expression(left);
+        var rightExpression = expression(right);
+        var text = leftExpression.text() + operator + rightExpression.text();
+        if (" == ".equals(operator)) {
+            return text;
+        }
+        // AQL sorts null before every other value, so an ordering comparison must exclude null operands explicitly
+        var nullChecks = Stream.of(leftExpression, rightExpression)
+                .filter(expression -> !expression.constant())
+                .map(expression -> expression.text() + " != null")
+                .collect(Collectors.joining(" AND "));
+        return nullChecks.isEmpty() ? text : text + " AND " + nullChecks;
     }
 
     private String like(CriteriaOperand left, CriteriaOperand right) {
