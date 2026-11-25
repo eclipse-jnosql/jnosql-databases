@@ -145,7 +145,7 @@ class HBaseNativeFunctionRejectionTest {
             verify(table).get(captor.capture());
             assertSoftly(soft -> {
                 soft.assertThat(captor.getValue()).hasSize(1);
-                soft.assertThat(captor.getValue().getFirst().getRow()).isEqualTo("OTAVIO".getBytes());
+                soft.assertThat(captor.getValue().get(0).getRow()).isEqualTo("OTAVIO".getBytes());
             });
         }
     }
