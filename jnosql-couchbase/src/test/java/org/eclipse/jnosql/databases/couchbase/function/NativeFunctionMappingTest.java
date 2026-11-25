@@ -81,7 +81,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("A native function uses the mapped field and the evaluated value is an ordinary parameter")
     void shouldMapAttributeAndBindEvaluatedValue() {
-        template.query("FROM MockedAccount WHERE UPPER(name) = UPPER(:name)").bind("name", "otavio").result();
+        template.prepare("FROM MockedAccount WHERE UPPER(name) = UPPER(:name)").bind("name", "otavio").result();
 
         assertSoftly(soft -> {
             soft.assertThat(requests()).singleElement().satisfies(request -> {
@@ -95,7 +95,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("Partial evaluation reduces the length argument to the number 3")
     void shouldPartiallyEvaluate() {
-        template.query("FROM MockedAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix")
+        template.prepare("FROM MockedAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix")
                 .bind("prefix", "Ota").result();
 
         assertSoftly(soft -> soft.assertThat(requests()).singleElement().satisfies(request -> {
@@ -107,8 +107,8 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("Nested native functions and a native function on the right keep their structure")
     void shouldTranslateNestedAndRightSide() {
-        template.query("FROM MockedAccount WHERE UPPER(LEFT(name, 3)) = 'OTA'").result();
-        template.query("FROM MockedAccount WHERE name = UPPER(otherName)").result();
+        template.prepare("FROM MockedAccount WHERE UPPER(LEFT(name, 3)) = 'OTA'").result();
+        template.prepare("FROM MockedAccount WHERE name = UPPER(otherName)").result();
 
         assertSoftly(soft -> {
             soft.assertThat(requests().get(0).statement()).contains("UPPER(").contains("SUBSTR(`account_name`");
@@ -120,7 +120,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("Rebinding the same query does not reuse stale values")
     void shouldRebind() {
-        var query = template.query("FROM MockedAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix");
+        var query = template.prepare("FROM MockedAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix");
         query.bind("prefix", "Ota").result();
         query.bind("prefix", "Jakarta").result();
 
@@ -146,7 +146,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("DELETE with a native function selects the ids with the native predicate")
     void shouldDeleteWithNativeFunction() {
-        template.query("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'").executeUpdate();
+        template.prepare("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'").result();
 
         assertSoftly(soft -> soft.assertThat(requests()).singleElement().satisfies(request ->
                 soft.assertThat(request.statement()).containsIgnoringCase("select")
@@ -156,7 +156,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("UPDATE with a native function restricts the update")
     void shouldUpdateWithNativeFunction() {
-        template.query("UPDATE MockedAccount SET balance = 7 WHERE LOWER(name) = 'java'").executeUpdate();
+        template.prepare("UPDATE MockedAccount SET balance = 7 WHERE LOWER(name) = 'java'").result();
 
         assertSoftly(soft -> soft.assertThat(requests()).singleElement().satisfies(request ->
                 soft.assertThat(request.statement()).startsWith("UPDATE")
@@ -167,10 +167,10 @@ class NativeFunctionMappingTest {
     @DisplayName("An unsupported native function is rejected before any query")
     void shouldRejectUnsupported() {
         assertThatThrownBy(() -> repository.unsupportedLength()).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> template.query("DELETE FROM MockedAccount WHERE LEFT(name, balance) = 'x'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> template.query("UPDATE MockedAccount SET balance = 1 WHERE LEFT(name, balance) = 'x'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("DELETE FROM MockedAccount WHERE LEFT(name, balance) = 'x'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("UPDATE MockedAccount SET balance = 1 WHERE LEFT(name, balance) = 'x'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
 
         assertSoftly(soft -> soft.assertThat(requests()).isEmpty());
     }
