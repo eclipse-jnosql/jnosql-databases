@@ -129,11 +129,16 @@ final class OrientNativeFunction {
     }
 
     private String expression(CriteriaOperand operand) {
-        return switch (operand) {
-            case CriteriaOperand.Attribute attribute -> attribute(attribute.name());
-            case CriteriaOperand.Constant constant -> parameter(ValueUtil.convert(constant.value()));
-            case CriteriaOperand.Function function -> function(function.function());
-        };
+        if (operand instanceof CriteriaOperand.Attribute attribute) {
+            return attribute(attribute.name());
+        }
+        if (operand instanceof CriteriaOperand.Constant constant) {
+            return parameter(ValueUtil.convert(constant.value()));
+        }
+        if (operand instanceof CriteriaOperand.Function function) {
+            return function(function.function());
+        }
+        throw new IllegalStateException("Unexpected " + operand);
     }
 
     private String function(NativeFunction function) {
@@ -151,12 +156,14 @@ final class OrientNativeFunction {
     }
 
     private String argument(StandardFunction function, FunctionArgument argument) {
-        return switch (argument) {
-            case FunctionArgument.AttributePath path -> attribute(path.path());
-            case FunctionArgument.NativeArgument nested -> function(nested.function());
-            default -> throw new UnsupportedOperationException("The " + DATABASE + " driver supports only an "
+        if (argument instanceof FunctionArgument.AttributePath path) {
+            return attribute(path.path());
+        }
+        if (argument instanceof FunctionArgument.NativeArgument nested) {
+            return function(nested.function());
+        }
+        throw new UnsupportedOperationException("The " + DATABASE + " driver supports only an "
                     + "attribute or a native function as the argument of " + function.name());
-        };
     }
 
     private static String attribute(String name) {
