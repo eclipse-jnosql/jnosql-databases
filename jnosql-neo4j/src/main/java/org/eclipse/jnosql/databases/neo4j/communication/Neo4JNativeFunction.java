@@ -132,11 +132,16 @@ final class Neo4JNativeFunction {
     }
 
     private String expression(CriteriaOperand operand) {
-        return switch (operand) {
-            case CriteriaOperand.Attribute attribute -> property.apply(attribute.name());
-            case CriteriaOperand.Constant constant -> binder.apply(ValueUtil.convert(constant.value()));
-            case CriteriaOperand.Function function -> function(function.function());
-        };
+        if (operand instanceof CriteriaOperand.Attribute attribute) {
+            return property.apply(attribute.name());
+        }
+        if (operand instanceof CriteriaOperand.Constant constant) {
+            return binder.apply(ValueUtil.convert(constant.value()));
+        }
+        if (operand instanceof CriteriaOperand.Function function) {
+            return function(function.function());
+        }
+        throw new IllegalStateException("Unexpected " + operand);
     }
 
     private String function(NativeFunction function) {
@@ -158,18 +163,31 @@ final class Neo4JNativeFunction {
     }
 
     private String argument(StandardFunction function, int index, ArgumentType type, FunctionArgument argument) {
-        return switch (argument) {
-            case FunctionArgument.AttributePath path -> property.apply(path.path());
-            case FunctionArgument.NativeArgument nested -> function(nested.function());
-            case FunctionArgument.Literal literal -> constant(function, index, type, literal.value());
-            case FunctionArgument.ValueArgument value -> constant(function, index, type, value.value().get());
-            case FunctionArgument.EvaluableArgument nested -> constant(function, index, type,
+        if (argument instanceof FunctionArgument.AttributePath path) {
+            return property.apply(path.path());
+        }
+        if (argument instanceof FunctionArgument.NativeArgument nested) {
+            return function(nested.function());
+        }
+        if (argument instanceof FunctionArgument.Literal literal) {
+            return constant(function, index, type, literal.value());
+        }
+        if (argument instanceof FunctionArgument.ValueArgument value) {
+            return constant(function, index, type, value.value().get());
+        }
+        if (argument instanceof FunctionArgument.EvaluableArgument nested) {
+            return constant(function, index, type,
                     nested.function().get());
-            case FunctionArgument.NamedParameter parameter -> throw new IllegalStateException(
+        }
+        if (argument instanceof FunctionArgument.NamedParameter parameter) {
+            throw new IllegalStateException(
                     "Unbound parameter :" + parameter.name() + " in " + function.name());
-            case FunctionArgument.PositionalParameter parameter -> throw new IllegalStateException(
+        }
+        if (argument instanceof FunctionArgument.PositionalParameter parameter) {
+            throw new IllegalStateException(
                     "Unbound parameter ?" + parameter.position() + " in " + function.name());
-        };
+        }
+        throw new IllegalStateException("Unexpected " + argument);
     }
 
     private String constant(StandardFunction function, int index, ArgumentType type, Object value) {
