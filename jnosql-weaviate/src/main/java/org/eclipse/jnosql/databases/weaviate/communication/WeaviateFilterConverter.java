@@ -42,6 +42,10 @@ final class WeaviateFilterConverter {
     }
 
     private Filter toFilter(CriteriaCondition criteria) {
+        if (criteria.isNative()) {
+            throw new UnsupportedOperationException(
+                    "The Weaviate driver does not support native functions in a metadata filter: property filters compare stored values only and have no scalar functions");
+        }
         return switch (criteria.condition()) {
             case AND -> Filter.and(children(criteria));
             case OR -> Filter.or(children(criteria));
