@@ -21,7 +21,7 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
@@ -100,7 +100,7 @@ class SolrNativeFunctionRejectionTest {
         void shouldRejectBeforeAnyRequest(String name, CriteriaCondition condition) {
             var select = new DefaultSelectQuery(0, 0, "person", List.of(), List.of(), condition, false);
             var count = new DefaultSelectQuery(0, 0, "person", List.of(), List.of(), condition, true);
-            var delete = new DefaultDeleteQuery("person", condition, List.of());
+            var delete = NativeFunctionQueries.delete("person", condition, List.of());
 
             assertSoftly(soft -> {
                 soft.assertThatThrownBy(() -> manager.select(select)).isInstanceOf(UnsupportedOperationException.class)
