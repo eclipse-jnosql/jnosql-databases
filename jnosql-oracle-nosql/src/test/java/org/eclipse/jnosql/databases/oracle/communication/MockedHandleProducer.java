@@ -14,10 +14,8 @@
  */
 package org.eclipse.jnosql.databases.oracle.communication;
 
-import jakarta.annotation.Priority;
 import jakarta.enterprise.inject.Alternative;
 import jakarta.enterprise.inject.Produces;
-import jakarta.interceptor.Interceptor;
 import jakarta.json.bind.Jsonb;
 import oracle.nosql.driver.NoSQLHandle;
 import oracle.nosql.driver.ops.PrepareRequest;
@@ -40,7 +38,6 @@ import static org.mockito.Mockito.when;
  * Produces the real Oracle NoSQL communication manager on top of a mocked {@link NoSQLHandle}.
  */
 @Alternative
-@Priority(Interceptor.Priority.APPLICATION)
 public class MockedHandleProducer {
 
     public static final NoSQLHandle HANDLE = mock(NoSQLHandle.class);
