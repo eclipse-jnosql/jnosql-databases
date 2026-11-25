@@ -98,6 +98,10 @@ final class QuestDBQueryConverter {
     }
 
     private static String condition(CriteriaCondition condition, List<Object> parameters) {
+        if (condition.isNative()) {
+            return QuestDBNativeFunction.convert(condition, QuestDBEntityConverter::identifier,
+                    value -> parameter("", value, parameters));
+        }
         Element element = condition.element();
         String column = identifier(column(element.name()));
         return switch (condition.condition()) {

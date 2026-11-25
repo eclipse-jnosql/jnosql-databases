@@ -34,6 +34,9 @@ final class TraversalExecutor {
     }
 
     static GraphTraversal<Vertex, Vertex> getPredicate(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            return TinkerpopNativeFunction.convert(condition);
+        }
         Condition operator = condition.condition();
         Element element = condition.element();
         String name = element.name();

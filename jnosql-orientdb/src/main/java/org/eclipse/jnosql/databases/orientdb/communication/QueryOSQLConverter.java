@@ -104,6 +104,10 @@ final class QueryOSQLConverter {
 
     private static void definesCondition(CriteriaCondition condition, StringBuilder query, List<Object> params) {
 
+        if (condition.isNative()) {
+            query.append(OrientNativeFunction.convert(condition, params));
+            return;
+        }
         Element document = condition.element();
         switch (condition.condition()) {
             case IN:
@@ -184,7 +188,7 @@ final class QueryOSQLConverter {
     }
 
     private static boolean isIdLookup(CriteriaCondition condition) {
-        return condition.condition() == Condition.EQUALS
+        return !condition.isNative() && condition.condition() == Condition.EQUALS
                 && (RID_FIELD.equals(condition.element().name()) || ID_FIELD.equals(condition.element().name()));
     }
 

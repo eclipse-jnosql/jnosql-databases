@@ -32,6 +32,9 @@ final class DocumentQueryConversor {
     }
 
     public static Bson convert(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            return NativeFunctionFilter.convert(condition);
+        }
         Element document = condition.element();
         String field = field(document.name());
         Object value = ValueUtil.convert(document.value(), MongoDBValueWriteDecorator.MONGO_DB_VALUE_WRITER);
