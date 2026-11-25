@@ -73,7 +73,7 @@ class NativeFunctionMappingTest {
     void shouldRejectNativeSelect(String jdql) {
         org.mockito.Mockito.clearInvocations(MockedDynamoProducer.CLIENT);
 
-        assertThatThrownBy(() -> template.query(jdql).bind("name", "Ota").result())
+        assertThatThrownBy(() -> template.prepare(jdql).bind("name", "Ota").result())
                 .isInstanceOf(UnsupportedOperationException.class);
 
         verifyNoInteractions(MockedDynamoProducer.CLIENT);
@@ -84,8 +84,8 @@ class NativeFunctionMappingTest {
     void shouldRejectNativeDelete() {
         org.mockito.Mockito.clearInvocations(MockedDynamoProducer.CLIENT);
 
-        assertThatThrownBy(() -> template.query("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
 
         verifyNoInteractions(MockedDynamoProducer.CLIENT);
     }
@@ -93,7 +93,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("An evaluable function is an ordinary bound value and uses the mapped attribute name")
     void shouldKeepEvaluableFunctionsTransparent() {
-        var query = template.query("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))");
+        var query = template.prepare("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))");
         query.bind("name", "otavio").result();
         query.bind("name", "jakarta").result();
 
@@ -101,9 +101,9 @@ class NativeFunctionMappingTest {
         verify(MockedDynamoProducer.CLIENT, atLeastOnce()).scanPaginator(captor.capture());
         var requests = captor.getAllValues();
         assertThat(requests).hasSize(2);
-        assertThat(requests.get(0).filterExpression()).isEqualTo("#n0 = :v0");
-        assertThat(requests.get(0).expressionAttributeNames()).containsEntry("#n0", "account_name");
-        assertThat(requests.get(0).expressionAttributeValues().get(":v0").s()).isEqualTo("OTA");
-        assertThat(requests.get(1).expressionAttributeValues().get(":v0").s()).isEqualTo("JAK");
+        assertThat(requests.get(0).filterExpression()).isEqualTo("#n0 = :v0 AND #n1 = :v1");
+        assertThat(requests.get(0).expressionAttributeNames()).containsEntry("#n1", "account_name");
+        assertThat(requests.get(0).expressionAttributeValues().get(":v1").s()).isEqualTo("OTA");
+        assertThat(requests.get(1).expressionAttributeValues().get(":v1").s()).isEqualTo("JAK");
     }
 }
