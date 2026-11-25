@@ -88,7 +88,8 @@ final class TinkerpopNativeFunction {
         if (values.size() != 2) {
             throw new IllegalStateException("The between condition requires two parameters");
         }
-        return P.between(values.get(0), values.get(1));
+        // P.between excludes the upper bound while BETWEEN is inclusive
+        return P.gte(values.get(0)).and(P.lte(values.get(1)));
     }
 
     @SuppressWarnings("unchecked")
