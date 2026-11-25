@@ -70,7 +70,7 @@ class NativeFunctionMappingTest {
             "FROM MockedAccount WHERE (UPPER(name) = 'A' OR balance = 1) AND NOT (LOWER(name) = 'b')"})
     @DisplayName("Every native function is rejected before an HTTP request")
     void shouldRejectNativeSelect(String jdql) {
-        assertThatThrownBy(() -> template.query(jdql).bind("name", "Ota").result())
+        assertThatThrownBy(() -> template.prepare(jdql).bind("name", "Ota").result())
                 .isInstanceOf(UnsupportedOperationException.class);
 
         assertThat(MockedCouchProducer.CLIENT.calls()).isEmpty();
@@ -79,8 +79,8 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("A delete with a native function sends no search and no deletion")
     void shouldRejectNativeDelete() {
-        assertThatThrownBy(() -> template.query("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'")
-                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> template.prepare("DELETE FROM MockedAccount WHERE UPPER(name) = 'OTAVIO'")
+                .result()).isInstanceOf(UnsupportedOperationException.class);
 
         assertThat(MockedCouchProducer.CLIENT.calls()).isEmpty();
     }
@@ -88,7 +88,7 @@ class NativeFunctionMappingTest {
     @Test
     @DisplayName("An evaluable function is an ordinary value and uses the mapped field name")
     void shouldKeepEvaluableFunctionsTransparent() {
-        var query = template.query("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))");
+        var query = template.prepare("FROM MockedAccount WHERE name = UPPER(LEFT(:name, 3))");
         assertThatThrownBy(() -> query.bind("name", "otavio").result()).isNotInstanceOf(UnsupportedOperationException.class);
         assertThatThrownBy(() -> query.bind("name", "jakarta").result()).isNotInstanceOf(UnsupportedOperationException.class);
 
