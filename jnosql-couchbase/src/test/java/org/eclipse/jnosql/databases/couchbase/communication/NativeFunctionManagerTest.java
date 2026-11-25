@@ -24,9 +24,8 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
-import org.eclipse.jnosql.communication.semistructured.DefaultUpdateQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -153,7 +152,7 @@ class NativeFunctionManagerTest {
         @MethodSource("org.eclipse.jnosql.databases.couchbase.communication.NativeFunctionManagerTest#functions")
         @DisplayName("DELETE selects the matching ids in the database before removing them")
         void shouldDelete(CriteriaCondition condition, String fragment, String params) {
-            manager.delete(new DefaultDeleteQuery("person", condition, List.of()));
+            manager.delete(NativeFunctionQueries.delete("person", condition, List.of()));
 
             captureWithParameters();
             assertSoftly(soft -> {
@@ -171,7 +170,7 @@ class NativeFunctionManagerTest {
         void shouldUpdate(String name, String fragment, String params) {
             var condition = compare(function(name, attribute("name")), constant("A"));
 
-            manager.update(new DefaultUpdateQuery("person", List.of(Element.of("status", "x")), condition));
+            manager.update(NativeFunctionQueries.update("person", List.of(Element.of("status", "x")), condition));
 
             captureWithParameters();
             assertSoftly(soft -> {
@@ -226,7 +225,7 @@ class NativeFunctionManagerTest {
         @MethodSource("unsupported")
         @DisplayName("An unsupported delete never becomes an unrestricted delete")
         void shouldRejectDeleteWithoutQuery(CriteriaCondition condition) {
-            assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery("person", condition, List.of())))
+            assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete("person", condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
             verifyNoQuery();
         }
@@ -235,7 +234,7 @@ class NativeFunctionManagerTest {
         @MethodSource("unsupported")
         @DisplayName("An unsupported update never becomes an unrestricted update")
         void shouldRejectUpdateWithoutQuery(CriteriaCondition condition) {
-            assertThatThrownBy(() -> manager.update(new DefaultUpdateQuery("person",
+            assertThatThrownBy(() -> manager.update(NativeFunctionQueries.update("person",
                     List.of(Element.of("status", "x")), condition)))
                     .isInstanceOf(UnsupportedOperationException.class);
             verifyNoQuery();
