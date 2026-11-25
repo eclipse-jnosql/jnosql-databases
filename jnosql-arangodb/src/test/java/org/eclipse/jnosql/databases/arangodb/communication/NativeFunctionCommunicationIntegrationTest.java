@@ -22,7 +22,7 @@ import org.eclipse.jnosql.communication.semistructured.CommunicationEntity;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
 import org.eclipse.jnosql.communication.semistructured.DatabaseManager;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeAll;
@@ -65,7 +65,7 @@ class NativeFunctionCommunicationIntegrationTest {
     @BeforeEach
     void insertDataset() {
         for (String collection : List.of(ACCOUNTS, EDGES, MIXED)) {
-            manager.delete(new DefaultDeleteQuery(collection, null, List.of()));
+            manager.delete(NativeFunctionQueries.delete(collection, null, List.of()));
         }
         account(1, "Otavio", "OTAVIO", -100);
         account(2, "otavio", "JAVA", 100);
@@ -397,7 +397,7 @@ class NativeFunctionCommunicationIntegrationTest {
         void shouldDeleteOnlyMatchingRecords() {
             var condition = compare(function("UPPER", attribute("name")), Condition.EQUALS, constant("OTAVIO"));
 
-            manager.delete(new DefaultDeleteQuery(ACCOUNTS, condition, List.of()));
+            manager.delete(NativeFunctionQueries.delete(ACCOUNTS, condition, List.of()));
 
             assertThat(accounts(null)).isEqualTo(ids(3, 4, 5));
         }
@@ -406,7 +406,7 @@ class NativeFunctionCommunicationIntegrationTest {
         void shouldRejectUnsupportedDeleteWithoutDeleting() {
             var condition = compare(function("SOUNDEX", attribute("name")), Condition.EQUALS, constant("O300"));
 
-            assertThatThrownBy(() -> manager.delete(new DefaultDeleteQuery(ACCOUNTS, condition, List.of())))
+            assertThatThrownBy(() -> manager.delete(NativeFunctionQueries.delete(ACCOUNTS, condition, List.of())))
                     .isInstanceOf(UnsupportedOperationException.class);
             assertThat(accounts(null)).isEqualTo(ids(1, 2, 3, 4, 5));
         }
