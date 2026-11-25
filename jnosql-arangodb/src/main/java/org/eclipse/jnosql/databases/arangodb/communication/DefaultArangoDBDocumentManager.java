@@ -108,8 +108,8 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     @Override
     public void update(UpdateQuery query) {
         requireNonNull(query, "query is required");
-        checkCollection(query.name());
         var aql = QueryAQLConverter.update(query);
+        checkCollection(query.name());
         LOGGER.finest("Executing AQL: " + aql.query());
 
         db.query(aql.query(), Void.class, aql.values(), null);
@@ -124,8 +124,8 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     public long deleteAndCount(DeleteQuery query) {
         requireNonNull(query, "query is required");
         try {
-            checkCollection(query.name());
             AQLQueryResult delete = QueryAQLConverter.delete(query);
+            checkCollection(query.name());
             try (var cursor = db.query(delete.query(), Void.class, delete.values(), null)) {
                 return cursor.getStats().getWritesExecuted();
             }
@@ -144,8 +144,8 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     @Override
     public Stream<CommunicationEntity> select(SelectQuery query) throws NullPointerException {
         requireNonNull(query, "query is required");
-        checkCollection(query.name());
         AQLQueryResult result = QueryAQLConverter.select(query);
+        checkCollection(query.name());
         LOGGER.finest("Executing AQL: " + result.query());
         ArangoCursor<JsonObject> documents = db.query(result.query(),
                 JsonObject.class,
@@ -168,8 +168,8 @@ class DefaultArangoDBDocumentManager implements ArangoDBDocumentManager {
     @Override
     public long count(SelectQuery query) {
         requireNonNull(query, "query is required");
-        checkCollection(query.name());
         AQLQueryResult aqlQuery = QueryAQLConverter.count(query);
+        checkCollection(query.name());
         LOGGER.finest("Executing AQL: " + aqlQuery.query());
         return aql(aqlQuery.query(), aqlQuery.values(), Long.class).findFirst().orElse(0L);
     }
