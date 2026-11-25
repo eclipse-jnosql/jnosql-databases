@@ -37,7 +37,9 @@ import static org.eclipse.jnosql.databases.influxdb.communication.InfluxDBEntity
  * {@code LENGTH} as {@code char_length}, {@code LEFT} as {@code left} and {@code RIGHT} as {@code right}. Values are
  * bound as named query parameters. Influx query languages are not interchangeable: this module sends InfluxDB 3
  * SQL, so no Flux or InfluxQL function is used. A length argument that is a stored attribute is rejected because
- * a negative count would take all but the last characters in DataFusion instead of failing.
+ * a negative count would take all but the last characters in DataFusion instead of failing. A bound length is cast
+ * to {@code BIGINT} because the client sends a non-negative integer as an unsigned value that {@code left} and
+ * {@code right} do not accept.
  * Attribute names go through the converter's identifier quoting and values are never concatenated into the
  * statement as text. The temporal identifier ({@code _id}) is not accepted as a function operand because it is not
  * a string or a number attribute. A null function argument or a null comparison constant is rejected.
@@ -199,7 +201,7 @@ final class InfluxDBNativeFunction {
                     + (index + 1) + ": expected " + type + " but found " + value.getClass().getName());
         }
         if (type == ArgumentType.INTEGER) {
-            return binder.apply(length(function, value));
+            return "CAST(" + binder.apply(length(function, value)) + " AS BIGINT)";
         }
         return binder.apply(value);
     }
