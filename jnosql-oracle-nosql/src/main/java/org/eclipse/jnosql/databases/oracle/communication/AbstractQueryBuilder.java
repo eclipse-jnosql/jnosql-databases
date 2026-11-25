@@ -48,6 +48,10 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
 
     protected void condition(CriteriaCondition condition, StringBuilder query, List<FieldValue> params,
                              List<String> ids, boolean forCount, boolean allowIdFastPath) {
+        if (condition.isNative()) {
+            query.append(OracleNativeFunction.convert(condition, table, params));
+            return;
+        }
         var document = condition.element();
         switch (condition.condition()) {
             case EQUALS:
@@ -93,7 +97,8 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
                 return;
             case NOT: {
                 var negated = document.get(CriteriaCondition.class);
-                if (negated.condition() == Condition.EQUALS && negated.element().value().isNull()) {
+                if (!negated.isNative() && negated.condition() == Condition.EQUALS
+                        && negated.element().value().isNull()) {
                     predicateNull(query, negated.element(), true);
                 } else {
                     query.append(" NOT ");
@@ -125,6 +130,10 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
     }
 
     private void predicateIgnoreCase(StringBuilder query, List<FieldValue> params, CriteriaCondition condition) {
+        if (condition.isNative()) {
+            throw new UnsupportedOperationException("The Oracle NoSQL driver does not support a native function "
+                    + "in an ignore case predicate");
+        }
         var document = condition.element();
         switch (condition.condition()) {
             case EQUALS:
@@ -145,6 +154,9 @@ abstract class AbstractQueryBuilder implements Supplier<OracleQuery> {
      * surrounding conditions.
      */
     protected boolean isIdLookup(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            return false;
+        }
         var document = condition.element();
         if (!document.name().equals(DefaultOracleNoSQLDocumentManager.ID)) {
             return false;
