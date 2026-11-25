@@ -122,13 +122,13 @@ class IoTDBNativeFunctionCommunicationTest {
         @Test
         @DisplayName("COUNT sends the native predicate and defaults to zero for an empty result")
         void shouldSendCount() throws Exception {
-            var count = manager.count(select(eq(fn("LENGTH", attr("name")), constant(6)), true));
+            var count = manager.count(select(eq(fn("ABS", attr("value")), constant(6)), true));
 
             var sql = capturedSql();
             assertSoftly(soft -> {
                 soft.assertThat(count).isZero();
                 soft.assertThat(sql).isEqualTo(
-                        "SELECT COUNT(*) FROM \"sensor_reading\" WHERE (length(\"name\") = 6)");
+                        "SELECT COUNT(*) FROM \"sensor_reading\" WHERE (abs(\"value\") = 6)");
             });
         }
     }
