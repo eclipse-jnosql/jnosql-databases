@@ -59,6 +59,10 @@ final class InfluxDBQueryConverter {
     }
 
     private static String condition(CriteriaCondition condition, Map<String, Object> parameters) {
+        if (condition.isNative()) {
+            return InfluxDBNativeFunction.convert(condition, InfluxDBQueryConverter::identifier,
+                    value -> parameter("", value, parameters));
+        }
         Element element = condition.element();
         String column = identifier(column(element.name()));
         return switch (condition.condition()) {
