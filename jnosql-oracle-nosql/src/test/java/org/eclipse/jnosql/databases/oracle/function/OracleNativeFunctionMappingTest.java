@@ -28,6 +28,7 @@ import org.eclipse.jnosql.mapping.reflection.spi.ReflectionEntityMetadataExtensi
 import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
 import org.jboss.weld.junit5.auto.AddExtensions;
 import org.jboss.weld.junit5.auto.AddBeanClasses;
+import org.jboss.weld.junit5.auto.EnableAlternatives;
 import org.jboss.weld.junit5.auto.AddPackages;
 import org.jboss.weld.junit5.auto.EnableAutoWeld;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 @AddPackages(value = {Database.class, EntityConverter.class, DocumentTemplate.class})
 @AddPackages(MockedAccount.class)
 @AddBeanClasses(MockedHandleProducer.class)
+@EnableAlternatives(MockedHandleProducer.class)
 @AddPackages(OracleNoSQLTemplate.class)
 @AddExtensions({ReflectionEntityMetadataExtension.class, DocumentExtension.class})
 @AddPackages(Reflections.class)
