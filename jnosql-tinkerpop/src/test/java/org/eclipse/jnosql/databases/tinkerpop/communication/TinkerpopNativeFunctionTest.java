@@ -36,16 +36,18 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-@DisplayName("TinkerPop native function translation to Gremlin steps")
+@DisplayName("TinkerPop rejects native functions")
 class TinkerpopNativeFunctionTest {
 
     private static FunctionArgument attr(String name) {
@@ -91,71 +93,12 @@ class TinkerpopNativeFunctionTest {
                 .sorted().toList();
     }
 
-    @Nested
-    @DisplayName("Given LOWER and UPPER compared with a constant")
-    class Supported {
-
-        @Test
-        void shouldFilterByUpper() {
-            assertThat(ages(eq(fn("UPPER", attr("name")), constant("OTAVIO")))).containsExactly(30, 31);
-        }
-
-        @Test
-        void shouldFilterByLower() {
-            assertThat(ages(eq(fn("LOWER", attr("name")), constant("maria")))).containsExactly(32);
-        }
-
-        @Test
-        @DisplayName("A vertex without the property never matches")
-        void shouldIgnoreMissingProperty() {
-            assertThat(ages(eq(fn("UPPER", attr("name")), constant("")))).isEmpty();
-        }
-
-        @Test
-        void shouldFilterNested() {
-            var nested = new FunctionArgument.NativeArgument(NativeFunction.of("LOWER", attr("name")));
-
-            assertThat(ages(eq(fn("UPPER", nested), constant("OTAVIO")))).containsExactly(30, 31);
-        }
-
-        @Test
-        @DisplayName("An evaluated value is an ordinary constant")
-        void shouldAcceptEvaluatedValue() {
-            assertThat(ages(eq(fn("UPPER", attr("name")), constant("OTA".concat("VIO"))))).containsExactly(30, 31);
-        }
-
-        @Test
-        void shouldSupportIn() {
-            var condition = CriteriaCondition.of(fn("UPPER", attr("name")), Condition.IN,
-                    constant(List.of("MARIA", "NOBODY")));
-
-            assertThat(ages(condition)).containsExactly(32);
-        }
-
-        @Test
-        @DisplayName("AND, OR and NOT keep their grouping")
-        void shouldKeepBooleanGrouping() {
-            var upper = eq(fn("UPPER", attr("name")), constant("OTAVIO"));
-            var age = CriteriaCondition.eq(Element.of("age", 31));
-
-            assertSoftly(soft -> {
-                soft.assertThat(ages(CriteriaCondition.and(upper, age))).containsExactly(31);
-                soft.assertThat(ages(CriteriaCondition.or(upper, age))).containsExactly(30, 31);
-                soft.assertThat(ages(CriteriaCondition.and(CriteriaCondition.eq(Element.of("age", 30)),
-                        upper.negate()))).isEmpty();
-                soft.assertThat(ages(upper.negate())).containsExactly(32, 33);
-            });
-        }
-
-        @Test
-        @DisplayName("A hostile value is only a comparison constant")
-        void shouldTreatPayloadAsConstant() {
-            assertThat(ages(eq(fn("UPPER", attr("name")), constant("x') OR 1=1 //")))).isEmpty();
-        }
-    }
-
     static Stream<Arguments> unsupported() {
         return Stream.of(
+                Arguments.of("UPPER", eq(fn("UPPER", attr("name")), constant("OTAVIO"))),
+                Arguments.of("LOWER", eq(fn("LOWER", attr("name")), constant("maria"))),
+                Arguments.of("UPPER IN", CriteriaCondition.of(fn("UPPER", attr("name")), Condition.IN,
+                        constant(List.of("MARIA", "NOBODY")))),
                 Arguments.of("ABS", eq(fn("ABS", attr("age")), constant(3))),
                 Arguments.of("LENGTH", eq(fn("LENGTH", attr("name")), constant(3))),
                 Arguments.of("LEFT", eq(fn("LEFT", attr("name"), value(3)), constant("Ota"))),
@@ -172,6 +115,34 @@ class TinkerpopNativeFunctionTest {
                 Arguments.of("AND group", CriteriaCondition.and(CriteriaCondition.eq(Element.of("age", 1)),
                         eq(fn("LEFT", attr("name"), value(3)), constant("Ota")))),
                 Arguments.of("NOT", eq(fn("ABS", attr("age")), constant(3)).negate()));
+    }
+
+    @Nested
+    @DisplayName("Given a JVM with the Turkish default locale")
+    class TurkishLocale {
+
+        private Locale previous;
+
+        @BeforeEach
+        void changeLocale() {
+            previous = Locale.getDefault();
+            Locale.setDefault(Locale.forLanguageTag("tr"));
+        }
+
+        @AfterEach
+        void restoreLocale() {
+            Locale.setDefault(previous);
+        }
+
+        @Test
+        @DisplayName("UPPER is rejected because toUpper() follows the default locale")
+        void shouldRejectUpper() {
+            var manager = new DefaultTinkerpopGraphDatabaseManager(graph);
+            var condition = eq(fn("UPPER", attr("name")), constant("OTAVIO"));
+
+            assertThatThrownBy(() -> manager.select(new DefaultSelectQuery(0, 0, "person", List.of(), List.of(),
+                    condition, false)).toList()).isInstanceOf(UnsupportedOperationException.class);
+        }
     }
 
     @Nested
