@@ -1,0 +1,147 @@
+/*
+ *  Copyright (c) 2026 Contributors to the Eclipse Foundation
+ *   All rights reserved. This program and the accompanying materials
+ *   are made available under the terms of the Eclipse Public License v1.0
+ *   and Apache License v2.0 which accompanies this distribution.
+ *   The Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html
+ *   and the Apache License v2.0 is available at http://www.opensource.org/licenses/apache2.0.php.
+ *
+ *   You may elect to redistribute this code under either of these licenses.
+ *
+ *   Contributors:
+ *
+ *   Otavio Santana
+ */
+package org.eclipse.jnosql.databases.influxdb.function;
+
+import jakarta.inject.Inject;
+import org.eclipse.jnosql.databases.influxdb.communication.MockedInfluxDBConfiguration;
+import org.eclipse.jnosql.mapping.Database;
+import org.eclipse.jnosql.mapping.core.Converters;
+import org.eclipse.jnosql.mapping.core.config.MappingConfigurations;
+import org.eclipse.jnosql.mapping.reflection.Reflections;
+import org.eclipse.jnosql.mapping.reflection.spi.ReflectionEntityMetadataExtension;
+import org.eclipse.jnosql.mapping.semistructured.EntityConverter;
+import org.eclipse.jnosql.mapping.timeseries.TimeSeriesTemplate;
+import org.eclipse.jnosql.mapping.timeseries.spi.TimeSeriesExtension;
+import org.jboss.weld.junit5.auto.AddExtensions;
+import org.jboss.weld.junit5.auto.AddPackages;
+import org.jboss.weld.junit5.auto.EnableAutoWeld;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+
+import java.util.Map;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+@EnableAutoWeld
+@AddPackages(value = {Database.class, EntityConverter.class, TimeSeriesTemplate.class})
+@AddPackages(MockedSensorReading.class)
+@AddPackages(Reflections.class)
+@AddPackages(Converters.class)
+@AddExtensions({ReflectionEntityMetadataExtension.class, TimeSeriesExtension.class})
+@DisplayName("InfluxDB native functions through JDQL, mapping and a mocked client")
+class NativeFunctionMappingTest {
+
+    static {
+        System.setProperty(MappingConfigurations.TIME_SERIES_PROVIDER.get(), MockedInfluxDBConfiguration.class.getName());
+        System.setProperty(MappingConfigurations.TIME_SERIES_DATABASE.get(), "metrics");
+    }
+
+    @Inject
+    private TimeSeriesTemplate template;
+
+    @BeforeEach
+    void setUp() {
+        Mockito.reset(MockedInfluxDBConfiguration.CLIENT);
+        when(MockedInfluxDBConfiguration.CLIENT.queryRows(anyString(), anyMap()))
+                .thenAnswer(invocation -> Stream.<Map<String, Object>>empty());
+    }
+
+    @Test
+    @DisplayName("Native functions stay structured, use mapped names and bind parameters")
+    void shouldTranslateNativeFunctions() {
+        template.query("FROM MockedSensorReading WHERE UPPER(name) = UPPER(:name) AND name = UPPER(otherName)")
+                .bind("name", "ota").result();
+
+        var captured = capture(1);
+        assertThat(captured.statements().get(0)).isEqualTo("SELECT * FROM \"sensor_reading\" WHERE "
+                + "((upper(\"sensor_name\") = $p0) AND (\"sensor_name\" = upper(\"other_name\")))");
+        assertThat(captured.parameters().get(0)).containsEntry("p0", "OTA");
+    }
+
+    @Test
+    @DisplayName("Nested native functions and partial evaluation expose the ordinary length")
+    void shouldEvaluateLengthBeforeTranslation() {
+        template.query("FROM MockedSensorReading WHERE LEFT(name, LENGTH(:prefix)) = :prefix")
+                .bind("prefix", "Ota").result();
+        template.query("FROM MockedSensorReading WHERE UPPER(LEFT(name, 3)) = 'OTA'").result();
+
+        var captured = capture(2);
+        assertThat(captured.statements().get(0)).isEqualTo(
+                "SELECT * FROM \"sensor_reading\" WHERE (left(\"sensor_name\", $p0) = $p1)");
+        assertThat(captured.parameters().get(0)).containsEntry("p0", 3L).containsEntry("p1", "Ota");
+        assertThat(captured.statements().get(1)).isEqualTo(
+                "SELECT * FROM \"sensor_reading\" WHERE (upper(left(\"sensor_name\", $p0)) = $p1)");
+    }
+
+    @Test
+    @DisplayName("An evaluable function is an ordinary value, rebound on every execution")
+    void shouldKeepEvaluableFunctionsTransparent() {
+        var query = template.query("FROM MockedSensorReading WHERE name = UPPER(LEFT(:name, 3))");
+        query.bind("name", "otavio").result();
+        query.bind("name", "jakarta").result();
+
+        var captured = capture(2);
+        assertThat(captured.statements().get(0)).isEqualTo(
+                "SELECT * FROM \"sensor_reading\" WHERE \"sensor_name\" = $p0");
+        assertThat(captured.parameters().get(0)).containsEntry("p0", "OTA");
+        assertThat(captured.parameters().get(1)).containsEntry("p0", "JAK");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "FROM MockedSensorReading WHERE LEFT(name, otherName) = 'A'",
+            "FROM MockedSensorReading WHERE UPPER(name) LIKE 'O%'"})
+    @DisplayName("Unsupported native predicates are rejected before the client is used")
+    void shouldRejectUnsupported(String jdql) {
+        assertThatThrownBy(() -> template.query(jdql).result())
+                .isInstanceOf(UnsupportedOperationException.class);
+
+        verifyNoInteractions(MockedInfluxDBConfiguration.CLIENT);
+    }
+
+    @Test
+    @DisplayName("A delete with a native function sends no mutation")
+    void shouldRejectDelete() {
+        assertThatThrownBy(() -> template.query("DELETE FROM MockedSensorReading WHERE UPPER(name) = 'A'")
+                .executeUpdate()).isInstanceOf(UnsupportedOperationException.class);
+
+        verifyNoInteractions(MockedInfluxDBConfiguration.CLIENT);
+    }
+
+    private Captured capture(int invocations) {
+        var statements = ArgumentCaptor.forClass(String.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> parameters = ArgumentCaptor.forClass(Map.class);
+        verify(MockedInfluxDBConfiguration.CLIENT, times(invocations)).queryRows(statements.capture(),
+                parameters.capture());
+        return new Captured(statements.getAllValues(), parameters.getAllValues());
+    }
+
+    private record Captured(java.util.List<String> statements, java.util.List<Map<String, Object>> parameters) {
+    }
+}
