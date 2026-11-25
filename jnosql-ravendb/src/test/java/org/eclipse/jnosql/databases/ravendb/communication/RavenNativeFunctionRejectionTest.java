@@ -21,7 +21,7 @@ import org.eclipse.jnosql.communication.function.FunctionArgument;
 import org.eclipse.jnosql.communication.function.NativeFunction;
 import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
 import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
-import org.eclipse.jnosql.communication.semistructured.DefaultDeleteQuery;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
 import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
 import org.eclipse.jnosql.communication.semistructured.Element;
 import org.junit.jupiter.api.BeforeEach;
@@ -119,7 +119,7 @@ class RavenNativeFunctionRejectionTest {
         @MethodSource("org.eclipse.jnosql.databases.ravendb.communication.RavenNativeFunctionRejectionTest#conditions")
         @DisplayName("A rejected delete never loads or removes a document")
         void shouldRejectDelete(String name, CriteriaCondition condition) {
-            var query = new DefaultDeleteQuery("people", condition, List.of());
+            var query = NativeFunctionQueries.delete("people", condition, List.of());
 
             assertSoftly(soft -> soft.assertThatThrownBy(() -> manager.delete(query))
                     .isInstanceOf(UnsupportedOperationException.class));
