@@ -86,7 +86,7 @@ class NativeFunctionMappingIntegrationTest {
     }
 
     private Set<Long> ids(String jdql) {
-        List<NativeFunctionAccount> result = template.query(jdql).result();
+        List<NativeFunctionAccount> result = template.prepare(jdql).<NativeFunctionAccount>result().toList();
         return result.stream().map(NativeFunctionAccount::id).collect(Collectors.toSet());
     }
 
@@ -134,8 +134,8 @@ class NativeFunctionMappingIntegrationTest {
 
         @Test
         void shouldCount() {
-            List<Long> count = template.query(
-                    "SELECT COUNT(this) FROM NativeFunctionAccount WHERE UPPER(name) = 'OTAVIO'").result();
+            List<Long> count = template.prepare(
+                    "SELECT COUNT(this) FROM NativeFunctionAccount WHERE UPPER(name) = 'OTAVIO'").<Long>result().toList();
 
             assertThat(count).containsExactly(2L);
         }
@@ -148,8 +148,8 @@ class NativeFunctionMappingIntegrationTest {
         @Test
         void shouldBindNamedParameters() {
             List<NativeFunctionAccount> result = template
-                    .query("FROM NativeFunctionAccount WHERE UPPER(name) = UPPER(:name)")
-                    .bind("name", "oTaVio").result();
+                    .prepare("FROM NativeFunctionAccount WHERE UPPER(name) = UPPER(:name)")
+                    .bind("name", "oTaVio").<NativeFunctionAccount>result().toList();
 
             assertThat(result).extracting(NativeFunctionAccount::id).containsExactlyInAnyOrder(1L, 2L);
         }
@@ -157,8 +157,8 @@ class NativeFunctionMappingIntegrationTest {
         @Test
         void shouldBindPositionalParameters() {
             List<NativeFunctionAccount> result = template
-                    .query("FROM NativeFunctionAccount WHERE UPPER(name) = UPPER(?1)")
-                    .bind(1, "java").result();
+                    .prepare("FROM NativeFunctionAccount WHERE UPPER(name) = UPPER(?1)")
+                    .bind("1", "java").<NativeFunctionAccount>result().toList();
 
             assertThat(result).extracting(NativeFunctionAccount::id).containsExactly(3L);
         }
@@ -167,8 +167,8 @@ class NativeFunctionMappingIntegrationTest {
         @DisplayName("LENGTH is evaluated by JNoSQL and LEFT is executed by the database")
         void shouldEvaluatePartially() {
             List<NativeFunctionAccount> result = template
-                    .query("FROM NativeFunctionAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix")
-                    .bind("prefix", "Ota").result();
+                    .prepare("FROM NativeFunctionAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix")
+                    .bind("prefix", "Ota").<NativeFunctionAccount>result().toList();
 
             assertThat(result).extracting(NativeFunctionAccount::id).containsExactly(1L);
         }
@@ -176,11 +176,11 @@ class NativeFunctionMappingIntegrationTest {
         @Test
         @DisplayName("Rebinding the same query gives a result for each execution")
         void shouldRebindSameQuery() {
-            var query = template.query("FROM NativeFunctionAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix");
+            var query = template.prepare("FROM NativeFunctionAccount WHERE LEFT(name, LENGTH(:prefix)) = :prefix");
 
-            List<NativeFunctionAccount> first = query.bind("prefix", "Ota").result();
-            List<NativeFunctionAccount> second = query.bind("prefix", "Jak").result();
-            List<NativeFunctionAccount> third = query.bind("prefix", "ota").result();
+            List<NativeFunctionAccount> first = query.bind("prefix", "Ota").<NativeFunctionAccount>result().toList();
+            List<NativeFunctionAccount> second = query.bind("prefix", "Jak").<NativeFunctionAccount>result().toList();
+            List<NativeFunctionAccount> third = query.bind("prefix", "ota").<NativeFunctionAccount>result().toList();
 
             assertSoftly(soft -> {
                 soft.assertThat(first).extracting(NativeFunctionAccount::id).containsExactly(1L);
@@ -194,8 +194,8 @@ class NativeFunctionMappingIntegrationTest {
         void shouldTreatPayloadsAsValues() {
             for (String payload : List.of("$name", "' OR '1'='1", "\\", "{\"$ne\": null}", "'; DROP")) {
                 List<NativeFunctionAccount> result = template
-                        .query("FROM NativeFunctionAccount WHERE UPPER(name) = UPPER(:name)")
-                        .bind("name", payload).result();
+                        .prepare("FROM NativeFunctionAccount WHERE UPPER(name) = UPPER(:name)")
+                        .bind("name", payload).<NativeFunctionAccount>result().toList();
                 assertThat(result).as(payload).isEmpty();
             }
         }
@@ -229,15 +229,15 @@ class NativeFunctionMappingIntegrationTest {
 
         @Test
         void shouldDeleteOnlyMatchingRecords() {
-            template.query("DELETE FROM NativeFunctionAccount WHERE UPPER(name) = 'OTAVIO'").executeUpdate();
+            template.prepare("DELETE FROM NativeFunctionAccount WHERE UPPER(name) = 'OTAVIO'").result().toList();
 
             assertThat(ids("FROM NativeFunctionAccount")).isEqualTo(ids(3L, 4L, 5L));
         }
 
         @Test
         void shouldUpdateOnlyMatchingRecords() {
-            template.query("UPDATE NativeFunctionAccount SET balance = 7 WHERE LOWER(name) = 'java'")
-                    .executeUpdate();
+            template.prepare("UPDATE NativeFunctionAccount SET balance = 7 WHERE LOWER(name) = 'java'")
+                    .result().toList();
 
             assertThat(ids("FROM NativeFunctionAccount WHERE balance = 7")).isEqualTo(ids(3L));
         }
@@ -247,13 +247,13 @@ class NativeFunctionMappingIntegrationTest {
         void shouldRejectUnsupportedMutation() {
             assertSoftly(soft -> {
                 soft.assertThatThrownBy(() -> template
-                                .query("DELETE FROM NativeFunctionAccount WHERE UPPER(LEFT(name, balance)) = 'A'")
-                                .executeUpdate())
+                                .prepare("DELETE FROM NativeFunctionAccount WHERE UPPER(LEFT(name, balance)) = 'A'")
+                                .result())
                         .isInstanceOf(UnsupportedOperationException.class);
                 soft.assertThatThrownBy(() -> template
-                                .query("UPDATE NativeFunctionAccount SET balance = 7 "
+                                .prepare("UPDATE NativeFunctionAccount SET balance = 7 "
                                         + "WHERE UPPER(LEFT(name, balance)) = 'A'")
-                                .executeUpdate())
+                                .result())
                         .isInstanceOf(UnsupportedOperationException.class);
             });
             assertThat(ids("FROM NativeFunctionAccount")).isEqualTo(ids(1L, 2L, 3L, 4L, 5L));
