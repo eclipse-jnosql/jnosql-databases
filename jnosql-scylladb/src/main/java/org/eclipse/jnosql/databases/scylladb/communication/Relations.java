@@ -48,6 +48,7 @@ final class Relations {
 
     private static void load(CriteriaCondition columnCondition, List<Relation> relations) {
 
+        requireNoNativeFunction(columnCondition);
         Element column = columnCondition.element();
         Condition condition = columnCondition.condition();
 
@@ -80,6 +81,23 @@ final class Relations {
             default:
                 throw new UnsupportedOperationException("The columnCondition " + condition +
                         " is not supported in scylladb column driver");
+        }
+    }
+
+    /**
+     * CQL restrictions apply to columns only. Scalar functions on a column in a WHERE clause would need a
+     * user-defined function or ALLOW FILTERING, so a native function predicate is rejected before any statement is built.
+     */
+    private static void requireNoNativeFunction(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            throw new UnsupportedOperationException("Native functions in predicates are not supported in the scylladb column driver");
+        }
+        Condition type = condition.condition();
+        if (Condition.AND.equals(type) || Condition.OR.equals(type)) {
+            condition.element().get(new TypeReference<List<CriteriaCondition>>() {})
+                    .forEach(Relations::requireNoNativeFunction);
+        } else if (Condition.NOT.equals(type)) {
+            requireNoNativeFunction(condition.element().get(CriteriaCondition.class));
         }
     }
 
