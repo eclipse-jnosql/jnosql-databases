@@ -170,7 +170,7 @@ class OracleNativeFunctionTest {
             assertSoftly(soft -> {
                 soft.assertThat(text).isEqualTo("(abs(entities.content.balance) = ?)");
                 soft.assertThat(params).hasSize(1);
-                soft.assertThat(params.getFirst().getLong()).isEqualTo(100L);
+                soft.assertThat(params.get(0).getLong()).isEqualTo(100L);
             });
         }
 
@@ -346,8 +346,8 @@ class OracleNativeFunctionTest {
             assertSoftly(soft -> {
                 soft.assertThat(text).isEqualTo("(" + guarded(NAME, "lower(" + NAME + ")") + " IN ?[])");
                 soft.assertThat(params).hasSize(1);
-                soft.assertThat(params.getFirst().isArray()).isTrue();
-                soft.assertThat(params.getFirst().asArray().size()).isEqualTo(2);
+                soft.assertThat(params.get(0).isArray()).isTrue();
+                soft.assertThat(params.get(0).asArray().size()).isEqualTo(2);
             });
         }
 
@@ -471,7 +471,7 @@ class OracleNativeFunctionTest {
             assertSoftly(soft -> {
                 soft.assertThat(where(query)).contains("database.content.balance >");
                 soft.assertThat(query.params()).hasSize(2);
-                soft.assertThat(query.params().getFirst().getString()).isEqualTo("A");
+                soft.assertThat(query.params().get(0).getString()).isEqualTo("A");
             });
         }
 
