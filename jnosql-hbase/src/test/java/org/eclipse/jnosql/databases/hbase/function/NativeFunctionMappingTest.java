@@ -103,7 +103,7 @@ class NativeFunctionMappingTest {
         var captor = ArgumentCaptor.forClass(List.class);
         verify(MockedHBaseProducer.TABLE, times(2)).get(captor.capture());
         var gets = captor.getAllValues();
-        assertThat(((Get) gets.get(0).getFirst()).getRow()).isEqualTo("OTA".getBytes());
-        assertThat(((Get) gets.get(1).getFirst()).getRow()).isEqualTo("JAK".getBytes());
+        assertThat(((Get) gets.get(0).get(0)).getRow()).isEqualTo("OTA".getBytes());
+        assertThat(((Get) gets.get(1).get(0)).getRow()).isEqualTo("JAK".getBytes());
     }
 }
