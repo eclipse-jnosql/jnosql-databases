@@ -128,6 +128,14 @@ enum Neo4JQueryBuilder {
     }
 
     private void createWhereClause(StringBuilder cypher, CriteriaCondition condition, Map<String, Object> parameters) {
+        if (condition.isNative()) {
+            cypher.append(Neo4JNativeFunction.convert(condition, this::translateField, value -> {
+                String name = nextParameter("nf", parameters);
+                parameters.put(name, value);
+                return "$" + name;
+            }));
+            return;
+        }
         Element element = condition.element();
         String fieldName = element.name();
         String queryField = translateField(fieldName);

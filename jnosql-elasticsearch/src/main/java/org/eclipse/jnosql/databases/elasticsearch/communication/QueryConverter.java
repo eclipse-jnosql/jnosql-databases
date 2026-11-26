@@ -51,7 +51,38 @@ final class QueryConverter {
     private QueryConverter() {
     }
 
+    /**
+     * Rejects a condition tree with a native function predicate. The query DSL has no scalar function for
+     * filtering: the {@code term} and {@code match} queries work on indexed tokens rather than on the stored
+     * string, and the only alternative is a script query, which the driver does not use. The check needs no
+     * client, so the query is rejected before any request is issued.
+     *
+     * @param condition the condition of the query
+     * @throws UnsupportedOperationException when a predicate has a native function operand
+     */
+    static void requireNoNativeFunction(Optional<CriteriaCondition> condition) {
+        condition.ifPresent(QueryConverter::requireNoNativeFunction);
+    }
+
+    private static void requireNoNativeFunction(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            throw new UnsupportedOperationException(
+                    "The Elasticsearch driver does not support native functions in a predicate: the query DSL "
+                    + "has no scalar function for filtering, term and match queries work on analyzed or indexed "
+                    + "values instead of the stored string, and the driver does not use script queries");
+        }
+        switch (condition.condition()) {
+            case AND, OR -> condition.element().get(new TypeReference<List<CriteriaCondition>>() {
+            }).forEach(QueryConverter::requireNoNativeFunction);
+            case NOT -> requireNoNativeFunction(condition.element().get(CriteriaCondition.class));
+            default -> {
+            }
+        }
+    }
+
     static QueryConverterResult select(ElasticsearchClient client, String database, SelectQuery query) {
+
+        requireNoNativeFunction(query.condition());
 
         var indexMappingRecord = getIndexMappingRecord(client, database, query);
 

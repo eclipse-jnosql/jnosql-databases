@@ -52,6 +52,12 @@ final class DocumentQueryConverter {
     }
 
     private static String convert(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            throw new UnsupportedOperationException(
+                    "The Solr driver does not support native functions in a predicate: function queries are "
+                    + "scoring and projection expressions that need frange or script-like local params, and Solr "
+                    + "has no string functions for filtering");
+        }
         Element document = condition.element();
         Object value = ValueUtil.convert(document.value());
 

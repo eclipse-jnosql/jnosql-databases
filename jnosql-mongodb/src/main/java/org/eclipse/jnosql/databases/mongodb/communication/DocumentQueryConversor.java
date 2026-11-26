@@ -33,6 +33,9 @@ final class DocumentQueryConversor {
     }
 
     public static Bson convert(CriteriaCondition condition) {
+        if (condition.isNative()) {
+            return NativeFunctionFilter.convert(condition);
+        }
         Element document = condition.element();
         String field = field(document.name());
         Object value = ValueUtil.convert(document.value(), MongoDBValueWriteDecorator.MONGO_DB_VALUE_WRITER);
@@ -48,7 +51,7 @@ final class DocumentQueryConversor {
             }
             case NOT -> {
                 var criteriaCondition = document.get(CriteriaCondition.class);
-                if (Condition.EQUALS.equals(criteriaCondition.condition())) {
+                if (!criteriaCondition.isNative() && Condition.EQUALS.equals(criteriaCondition.condition())) {
                     Element element = criteriaCondition.element();
                     if (element.get() == null) {
                         yield Filters.exists(element.name(), true);

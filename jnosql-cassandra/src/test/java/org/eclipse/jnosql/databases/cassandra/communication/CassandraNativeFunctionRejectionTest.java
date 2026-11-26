@@ -1,0 +1,171 @@
+/*
+ *  Copyright (c) 2026 Contributors to the Eclipse Foundation
+ *   All rights reserved. This program and the accompanying materials
+ *   are made available under the terms of the Eclipse Public License 2.0
+ *   and Apache License v2.0 which accompanies this distribution.
+ *   The Eclipse Public License is available at https://www.eclipse.org/legal/epl-2.0
+ *   and the Apache License v2.0 is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ *   You may elect to redistribute this code under either of these licenses.
+ *
+ *   Contributors:
+ *
+ *   Otavio Santana
+ */
+package org.eclipse.jnosql.databases.cassandra.communication;
+
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import org.eclipse.jnosql.communication.Condition;
+import org.eclipse.jnosql.communication.Value;
+import org.eclipse.jnosql.communication.function.FunctionArgument;
+import org.eclipse.jnosql.communication.function.NativeFunction;
+import org.eclipse.jnosql.communication.semistructured.CriteriaCondition;
+import org.eclipse.jnosql.communication.semistructured.CriteriaOperand;
+import org.eclipse.jnosql.communication.semistructured.NativeFunctionQueries;
+import org.eclipse.jnosql.communication.semistructured.DefaultSelectQuery;
+import org.eclipse.jnosql.communication.semistructured.Element;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+@DisplayName("Cassandra rejects native functions without issuing a CQL statement")
+class CassandraNativeFunctionRejectionTest {
+
+    private CqlSession session;
+    private DefaultCassandraColumnManager manager;
+
+    @BeforeEach
+    void setUp() {
+        session = mock(CqlSession.class);
+        manager = new DefaultCassandraColumnManager(session, "library");
+    }
+
+    private static CriteriaCondition function(String name, Object... extra) {
+        var arguments = new ArrayList<FunctionArgument>();
+        arguments.add(new FunctionArgument.AttributePath("name"));
+        for (Object value : extra) {
+            arguments.add(new FunctionArgument.ValueArgument(Value.of(value)));
+        }
+        return CriteriaCondition.of(new CriteriaOperand.Function(NativeFunction.of(name,
+                arguments.toArray(FunctionArgument[]::new))), Condition.EQUALS,
+                new CriteriaOperand.Constant(Value.of("x")));
+    }
+
+    private static CriteriaCondition nativeOnTheRight() {
+        return CriteriaCondition.of(new CriteriaOperand.Attribute("name"), Condition.EQUALS,
+                new CriteriaOperand.Function(NativeFunction.of("UPPER",
+                        new FunctionArgument.AttributePath("other"))));
+    }
+
+    private static CriteriaCondition nested() {
+        return CriteriaCondition.of(new CriteriaOperand.Function(NativeFunction.of("UPPER",
+                new FunctionArgument.NativeArgument(NativeFunction.of("LEFT",
+                        new FunctionArgument.AttributePath("name"), new FunctionArgument.ValueArgument(Value.of(3)))))),
+                Condition.EQUALS, new CriteriaOperand.Constant(Value.of("OTA")));
+    }
+
+    static Stream<Arguments> conditions() {
+        var plain = CriteriaCondition.eq(Element.of("age", 1));
+        return Stream.of(
+                Arguments.of("ABS", function("ABS")),
+                Arguments.of("LENGTH", function("LENGTH")),
+                Arguments.of("LOWER", function("LOWER")),
+                Arguments.of("UPPER", function("UPPER")),
+                Arguments.of("LEFT", function("LEFT", 3)),
+                Arguments.of("RIGHT", function("RIGHT", 3)),
+                Arguments.of("native on the right", nativeOnTheRight()),
+                Arguments.of("nested", nested()),
+                Arguments.of("AND group", CriteriaCondition.and(plain, function("UPPER"))),
+                Arguments.of("OR group", CriteriaCondition.or(function("UPPER"), plain)),
+                Arguments.of("NOT", function("UPPER").negate()),
+                Arguments.of("deep group", CriteriaCondition.and(plain,
+                        CriteriaCondition.or(plain, function("LOWER").negate()))));
+    }
+
+    @Nested
+    @DisplayName("Given a native function predicate")
+    class Rejected {
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("org.eclipse.jnosql.databases.cassandra.communication.CassandraNativeFunctionRejectionTest#conditions")
+        void shouldRejectSelect(String name, CriteriaCondition condition) {
+            var query = new DefaultSelectQuery(0, 0, "people", List.of(), List.of(), condition, false);
+
+            assertSoftly(soft -> soft.assertThatThrownBy(() -> manager.select(query))
+                    .isInstanceOf(UnsupportedOperationException.class).hasMessageContaining("Native functions"));
+            verifyNoInteractions(session);
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("org.eclipse.jnosql.databases.cassandra.communication.CassandraNativeFunctionRejectionTest#conditions")
+        void shouldRejectCount(String name, CriteriaCondition condition) {
+            var query = new DefaultSelectQuery(0, 0, "people", List.of(), List.of(), condition, true);
+
+            assertSoftly(soft -> soft.assertThatThrownBy(() -> manager.count(query))
+                    .isInstanceOf(UnsupportedOperationException.class));
+            verifyNoInteractions(session);
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("org.eclipse.jnosql.databases.cassandra.communication.CassandraNativeFunctionRejectionTest#conditions")
+        @DisplayName("A rejected delete never becomes an unrestricted mutation")
+        void shouldRejectDelete(String name, CriteriaCondition condition) {
+            var query = NativeFunctionQueries.delete("people", condition, List.of());
+
+            assertSoftly(soft -> soft.assertThatThrownBy(() -> manager.delete(query))
+                    .isInstanceOf(UnsupportedOperationException.class));
+            verifyNoInteractions(session);
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("org.eclipse.jnosql.databases.cassandra.communication.CassandraNativeFunctionRejectionTest#conditions")
+        @DisplayName("A rejected update never becomes an unrestricted mutation")
+        void shouldRejectUpdate(String name, CriteriaCondition condition) {
+            var query = NativeFunctionQueries.update("people", List.of(Element.of("flag", true)), condition);
+
+            assertSoftly(soft -> soft.assertThatThrownBy(() -> manager.update(query))
+                    .isInstanceOf(UnsupportedOperationException.class));
+            verifyNoInteractions(session);
+        }
+    }
+
+    @Nested
+    @DisplayName("Given an ordinary predicate whose value came from an evaluable function")
+    class Ordinary {
+
+        @Test
+        @DisplayName("The evaluated value is sent as an ordinary CQL literal")
+        void shouldKeepOrdinaryQueries() {
+            var resultSet = mock(ResultSet.class);
+            when(resultSet.iterator()).thenReturn(java.util.Collections.emptyIterator());
+            when(session.execute(any(SimpleStatement.class))).thenReturn(resultSet);
+            var query = new DefaultSelectQuery(0, 0, "people", List.of(), List.of(),
+                    CriteriaCondition.eq(Element.of("name", "OTAVIO")), false);
+
+            manager.select(query).toList();
+
+            var captor = ArgumentCaptor.forClass(SimpleStatement.class);
+            verify(session).execute(captor.capture());
+            assertSoftly(soft -> soft.assertThat(captor.getValue().getQuery())
+                    .isEqualTo("SELECT * FROM library.people WHERE name='OTAVIO'"));
+        }
+    }
+}
